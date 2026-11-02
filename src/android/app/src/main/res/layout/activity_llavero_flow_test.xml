@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Nombre: activity_llavero_flow_test.xml
+ Descripción: Pantalla temporal de prueba QR + BLE + GPS.
+ Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ Fecha: 02/11/2026
+ Autor: ...
+ Aportación: UI de diagnóstico, no diseño definitivo.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="24dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="SENDA · Integración QR / BLE / GPS" android:textSize="22sp" android:paddingBottom="18dp" />
+        <TextView android:id="@+id/sendaEstado" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:paddingBottom="15dp" />
+        <Button android:id="@+id/sendaQr" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="1. Escanear QR" />
+        <TextView android:id="@+id/sendaLlavero" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:padding="12dp" android:text="Ningún llavero seleccionado" />
+        <Button android:id="@+id/sendaIniciar" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="2. Iniciar BLE + GPS" />
+        <Button android:id="@+id/sendaDetener" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Detener" />
+        <TextView android:id="@+id/sendaLectura" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:padding="12dp" android:text="Sin lecturas" />
+        <TextView android:id="@+id/sendaGps" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:padding="12dp" android:text="GPS sin iniciar" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="MODO PRUEBA: QR y nombre BLE no validan propiedad del dispositivo. No envía mediciones al servidor."
+            android:paddingTop="15dp" />
+    </LinearLayout>
+</ScrollView>

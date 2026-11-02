@@ -58,6 +58,13 @@
             android:name=".qr.QrTestActivity"
             android:exported="true" />
 
+
+        <!-- Pantalla temporal de integración QR + BLE + GPS -->
+        <activity
+            android:name=".integration.LlaveroFlowTestActivity"
+            android:exported="true" />
+
+
     </application>
 
 </manifest>
