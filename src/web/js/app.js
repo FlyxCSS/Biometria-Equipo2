@@ -28,6 +28,8 @@ function mostrar(seccion) {
     for (const id of ['acceso', 'recuperacion', 'restablecer', 'panel']) {
         elemento(id).hidden = id !== seccion;
     }
+    document.body.classList.toggle('panel-abierto', seccion === 'panel');
+    elemento('navegacion-privada').hidden = seccion !== 'panel' || usuarioActual?.rol !== 'jefe_parque';
     mensaje('');
 }
 

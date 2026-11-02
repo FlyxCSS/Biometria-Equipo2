@@ -236,4 +236,28 @@ $clave = hash('sha256', '/api/v1/sesiones:cuenta:limite-' . $sufijo . '@example.
 sql('INSERT INTO LIMITES (clave, ventana, intentos) VALUES (?, UTC_TIMESTAMP(), 10)', [$clave]);
 pedir('POST', '/sesiones', ['correo' => "limite-$sufijo@example.org", 'contrasena' => $password], '', 429);
 
+// La landing permite solicitar información, pero nunca consultar contactos públicamente.
+$solicitud = ['nombre' => 'Persona de prueba', 'correo' => "contacto-$sufijo@example.org",
+    'organizacion' => 'Entidad de prueba', 'mensaje' => 'Nos gustaría conocer la propuesta para nuestro parque.'];
+$contacto = pedir('POST', '/solicitudes', $solicitud, '', 201);
+comprobar(!isset($contacto['data']['correo']), 'La respuesta de contacto no repite datos personales.');
+$guardada = sql('SELECT * FROM SOLICITUDES_CONTACTO WHERE correo = ?', [$solicitud['correo']])->fetch();
+comprobar($guardada && $guardada['mensaje'] === $solicitud['mensaje'], 'Solicitud pública realmente persistida.');
+$corta = $solicitud;
+$corta['mensaje'] = 'Hola';
+pedir('POST', '/solicitudes', $corta, '', 422);
+$extra = $solicitud;
+$extra['rol'] = 'proveedor';
+pedir('POST', '/solicitudes', $extra, '', 422);
+pedir('GET', '/solicitudes', null, '', 405);
+comprobar((int)sql('SELECT COUNT(*) FROM SOLICITUDES_CONTACTO WHERE correo = ?', [$solicitud['correo']])->fetchColumn() === 1, 'Los rechazos no añaden solicitudes.');
+foreach (['/' => 'OZORA · Conoce el aire', '/acceso' => 'SENDA · Parque'] as $rutaPublica => $titulo) {
+    $html = file_get_contents($base . $rutaPublica);
+    comprobar(str_contains($html, $titulo), "Página disponible: $rutaPublica");
+}
+foreach (['/assets/ozora.svg', '/assets/senda.svg', '/assets/bosque.png', '/assets/fonts/sora.ttf', '/assets/fonts/manrope.ttf'] as $recursoPublico) {
+    $bytes = file_get_contents($base . $recursoPublico);
+    comprobar(strlen($bytes) > 100, "Recurso público no vacío: $recursoPublico");
+}
+
 echo "$comprobaciones comprobaciones HTTP/MySQL correctas.\n";

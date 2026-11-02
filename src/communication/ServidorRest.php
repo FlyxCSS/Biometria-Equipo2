@@ -58,6 +58,7 @@ function atenderApi(): never
             '/api/v1/trabajadores' => ['POST'],
             '/api/v1/recuperaciones' => ['POST'],
             '/api/v1/recuperaciones/confirmacion' => ['POST'],
+            '/api/v1/solicitudes' => ['POST'],
         ];
         $parque = null;
         if (preg_match('~^/api/v1/parques/([1-9][0-9]{0,8})/mediciones/ultima$~D', $ruta, $coincidencias)) {
@@ -79,7 +80,12 @@ function atenderApi(): never
         $logica = new LogicaNegocio($db, $config);
         $datos = $metodo === 'POST' ? leerJson() : [];
         $estado = 200;
-        if ($ruta === '/api/v1/sesiones' || $ruta === '/api/v1/recuperaciones') {
+        if ($ruta === '/api/v1/solicitudes') {
+            $correo = validarCorreo($datos['correo'] ?? null);
+            $logica->limitar($ruta, $_SERVER['REMOTE_ADDR'] ?? 'desconocida', $correo);
+            $resultado = $logica->registrarSolicitud($datos);
+            $estado = 201;
+        } elseif ($ruta === '/api/v1/sesiones' || $ruta === '/api/v1/recuperaciones') {
             $correo = validarCorreo($datos['correo'] ?? null);
             $logica->limitar($ruta, $_SERVER['REMOTE_ADDR'] ?? 'desconocida', $correo);
             if ($ruta === '/api/v1/sesiones') {

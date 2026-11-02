@@ -211,7 +211,7 @@ final class LogicaNegocio
             VALUES (?, ?, ?, UTC_TIMESTAMP(3) + INTERVAL 30 MINUTE)',
             [hash('sha256', $token), $usuario['id_usuario'], $finalidad]);
         // El fragmento no viaja al servidor al abrir la web; JS lo consume y lo borra de la barra.
-        $enlace = rtrim($this->config['app_url'], '/') . '/#token=' . $token;
+        $enlace = rtrim($this->config['app_url'], '/') . '/acceso#token=' . $token;
         $this->consulta('INSERT INTO CORREOS_PENDIENTES (destinatario, asunto, cuerpo) VALUES (?, ?, ?)',
             [$usuario['email'], 'SENDA: establece tu contraseña',
                 "Abre este enlace para establecer tu contraseña. Caduca en 30 minutos y solo puede usarse una vez.\n\n$enlace\n\nSi no lo has solicitado, ignora este correo."]);
@@ -266,6 +266,26 @@ final class LogicaNegocio
             throw $error;
         }
         return ['mensaje' => 'Si la cuenta permite recuperar el acceso, recibirás un enlace por correo.'];
+    }
+
+    /** Diseño lógico: (datos de contacto) -> registrarSolicitud -> confirmación de recepción.
+     * Descripción: Guarda una solicitud pública sin crear una cuenta ni enviar correos en su nombre. */
+    public function registrarSolicitud(array $datos): array
+    {
+        exigirCampos($datos, ['nombre', 'correo', 'organizacion', 'mensaje']);
+        $correo = validarCorreo($datos['correo']);
+        foreach (['nombre' => 100, 'organizacion' => 100, 'mensaje' => 4000] as $campo => $maximo) {
+            if (!is_string($datos[$campo]) || trim($datos[$campo]) === ''
+                || mb_strlen(trim($datos[$campo]), 'UTF-8') > $maximo || str_contains($datos[$campo], "\0")) {
+                throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Revisa los datos de contacto.', [$campo => 'Campo obligatorio o demasiado largo.']);
+            }
+        }
+        if (mb_strlen(trim($datos['mensaje']), 'UTF-8') < 10) {
+            throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Describe tu consulta con al menos 10 caracteres.');
+        }
+        $this->consulta('INSERT INTO SOLICITUDES_CONTACTO (nombre, correo, organizacion, mensaje) VALUES (?, ?, ?, ?)',
+            [trim($datos['nombre']), $correo, trim($datos['organizacion']), trim($datos['mensaje'])]);
+        return ['mensaje' => 'Hemos recibido tu solicitud de información sobre SENDA. Gracias por contarnos tu proyecto.'];
     }
 
     /** Diseño lógico: (token, contraseña nueva) -> restablecerContrasena -> confirmación.

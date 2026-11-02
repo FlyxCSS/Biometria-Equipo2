@@ -200,6 +200,8 @@ Guardar en `tests/` ejemplos y evidencias sin credenciales ni tokens reales. La 
 
 ## 7. Decisiones pendientes de coordinar con el equipo
 
+Ampliación de web pública (independiente de Android): `POST /api/v1/solicitudes`, sin sesión, recibe `nombre`, `correo`, `organizacion` y `mensaje`. Devuelve 201 con `ok:true` y `data.mensaje` después de persistir la solicitud. Nombre y organización: 1 a 100 caracteres; correo válido hasta 100 bytes; mensaje: 10 a 4000 caracteres. Errores 422 por validación, 429 por límite y 405 si se intenta consultar la lista públicamente. No crea usuarios ni envía correo externo. Los endpoints Android conservan sus rutas y JSON.
+
 - Personas 1 y 2: aceptar rutas, nombres, UTC con milisegundos, ppb, respuesta de errores e idempotencia.
 - Persona 1: acordar comportamiento sin GPS, posible reloj adelantado y frecuencia de capturas para evitar colisiones temporales.
 - Persona 2: acordar duración/renovación de sesión, roles, enlace de recuperación, política de contraseña y persistencia de recorridos.

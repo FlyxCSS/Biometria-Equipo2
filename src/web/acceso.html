@@ -1,0 +1,69 @@
+<!doctype html>
+<!--
+Nombre: acceso.html
+Descripción: Web temporal para pruebas de trabajadores y mediciones del parque.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 02/11/2026
+Autor: Julia (con asistencia de Codex).
+Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SENDA · Parque</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+  <script src="/js/app.js" defer></script>
+</head>
+<body>
+  <header class="cabecera"><a class="marca" href="/acceso"><img src="/assets/senda.svg" alt="" width="32" height="30.1714"><span>SENDA<small>por Ozora</small></span></a><span class="etiqueta">Web auxiliar · Sprint 2</span><nav id="navegacion-privada" aria-label="Navegación del parque" hidden><a href="#ultima-lectura">Última medición</a><a href="#alta-trabajador">Registrar trabajador</a></nav><a class="volver-publica" href="/">Volver a OZORA</a></header>
+  <main>
+    <div id="mensaje" role="status" aria-live="polite" tabindex="-1"></div>
+    <section id="acceso" class="tarjeta estrecha">
+      <p class="ceja">Acceso al parque</p><h1>Tu parque, conectado.</h1>
+      <p>Entra con tu cuenta para registrar trabajadores y consultar la última lectura recibida.</p>
+      <form id="form-login">
+        <label for="correo">Correo electrónico</label><input id="correo" name="correo" type="email" maxlength="100" autocomplete="username" required>
+        <label for="contrasena">Contraseña</label><input id="contrasena" name="contrasena" type="password" autocomplete="current-password" required>
+        <button type="submit">Iniciar sesión</button>
+      </form>
+      <button id="abrir-recuperacion" class="enlace" type="button">¿Has olvidado tu contraseña?</button>
+    </section>
+
+    <section id="recuperacion" class="tarjeta estrecha" hidden>
+      <p class="ceja">Recuperar acceso</p><h1>Vuelve a entrar.</h1>
+      <p>Te enviaremos un enlace si tu cuenta permite recuperar el acceso. Caduca en 30 minutos.</p>
+      <form id="form-recuperacion"><label for="correo-recuperacion">Correo electrónico</label><input id="correo-recuperacion" name="correo" type="email" maxlength="100" autocomplete="email" required><button type="submit">Solicitar enlace</button></form>
+      <button id="volver-acceso" class="enlace" type="button">Volver al acceso</button>
+    </section>
+
+    <section id="restablecer" class="tarjeta estrecha" hidden>
+      <p class="ceja">Establecer contraseña</p><h1>Un nuevo comienzo.</h1>
+      <p>Usa una contraseña de entre 12 y 72 bytes UTF-8. Los caracteres acentuados pueden ocupar más de un byte.</p>
+      <form id="form-restablecer">
+        <label for="nueva">Nueva contraseña</label><input id="nueva" name="nueva" type="password" minlength="12" autocomplete="new-password" required>
+        <label for="repetir">Repetir contraseña</label><input id="repetir" name="repetir" type="password" autocomplete="new-password" required>
+        <button type="submit">Guardar contraseña</button>
+      </form>
+      <button id="cancelar-restablecer" class="enlace" type="button">Volver al acceso</button>
+    </section>
+
+    <section id="panel" hidden>
+      <div class="titulo-panel"><div><p class="ceja">Panel del parque</p><h1 id="saludo">Bienvenido</h1><p id="parque"></p></div><button id="salir" class="secundario" type="button">Cerrar sesión</button></div>
+      <div id="contenido-jefe" class="columnas" hidden>
+        <section id="ultima-lectura" class="tarjeta"><div class="fila"><h2>Última medición</h2><button id="actualizar" class="secundario" type="button">Actualizar</button></div>
+          <p class="nota">Lectura más reciente por fecha de captura entre todos los llaveros del parque.</p>
+          <div id="lectura" aria-live="polite"><p>Aún no se ha consultado.</p></div>
+          <p class="nota">La lectura no constituye una evaluación oficial de la calidad del aire.</p>
+        </section>
+        <section id="alta-trabajador" class="tarjeta"><h2>Registrar trabajador</h2><p>La cuenta quedará asociada a este parque. Recibirá un enlace para establecer su contraseña.</p>
+          <form id="form-alta"><label for="nombre-trabajador">Nombre</label><input id="nombre-trabajador" name="nombre" maxlength="100" autocomplete="name" required><label for="correo-trabajador">Correo electrónico</label><input id="correo-trabajador" name="correo" type="email" maxlength="100" autocomplete="email" required><button type="submit">Crear cuenta</button></form>
+          <p class="nota">El alta no asigna un llavero. Esta web temporal no incluye toda la gestión de trabajadores.</p>
+        </section>
+      </div>
+      <section id="contenido-trabajador" class="tarjeta" hidden><h2>Tu cuenta está lista.</h2><p>Utiliza la aplicación Android para vincular tu llavero y enviar las mediciones. Este panel de registro está reservado al jefe de parque.</p></section>
+    </section>
+  </main>
+  <footer>OZORA / SENDA · Entorno auxiliar de integración</footer>
+</body>
+</html>

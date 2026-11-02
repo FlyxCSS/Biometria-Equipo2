@@ -17,18 +17,28 @@ Verificación local realizada el 02/11/2026 sobre `feature/backend-web-simulacio
 | Sintaxis JavaScript (`node --check`) | Sin errores |
 | Análisis del script PowerShell | Sin errores |
 | `php tests/validacion.php` | 25 comprobaciones correctas |
-| `php tests/integracion.php`, ejecución final | 152 comprobaciones HTTP/MySQL correctas |
+| `php tests/integracion.php`, ejecución final tras añadir web pública | 170 comprobaciones HTTP/MySQL correctas |
 | Importación del SQL en las dos bases vacías | Correcta |
 | Navegador: login de jefe, parque sin datos y actualización | Correcto |
 | Captura ficticia enviada mediante login + POST de la API | Guardada; visible como 42 ppb de S-001 |
 | Navegador: alta de trabajador ficticio | Cuenta creada; enlace encolado |
 | Buzón local y uso de enlaces en pruebas HTTP | Alta y recuperación correctas |
 
-Las 152 comprobaciones cuentan tanto estados HTTP y estructura de respuesta como aserciones sobre datos: no representan 152 historias o endpoints distintos. No contienen tokens ni datos personales reales.
+Las 170 comprobaciones cuentan tanto estados HTTP y estructura de respuesta como aserciones sobre datos: no representan 170 historias o endpoints distintos. No contienen tokens ni datos personales reales. La ampliación comprueba el guardado real de una solicitud pública, el rechazo de campos incorrectos, la ausencia de listado público, las páginas OZORA/acceso y la disponibilidad de logos, fotografía y fuentes locales.
 
 Cobertura de integración: credenciales incorrectas; cuenta y organización inactivas; sesiones válidas, caducadas, revocadas por logout o cambio de contraseña; rol de jefe y trabajador; aislamiento de dos organizaciones y parques; llavero ajeno/inactivo; JSON incorrecto, arrays, tipo MIME erróneo y cuerpo grande; validación sin inserciones; guardado confirmado; reintento sin duplicar; conflicto sin sobrescribir; milisegundos y precisión completa de coordenadas; última captura entre varios llaveros, empates y orden diferente al de recepción; reasignación sin trasladar histórico; alta con correo único y sin inyección de parque; enlace de alta; respuesta genérica de recuperación; token caducado, consumido y cuenta desactivada; revocación de sesiones; métodos y rutas incorrectos; límite de intentos; archivos privados inaccesibles por HTTP.
 
 La verificación de precisión incluye coordenadas con más decimales de los que preserva la conversión automática de PHP a string. El guardado conserva esos valores para evitar falsos conflictos en reintentos.
+
+## Web pública e identidad visual
+
+Revisadas la conversación «Diseñar identidad visual en Figma», la arquitectura de la carpeta secundaria y los contextos de Figma de `54:220` (OZORA) y `59:1206` (SENDA). Se han incorporado sus recursos originales y fuentes locales. Se conserva el alcance funcional actual del panel; no se han añadido métricas o listados ficticios al área privada.
+
+Comprobaciones en navegador: portada desktop a 1512 px, acceso real de jefe y última medición, formulario público con datos ficticios y confirmación del servidor, recursos visuales cargados y sin errores de consola. Vista móvil a 390 px: corregido un desbordamiento de las tarjetas de solución; portada y panel sin desbordamiento horizontal. Verificado el enlace antiguo `/#token=...` con token ficticio: conduce al formulario de `/acceso` y limpia el fragmento, sin cambiar contraseñas.
+
+![Portada OZORA desktop](evidencias/ozora-desktop.jpg)
+
+Otras evidencias: [OZORA móvil](evidencias/ozora-movil.jpg) y [panel con identidad SENDA](evidencias/panel-senda-figma.jpg).
 
 Captura de la demo, con cuentas, coordenadas y medición ficticias:
 

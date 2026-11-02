@@ -24,7 +24,20 @@ function instalarEsquema(PDO $db): void
     }
     $sql = file_get_contents(dirname(__DIR__) . '/src/database/database.sql');
     $db->exec($sql);
+    actualizarContacto($db);
     echo "Esquema instalado.\n";
+}
+
+/** Diseño lógico: (PDO) -> actualizarContacto -> vacío.
+ * Descripción: Añade la tabla de contacto a una instalación anterior sin borrar ni alterar datos. */
+function actualizarContacto(PDO $db): void
+{
+    if (!$db->query("SHOW TABLES LIKE 'SOLICITUDES_CONTACTO'")->fetch()) {
+        $db->exec(file_get_contents(dirname(__DIR__) . '/src/database/migrations/001_solicitudes_contacto.sql'));
+        echo "Tabla de contacto creada.\n";
+    } else {
+        echo "La tabla de contacto ya existe.\n";
+    }
 }
 
 /** Diseño lógico: (PDO, configuración) -> crearDemo -> vacío.
@@ -67,6 +80,11 @@ try {
         case 'instalar': instalarEsquema($db); break;
         case 'demo': crearDemo($db, $config); break;
         case 'correo': echo entregarCorreos($db, $config) . " correos entregados.\n"; break;
+        case 'actualizar-contacto': actualizarContacto($db); break;
+        case 'solicitudes':
+            // Solo consola del administrador. Nunca publicar solicitudes mediante una ruta GET.
+            echo json_encode($db->query('SELECT * FROM SOLICITUDES_CONTACTO ORDER BY recibida_en DESC LIMIT 50')->fetchAll(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
+            break;
         case 'limpiar':
             // Solo registros técnicos caducados. No toca personas ni mediciones.
             $db->exec('DELETE FROM SESIONES WHERE expira_en < UTC_TIMESTAMP(3)');
@@ -75,7 +93,7 @@ try {
             $db->exec('DELETE FROM CORREOS_PENDIENTES WHERE enviado_en IS NOT NULL AND enviado_en < UTC_TIMESTAMP(3) - INTERVAL 1 DAY');
             echo "Registros técnicos caducados eliminados.\n";
             break;
-        default: echo "Uso: php tools/gestionar.php instalar|demo|correo|limpiar\n"; exit(1);
+        default: echo "Uso: php tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|solicitudes\n"; exit(1);
     }
 } catch (Throwable $error) {
     fwrite(STDERR, 'Error de administración: ' . $error->getMessage() . "\n");

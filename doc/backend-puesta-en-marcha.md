@@ -11,6 +11,14 @@ Aportación: Instrucciones reproducibles para Julia y los clientes Android.
 
 Implementación local en `feature/backend-web-simulacion`. Contrato provisional en `doc/contracts/backend-android-v1.md`; pendiente de contrastar con los otros dos programadores. No se ha modificado Android ni mezclado su rama.
 
+La portada pública OZORA está en `/`; el acceso y el panel SENDA, en `/acceso`. Se han seguido la landing HiFi `54:220`, el panel `59:1206` y la arquitectura de información de la carpeta secundaria. La web pública presenta el diseño previsto y distingue los mapas e históricos conceptuales de las funciones ya operativas.
+
+Actualización para una instalación de la versión anterior: `php tools/gestionar.php actualizar-contacto`. Añade solo `SOLICITUDES_CONTACTO`, sin borrar ni cambiar registros existentes. La instalación nueva con `instalar` ya aplica esta ampliación. Si se importa únicamente `database.sql` manualmente, importar después `src/database/migrations/001_solicitudes_contacto.sql`.
+
+El formulario público usa `POST /api/v1/solicitudes`: nombre, correo, organización y mensaje, con validación y límite de intentos. La confirmación corresponde al guardado real. No envía correos externos ni da de alta cuentas. El administrador puede consultar las últimas 50 solicitudes mediante `php tools/gestionar.php solicitudes`, desde su consola privada; no hay un endpoint público para listarlas. Proteger estos registros y no copiarlos a las evidencias.
+
+Los nuevos correos de recuperación enlazan a `/acceso#token=...`. La landing redirige los antiguos enlaces `/#token=...` al acceso y allí se borra el fragmento. Se conserva compatibilidad con los enlaces ya emitidos.
+
 ## Entorno preparado en este ordenador
 
 PHP 8.4.27 y MySQL 8.4.13 portables, descargados desde sus distribuidores oficiales bajo `.local/tools/`, sin instalar servicios de Windows. MySQL escucha solo en `127.0.0.1:3307`; la web de demo en `http://127.0.0.1:8080`. Bases independientes: `senda_local` para demo y `senda_test` para pruebas.

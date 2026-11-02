@@ -1,7 +1,7 @@
 <?php
 /*
  * Nombre: index.php
- * Descripción: Controlador público para la web auxiliar y la API.
+ * Descripción: Controlador público para OZORA, el acceso SENDA y la API.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
  * Autor: Julia (con asistencia de Codex).
@@ -19,8 +19,18 @@ if (str_starts_with($ruta, '/api/')) {
 }
 // Lista explícita: nunca entregar configuración, SQL, herramientas o código PHP.
 $archivos = ['/' => ['index.html', 'text/html'], '/index.html' => ['index.html', 'text/html'],
-    '/index.php' => ['index.html', 'text/html'], '/js/app.js' => ['js/app.js', 'text/javascript'],
+    '/index.php' => ['index.html', 'text/html'], '/acceso' => ['acceso.html', 'text/html'],
+    '/acceso/' => ['acceso.html', 'text/html'], '/js/app.js' => ['js/app.js', 'text/javascript'],
+    '/js/publica.js' => ['js/publica.js', 'text/javascript'], '/css/publica.css' => ['css/publica.css', 'text/css'],
     '/css/estilos.css' => ['css/estilos.css', 'text/css']];
+// El nombre debe ser un archivo simple existente, sin segmentos de directorio del solicitante.
+if (preg_match('~^/assets/([a-z0-9-]+\.(svg|png))$~D', $ruta, $recurso)) {
+    $archivo = 'assets/' . $recurso[1];
+    if (is_file(__DIR__ . '/' . $archivo)) $archivos[$ruta] = [$archivo, $recurso[2] === 'svg' ? 'image/svg+xml' : 'image/png'];
+}
+if (preg_match('~^/assets/fonts/(sora|manrope)\.ttf$~D', $ruta, $fuente)) {
+    $archivos[$ruta] = ['assets/fonts/' . $fuente[1] . '.ttf', 'font/ttf'];
+}
 if (!isset($archivos[$ruta])) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=UTF-8');
