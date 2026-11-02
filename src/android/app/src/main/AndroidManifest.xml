@@ -53,6 +53,11 @@
             android:name=".bluetooth.BleTestActivity"
             android:exported="true" />
 
+        <!-- Pantalla temporal para probar lectura QR -->
+        <activity
+            android:name=".qr.QrTestActivity"
+            android:exported="true" />
+
     </application>
 
 </manifest>
