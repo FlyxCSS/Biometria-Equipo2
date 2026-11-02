@@ -21,10 +21,7 @@ import java.util.TimeZone;
 public final class PreparadorMediciones {
     public static final long MAX_EDAD_UBICACION_MS = 30_000L;
     public static final float MAX_PRECISION_METROS = 50f;
-    private static final long VENTANA_DUPLICADO_MS = 20_000L;
-    private int ultimoContador = -1;
-    private long ultimoRegistroElapsed = -1;
-    private String ultimoLlavero;
+    private final ControlContadores contadores = new ControlContadores();
 
     /** Diseño lógico: (String, IBeaconParser.Resultado, Location) -> preparar() -> (Resultado)
      * Descripción: Rechaza otra emisora, tramas no O3, ubicación antigua o imprecisa y duplicados recientes. */
@@ -45,23 +42,19 @@ public final class PreparadorMediciones {
         if (!Double.isFinite(lat) || !Double.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180)
             return Resultado.error("Coordenadas inválidas.");
         long ahora = SystemClock.elapsedRealtime();
-        if (seleccionado.equalsIgnoreCase(ultimoLlavero) && trama.contador == ultimoContador
-                && ultimoRegistroElapsed >= 0 && ahora - ultimoRegistroElapsed < VENTANA_DUPLICADO_MS)
+        if (!contadores.aceptar(seleccionado.toUpperCase(Locale.ROOT), trama.contador, ahora))
             return Resultado.error("Anuncio BLE repetido (contador " + trama.contador + ").");
         // El instante representa recepción BLE, no la adquisición real del sensor.
         SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT);
         formato.setTimeZone(TimeZone.getTimeZone("UTC"));
         MedicionAmbiental medicion = new MedicionAmbiental(seleccionado, trama.minor, lat, lon,
                 ubicacion.getAccuracy(), formato.format(new Date()), trama.contador);
-        ultimoContador = trama.contador;
-        ultimoRegistroElapsed = ahora;
-        ultimoLlavero = seleccionado;
         return Resultado.ok(medicion);
     }
 
     /** Diseño lógico: () -> reiniciar() -> (void)
      * Descripción: Limpia los controles de duplicados al comenzar otra prueba. */
-    public void reiniciar() { ultimoContador = -1; ultimoRegistroElapsed = -1; ultimoLlavero = null; }
+    public void reiniciar() { contadores.reiniciar(); }
 
     /** Resultado con medición o motivo de descarte. */
     public static final class Resultado {

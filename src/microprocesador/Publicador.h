@@ -4,7 +4,7 @@
 // Fichero: Publicador.h
 // Descripción: Codificación y publicación de mediciones BLE.
 // Fecha: 2026-11-02
-// Autor: ---
+// Autor: ...
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: publicación genérica de mediciones mediante iBeacon
 //             y centralización del nombre del microprocesador.
@@ -45,10 +45,10 @@ private:
 
   // UUID que identifica el proyecto.
   uint8_t beaconUUID[16] = {
-    'E', 'P', 'S', 'G',
-    '-', 'G', 'T', 'I',
-    '-', 'P', 'R', 'O',
-    'Y', '-', '3', 'A'
+    'O', 'Z', 'O', 'R',
+    'A', '-', 'G', 'T',
+    'I', '-', '3', 'A',
+    '-', 'B', 'I', 'O'
   };
 
 

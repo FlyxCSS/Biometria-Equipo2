@@ -5,7 +5,7 @@
  *              iBeacon emitidos por los llaveros SENDA.
  * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
  * Fecha: 02/11/2026
- * Autor: ---
+ * Autor: ...
  * Aportación: decodificación de UUID, tipo, contador, valor
  *             de medición y potencia de referencia BLE.
  * ============================================================
@@ -23,7 +23,7 @@ public final class IBeaconParser {
     public static final int COMPANY_ID_APPLE = 0x004C;
     public static final int TIPO_O3 = 11;
     public static final int TIPO_TEMPERATURA = 12;
-    public static final String UUID_PROYECTO = "45505347-2D47-5449-2D50-524F592D3341";
+    public static final String UUID_PROYECTO = "4F5A4F52-412D-4754-492D-33412D42494F";
     private static final int LONGITUD_IBEACON = 23;
 
     // Diseño lógico: () -> IBeaconParser() -> (IBeaconParser)

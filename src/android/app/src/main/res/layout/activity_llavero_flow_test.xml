@@ -1,35 +1,174 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
  Nombre: activity_llavero_flow_test.xml
- Descripción: Pantalla temporal de prueba QR + BLE + GPS.
+ Descripción: Vista de diagnóstico QR BLE GPS, organizada en tarjetas.
  Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
  Fecha: 02/11/2026
  Autor: ...
- Aportación: UI de diagnóstico, no diseño definitivo.
+ Aportación: Pantalla provisional legible, no diseño definitivo.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F7F5"
     android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:padding="24dp">
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="SENDA · Integración QR / BLE / GPS" android:textSize="22sp" android:paddingBottom="18dp" />
-        <TextView android:id="@+id/sendaEstado" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:paddingBottom="15dp" />
-        <Button android:id="@+id/sendaQr" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="1. Escanear QR" />
-        <TextView android:id="@+id/sendaLlavero" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:padding="12dp" android:text="Ningún llavero seleccionado" />
-        <Button android:id="@+id/sendaIniciar" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="2. Iniciar BLE + GPS" />
-        <Button android:id="@+id/sendaDetener" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Detener" />
-        <TextView android:id="@+id/sendaLectura" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:padding="12dp" android:text="Sin lecturas" />
-        <TextView android:id="@+id/sendaGps" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:padding="12dp" android:text="GPS sin iniciar" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="MODO PRUEBA: QR y nombre BLE no validan propiedad del dispositivo. No envía mediciones al servidor."
-            android:paddingTop="15dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SENDA"
+            android:textColor="#244735"
+            android:textStyle="bold"
+            android:letterSpacing="0.10"
+            android:textSize="14sp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Diagnóstico del llavero"
+            android:textColor="#1E3026"
+            android:textStyle="bold"
+            android:textSize="26sp"
+            android:layout_marginTop="5dp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Prueba técnica · QR, Bluetooth y ubicación"
+            android:textColor="#5D7265"
+            android:textSize="14sp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="20dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/senda_test_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="01  ·  SELECCIONAR DISPOSITIVO"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textColor="#52705C" />
+            <TextView
+                android:id="@+id/sendaLlavero"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ningún llavero seleccionado"
+                android:textStyle="bold"
+                android:textColor="#23372C"
+                android:textSize="17sp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp" />
+            <Button
+                android:id="@+id/sendaQr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Escanear código QR"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/senda_test_card"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="02  ·  CAPTURA"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textColor="#52705C" />
+            <TextView
+                android:id="@+id/sendaEstado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Preparado para empezar"
+                android:textColor="#33483B"
+                android:textSize="14sp"
+                android:layout_marginTop="10dp" />
+            <Button
+                android:id="@+id/sendaIniciar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Iniciar BLE + ubicación"
+                android:textAllCaps="false"
+                android:layout_marginTop="12dp" />
+            <Button
+                android:id="@+id/sendaDetener"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Detener captura"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/senda_test_card"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="03  ·  ÚLTIMA MEDICIÓN"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textColor="#52705C" />
+            <TextView
+                android:id="@+id/sendaLectura"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sin lecturas"
+                android:textColor="#1F3829"
+                android:textSize="15sp"
+                android:lineSpacingExtra="5dp"
+                android:layout_marginTop="12dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/senda_test_card"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="04  ·  UBICACIÓN"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:textColor="#52705C" />
+            <TextView
+                android:id="@+id/sendaGps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sin ubicación"
+                android:textColor="#1F3829"
+                android:textSize="15sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginTop="12dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:padding="12dp"
+            android:background="@drawable/senda_test_note"
+            android:text="MODO PRUEBA · El QR y el nombre BLE no verifican la propiedad del llavero. Las mediciones NO se envían al servidor."
+            android:textColor="#665B38"
+            android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>
