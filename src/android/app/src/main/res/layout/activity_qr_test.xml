@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nombre: activity_qr_test.xml
+    Descripción: Interfaz temporal para pruebas de lectura QR SENDA.
+    Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+    Fecha: 02/11/2026
+    Autor: ...
+    Aportación: Pantalla funcional simple, sin diseño definitivo.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Prueba de QR - SENDA"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/botonEscanearQr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Escanear QR del llavero" />
+
+    <TextView
+        android:id="@+id/textoResultadoQr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Sin código QR leído."
+        android:textSize="16sp" />
+</LinearLayout>

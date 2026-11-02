@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Nombre: activity_ble_test.xml
+Descripción: Interfaz temporal para probar recepción BLE del llavero S-001.
+Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+Fecha: 02/11/2026
+Autor: ...
+Aportación: Controles de prueba independientes del diseño definitivo.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SENDA · Prueba Bluetooth BLE"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textoEstadoBle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Estado de prueba" />
+
+        <Button
+            android:id="@+id/botonIniciarBle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Iniciar escaneo" />
+
+        <Button
+            android:id="@+id/botonDetenerBle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Detener escaneo" />
+
+        <TextView
+            android:id="@+id/textoMedidaBle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Todavía no se ha recibido una trama."
+            android:textIsSelectable="true"
+            android:textSize="16sp" />
+    </LinearLayout>
+</ScrollView>
