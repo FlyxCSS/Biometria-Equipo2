@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
+import com.example.ozora.senda.model.MedicionAmbiental;
 import android.os.Bundle;
 import android.widget.TextView;
 import com.example.ozora.senda.R;
@@ -34,6 +35,8 @@ public final class LlaveroFlowTestActivity extends Activity implements BleScanne
     private BleScanner ble;
     private LocationTracker localizacion;
     private String seleccionado;
+    private final PreparadorMediciones preparador = new PreparadorMediciones();
+    private Location ultimaUbicacion;
 
     // Diseño lógico: (Bundle) -> onCreate() -> (void)
     // Descripción: Inicializa controles independientes de MainActivity.
@@ -63,6 +66,8 @@ public final class LlaveroFlowTestActivity extends Activity implements BleScanne
                     if (id == null) { estado.setText("QR no válido: utiliza S-001, S-002, etc."); return; }
                     detener();
                     seleccionado = id;
+                    ultimaUbicacion = null;
+                    preparador.reiniciar();
                     llavero.setText("Seleccionado: " + id + " (SIN autorización del servidor)");
                     lectura.setText("Sin lecturas del llavero elegido.");
                     estado.setText("QR leído. Pulsa Iniciar BLE + GPS para probar el filtro.");
@@ -85,6 +90,8 @@ public final class LlaveroFlowTestActivity extends Activity implements BleScanne
             requestPermissions(faltantes.toArray(new String[0]), SOLICITUD_PERMISOS);
             return;
         }
+        preparador.reiniciar();
+        ultimaUbicacion = null;
         boolean recibido = ble.iniciarEscaneo();
         // El inicio de escucha NO equivale a recibir una ubicación.
         gps.setText("Buscando ubicación… Activa la ubicación precisa y prueba cerca de una ventana o fuera.");
@@ -121,17 +128,28 @@ public final class LlaveroFlowTestActivity extends Activity implements BleScanne
     // Descripción: Filtra anuncios SENDA por el nombre BLE escaneado en el QR.
     @Override public void alRecibirTrama(IBeaconParser.Resultado medida, String mac) {
         if (seleccionado == null || medida.nombreBle == null || !seleccionado.equalsIgnoreCase(medida.nombreBle) || !medida.esOzono()) return;
-        runOnUiThread(() -> lectura.setText(String.format(Locale.ROOT,
-                "Llavero %s | O3: %d ppb (%.3f ppm) | contador %d | RSSI %d dBm",
-                seleccionado, medida.minor, medida.minor / 1000.0, medida.contador, medida.rssi)));
+        runOnUiThread(() -> {
+            PreparadorMediciones.Resultado resultado = preparador.preparar(seleccionado, medida, ultimaUbicacion);
+            if (resultado.medicion != null) {
+                MedicionAmbiental m = resultado.medicion;
+                lectura.setText("Medición preparada (NO enviada):\n" + m.resumen()
+                        + "\nContador: " + m.contador + " | RSSI: " + medida.rssi + " dBm");
+            } else if (resultado.mensaje != null && !resultado.mensaje.startsWith("Anuncio BLE repetido")) {
+                lectura.setText("Llavero " + seleccionado + " | O3: " + medida.minor
+                        + " ppb | " + resultado.mensaje);
+            }
+        });
     }
 
     // Diseño lógico: (Location) -> alRecibirUbicacion() -> (void)
     @Override public void alRecibirUbicacion(Location ubicacion) {
-        runOnUiThread(() -> gps.setText(String.format(Locale.ROOT,
+        runOnUiThread(() -> {
+            ultimaUbicacion = ubicacion;
+            gps.setText(String.format(Locale.ROOT,
                 "Ubicación (%s): %.6f, %.6f | precisión estimada: %.1f m | tiempo: %d ms",
                 ubicacion.getProvider(), ubicacion.getLatitude(), ubicacion.getLongitude(),
-                ubicacion.getAccuracy(), ubicacion.getTime())));
+                ubicacion.getAccuracy(), ubicacion.getTime()));
+        });
     }
 
     // Diseño lógico: (String) -> alOcurrirError() -> (void)
@@ -141,6 +159,7 @@ public final class LlaveroFlowTestActivity extends Activity implements BleScanne
     private void detener() {
         if (ble != null) ble.detenerEscaneo();
         if (localizacion != null) localizacion.detener();
+        ultimaUbicacion = null;
         if (estado != null) estado.setText("Lecturas detenidas.");
     }
 
