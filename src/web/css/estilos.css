@@ -1,0 +1,48 @@
+/*
+ * Nombre: estilos.css
+ * Descripción: Presentación sencilla y adaptable de la web auxiliar SENDA.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 02/11/2026
+ * Autor: Julia (con asistencia de Codex).
+ * Aportación: Jerarquía, formularios legibles y estados de interacción.
+ */
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #173e33; background: #f3f6f2; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+.cabecera { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.5rem max(1.5rem, calc((100vw - 1100px) / 2)); background: #173e33; color: white; }
+.marca { color: inherit; text-decoration: none; font-size: 1.8rem; letter-spacing: .14em; font-weight: 750; }
+.marca span { display: block; font-size: .75rem; letter-spacing: .02em; font-weight: 400; margin-top: .25rem; }
+.etiqueta { font-size: .8rem; padding: .5rem .75rem; border: 1px solid #6b9182; border-radius: 2rem; }
+main { max-width: 1100px; min-height: 73vh; margin: 2.5rem auto; padding: 0 1.5rem; }
+.tarjeta { background: white; padding: 2rem; border: 1px solid #d8e2d9; border-radius: 1rem; box-shadow: 0 6px 25px #173e3305; }
+.estrecha { max-width: 490px; margin: 3rem auto; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.15; margin: .5rem 0 1rem; }
+h2 { font-size: 1.2rem; margin: 0 0 .8rem; }
+p { line-height: 1.6; color: #51645b; }
+.ceja { text-transform: uppercase; font-size: .72rem; font-weight: 750; letter-spacing: .13em; color: #316d53; margin: 0; }
+form { display: grid; gap: .6rem; margin-top: 1.5rem; }
+label { font-size: .9rem; font-weight: 600; margin-top: .5rem; }
+input { width: 100%; min-width: 0; padding: .8rem; border: 1px solid #acbdb1; border-radius: .4rem; font: inherit; }
+button { cursor: pointer; background: #205b42; color: white; border: 1px solid transparent; padding: .85rem 1rem; border-radius: .4rem; font: inherit; font-weight: 600; }
+form button { margin-top: .8rem; }
+button:hover { background: #174631; }
+button:disabled { opacity: .6; cursor: wait; }
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #be8c32; outline-offset: 3px; }
+.enlace { background: transparent; color: #205b42; padding: .8rem 0; text-decoration: underline; font-size: .9rem; margin-top: .5rem; }
+.enlace:hover { background: transparent; color: #173e33; }
+.secundario { background: white; border-color: #bccfc1; color: #205b42; font-size: .85rem; }
+.secundario:hover { background: #edf4ee; }
+.titulo-panel, .fila { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.titulo-panel { margin: 2rem 0; }
+.columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.nota { font-size: .82rem; }
+.valor { font-size: 3.6rem; font-weight: 700; margin: 1rem 0; color: #173e33; }
+.valor span { font-size: 1rem; font-weight: 500; }
+.simulada { display: inline-block; background: #fff2d3; color: #77530a; padding: .3rem .7rem; border-radius: 1rem; font-size: .8rem; font-weight: 650; }
+dl { display: grid; grid-template-columns: auto 1fr; gap: .65rem 1rem; font-size: .86rem; }
+dt { font-weight: 600; } dd { margin: 0; overflow-wrap: anywhere; }
+#mensaje:not(:empty) { padding: 1rem; border: 1px solid #8eaf97; border-radius: .5rem; background: #e8f4ea; line-height: 1.5; }
+#mensaje.error { background: #fff0ec; color: #823b26; border-color: #d2a393; }
+footer { padding: 1.5rem; text-align: center; color: #61736a; font-size: .8rem; }
+@media (max-width: 700px) { .columnas { grid-template-columns: 1fr; } .cabecera { align-items: flex-start; } .etiqueta { max-width: 130px; } .tarjeta { padding: 1.4rem; } .titulo-panel { align-items: flex-start; } }

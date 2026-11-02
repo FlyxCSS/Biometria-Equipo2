@@ -1,5 +1,7 @@
 # Biometria-Equipo2
 
+Backend Sprint 2 (rama `feature/backend-web-simulacion`): [arranque y demo](doc/backend-puesta-en-marcha.md), [contrato REST provisional](doc/contracts/backend-android-v1.md) y [evidencias de pruebas](tests/evidencia-backend.md).
+
 # SENDA — Plataforma de Monitorización Ambiental
 
 **Proyecto de Biometría y Medio Ambiente | Grado en Tecnologías Interactivas — UPV**

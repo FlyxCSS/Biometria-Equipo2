@@ -1,0 +1,52 @@
+# Nombre: endpoints.http
+# Descripción: Peticiones manuales de la demo para clientes REST compatibles.
+# Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+# Fecha: 02/11/2026
+# Autor: Julia (con asistencia de Codex).
+# Aportación: Ejemplos reproducibles sin tokens reales versionados.
+@base = http://127.0.0.1:8080/api/v1
+@token = REEMPLAZAR_CON_TOKEN_DEL_LOGIN
+
+### Login del trabajador ficticio. La contraseña debe coincidir con la usada al crear la demo.
+POST {{base}}/sesiones
+Content-Type: application/json
+
+{"correo":"trabajador@example.org","contrasena":"EjemploSoloParaPruebas-2026"}
+
+### Guardado: conservar fecha y cuerpo al reintentar esta misma lectura.
+POST {{base}}/mediciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{"nombre_micro":"S-001","tipo":"O3","valor":42,"unidad":"ppb","fecha_hora":"2026-11-02T12:00:00.000Z","latitud":39.4699,"longitud":-0.3763,"simulada":true}
+
+### Sesión actual
+GET {{base}}/sesiones/actual
+Authorization: Bearer {{token}}
+
+### Cerrar sesión
+DELETE {{base}}/sesiones/actual
+Authorization: Bearer {{token}}
+
+### Última lectura: usar token de jefe y el ID real de su parque.
+GET {{base}}/parques/1/mediciones/ultima
+Authorization: Bearer {{token}}
+
+### Alta: usar token de jefe.
+POST {{base}}/trabajadores
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{"nombre":"Trabajador de ejemplo","correo":"alta@example.org"}
+
+### Solicitud genérica de recuperación
+POST {{base}}/recuperaciones
+Content-Type: application/json
+
+{"correo":"trabajador@example.org"}
+
+### Confirmación: obtener el token del correo, no del JSON de solicitud.
+POST {{base}}/recuperaciones/confirmacion
+Content-Type: application/json
+
+{"token":"REEMPLAZAR_CON_TOKEN_DEL_CORREO","contrasena_nueva":"OtraContrasenaDePrueba-2026"}

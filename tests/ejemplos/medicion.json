@@ -1,0 +1,10 @@
+{
+  "nombre_micro": "S-001",
+  "tipo": "O3",
+  "valor": 42,
+  "unidad": "ppb",
+  "fecha_hora": "2026-11-02T12:00:00.000Z",
+  "latitud": 39.4699,
+  "longitud": -0.3763,
+  "simulada": true
+}
