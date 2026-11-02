@@ -21,3 +21,7 @@ if (!(Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyCo
     Start-Process -FilePath $phpSenda -ArgumentList @('-S', '127.0.0.1:8080', '-t', "`"$raizSenda/src/web`"", "`"$raizSenda/router.php`"") -WorkingDirectory $raizSenda -WindowStyle Hidden -RedirectStandardOutput (Join-Path $raizSenda '.local/http.out.log') -RedirectStandardError (Join-Path $raizSenda '.local/http.err.log')
 }
 Write-Output 'Web local: http://127.0.0.1:8080. Los servicios solo escuchan en este equipo.'
+if (!(Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue)) {
+    Start-Process -FilePath $phpSenda -ArgumentList @('-S', '127.0.0.1:8082', '-t', "`"$raizSenda/tools/bbdd`"", "`"$raizSenda/tools/bbdd/index.php`"") -WorkingDirectory $raizSenda -WindowStyle Hidden -RedirectStandardOutput (Join-Path $raizSenda '.local/bbdd.out.log') -RedirectStandardError (Join-Path $raizSenda '.local/bbdd.err.log')
+}
+Write-Output 'Visor de base de datos: http://127.0.0.1:8082 (solo lectura).'

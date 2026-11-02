@@ -31,6 +31,8 @@ Para volver a arrancar desde PowerShell en la raíz:
 ./tools/iniciar-local.ps1
 ```
 
+Para consultar MySQL en el navegador, abrir **http://127.0.0.1:8082/**. El visor separado permite elegir tabla y alternar Registros/Estructura; cada pulsación de Ver / actualizar consulta la BD actual. No permite editar ni ejecutar SQL, limita la vista a 100 filas y oculta contraseñas, hashes, tokens y cuerpos de correo. Solo responde en loopback, con Host `127.0.0.1:8082`, y en entorno local. No desplegar `tools/bbdd` en un servidor público.
+
 Si la política local impide ejecutar scripts, no cambiarla: usar las instrucciones de arranque PHP/MySQL de la siguiente sección. El script usa los puertos del entorno portable preparado y no inicializa ni instala servicios.
 
 Demo ficticia:
