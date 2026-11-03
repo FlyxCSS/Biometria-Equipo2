@@ -52,7 +52,9 @@ Captura de la demo, con cuentas, coordenadas y medición ficticias:
 
 ## Límites
 
-No se ha probado SMTP/correo a destinatarios reales, HTTPS de despliegue, Apache/Nginx, carga concurrente, Android en teléfono, BLE físico ni persistencia de recorridos. La captura confirma la demo local; no demuestra esos escenarios.
+Comprobación parcial en Plesk del 03/11/2026: portada y acceso servidos por HTTPS en `/senda`, solicitud ficticia guardada en MySQL y confirmada en phpMyAdmin; sesión sin credenciales rechazada con 401 y configuración privada inaccesible con 404. El esquema está importado y la conexión configurada. El panel autenticado remoto sigue pendiente de la creación de cuentas de prueba.
+
+No se ha probado SMTP/correo a destinatarios reales, carga concurrente, Android en teléfono, BLE físico ni persistencia de recorridos. Las comprobaciones de Plesk no sustituyen la integración completa con Android ni validan toda la configuración del servidor.
 
 La web auxiliar apoya HU-09, sin cubrir toda la gestión de trabajadores ni asignación y cupos de llaveros. HU-18 y HU-21 requieren además validar su integración con los clientes Android antes de cerrar las historias completas.
 

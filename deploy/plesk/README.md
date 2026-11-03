@@ -17,6 +17,6 @@ Configurar `senda_s2_privado/config/local.php` con el DSN, usuario y contraseña
 
 No copiar cuentas ni datos de la demo local al servidor. Preparar la organización, el parque y el primer jefe con sus propios datos y una contraseña almacenada como hash. No ejecutar las pruebas de integración contra esta base: utilizar una base independiente para pruebas.
 
-Estado del 03/11/2026: archivos publicados en estas rutas y esquema importado en `jvaldeo_senda_s2`. Portada HTTPS comprobada. Pendientes la contraseña privada de conexión, el primer usuario y la comprobación funcional remota; este estado no equivale a una validación completa de la instalación.
+Estado del 03/11/2026: archivos publicados en estas rutas y esquema importado en `jvaldeo_senda_s2`. Conexión configurada por la propietaria. Una solicitud ficticia enviada desde la portada se ha guardado y comprobado en phpMyAdmin. Acceso web HTTP 200; consulta de sesión sin credenciales HTTP 401; rutas de configuración privada HTTP 404. Pendientes la importación de las cuentas ficticias autorizadas por la propietaria y la comprobación del panel autenticado. El correo saliente todavía no está configurado ni validado.
 
 Validación local del prefijo: 203 comprobaciones de integración en la raíz y 203 en `/senda`, además de comprobación de sintaxis PHP y JavaScript.
