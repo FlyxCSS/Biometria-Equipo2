@@ -2,24 +2,109 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- INTERNET: conexion con el servidor -->
+    <uses-permission
+        android:name="android.permission.INTERNET" />
+
+    <!-- BIOMETRIA: Persona 2 -->
+    <uses-permission
+        android:name="android.permission.USE_BIOMETRIC" />
+
+    <uses-permission
+        android:name="android.permission.USE_FINGERPRINT" />
+
+    <!-- UBICACION: Persona 1 y Persona 2 -->
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- BLUETOOTH: Android 11 y anteriores -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!-- BLUETOOTH: Android 12 y posteriores -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN" />
+
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- SERVICIO DE RECORRIDO: Persona 2 -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <!-- SENSOR BLE NECESARIO -->
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
+
     <application
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SENDA">
+
+        <!-- PANTALLA INICIAL: PERSONA 2 -->
         <activity
-            android:name=".MainActivity"
+            android:name=".auth.LoginActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
+        <!-- PANTALLAS DE PERSONA 2 -->
+        <activity
+            android:name=".ui.HomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".routes.RouteActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.SummaryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".qr.QrScannerActivity"
+            android:exported="false" />
+
+        <!-- SERVICIO DE RECORRIDOS: PERSONA 2 -->
+        <service
+            android:name=".routes.RutaService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
+
+        <!-- PANTALLAS DE DIAGNOSTICO: PERSONA 1 -->
+        <activity
+            android:name=".bluetooth.BleTestActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".qr.QrTestActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".integration.LlaveroFlowTestActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
