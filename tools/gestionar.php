@@ -26,6 +26,7 @@ function instalarEsquema(PDO $db): void
     $db->exec($sql);
     actualizarContacto($db);
     actualizarContrasenas($db);
+    actualizarRoles($db);
     echo "Esquema instalado.\n";
 }
 
@@ -53,6 +54,23 @@ function actualizarContrasenas(PDO $db): void
     }
 }
 
+/** Diseño lógico: (PDO) -> actualizarRoles -> vacío.
+ * Descripción: Migra una instalación anterior; no repite una migración completada o parcial. */
+function actualizarRoles(PDO $db): void
+{
+    $antiguo = $db->query("SHOW COLUMNS FROM USUARIOS LIKE 'rol'")->fetch();
+    $catalogo = $db->query("SHOW TABLES LIKE 'ROLES'")->fetch();
+    if (!$antiguo && $catalogo) {
+        echo "El catálogo de roles ya está instalado.\n";
+        return;
+    }
+    if ($catalogo || !$antiguo) {
+        throw new RuntimeException('El esquema de roles necesita revisión; no se ha repetido la migración.');
+    }
+    $db->exec(file_get_contents(dirname(__DIR__) . '/src/database/migrations/003_roles.sql'));
+    echo "Roles migrados; cuentas y contraseñas conservadas.\n";
+}
+
 /** Diseño lógico: (PDO, configuración) -> crearDemo -> vacío.
  * Descripción: Añade un parque ficticio y dos cuentas con contraseña suministrada por entorno. */
 function crearDemo(PDO $db, array $config): void
@@ -71,7 +89,8 @@ function crearDemo(PDO $db, array $config): void
         $q = $db->prepare('INSERT INTO PARQUES (nombre, id_organizacion, cupo_llaveros, ubicacion) VALUES (?, ?, 2, ?)');
         $q->execute(['Parque de prueba', $organizacion, 'Entorno simulado']);
         $parque = (int)$db->lastInsertId();
-        $q = $db->prepare('INSERT INTO USUARIOS (nombre, email, password_hash, rol, id_parque, id_organizacion) VALUES (?, ?, ?, ?, ?, ?)');
+        $q = $db->prepare('INSERT INTO USUARIOS (nombre, email, password_hash, id_rol, id_parque, id_organizacion)
+            VALUES (?, ?, ?, (SELECT id_rol FROM ROLES WHERE codigo = ?), ?, ?)');
         $hash = password_hash($contrasena, PASSWORD_BCRYPT);
         $q->execute(['Jefe de prueba', 'jefe@example.org', $hash, 'jefe_parque', $parque, $organizacion]);
         $q->execute(['Trabajador de prueba', 'trabajador@example.org', $hash, 'trabajador', $parque, $organizacion]);
@@ -92,6 +111,7 @@ try {
     switch ($argv[1] ?? '') {
         case 'instalar': instalarEsquema($db); break;
         case 'demo': crearDemo($db, $config); break;
+        case 'actualizar-roles': actualizarRoles($db); break;
         case 'correo': echo entregarCorreos($db, $config) . " correos entregados.\n"; break;
         case 'actualizar-contacto': actualizarContacto($db); break;
         case 'actualizar-contrasenas': actualizarContrasenas($db); break;
@@ -107,7 +127,7 @@ try {
             $db->exec('DELETE FROM CORREOS_PENDIENTES WHERE enviado_en IS NOT NULL AND enviado_en < UTC_TIMESTAMP(3) - INTERVAL 1 DAY');
             echo "Registros técnicos caducados eliminados.\n";
             break;
-        default: echo "Uso: php tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|actualizar-contrasenas|solicitudes\n"; exit(1);
+        default: echo "Uso: php tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|actualizar-contrasenas|actualizar-roles|solicitudes\n"; exit(1);
     }
 } catch (Throwable $error) {
     fwrite(STDERR, 'Error de administración: ' . $error->getMessage() . "\n");

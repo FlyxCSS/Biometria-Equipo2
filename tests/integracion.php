@@ -89,7 +89,8 @@ foreach ([$organizacion, $otraOrganizacion] as $org) {
 $cuentas = [];
 foreach ([['jefe', 'jefe_parque', 0], ['trabajador', 'trabajador', 0], ['otro', 'trabajador', 1], ['jefeOtro', 'jefe_parque', 1], ['segundo', 'trabajador', 0]] as [$alias, $rol, $indice]) {
     $correo = "$alias-$sufijo@example.org";
-    sql('INSERT INTO USUARIOS (nombre, email, password_hash, rol, id_parque, id_organizacion) VALUES (?, ?, ?, ?, ?, ?)',
+    sql('INSERT INTO USUARIOS (nombre, email, password_hash, id_rol, id_parque, id_organizacion)
+        VALUES (?, ?, ?, (SELECT id_rol FROM ROLES WHERE codigo = ?), ?, ?)',
         [$alias, $correo, $hash, $rol, $parques[$indice], $indice === 0 ? $organizacion : $otraOrganizacion]);
     $cuentas[$alias] = ['id' => (int)$db->lastInsertId(), 'correo' => $correo];
 }
@@ -194,7 +195,39 @@ comprobar(!str_contains(json_encode($alta), $password), 'La respuesta no devuelv
 pedir('POST', '/sesiones', ['correo' => $correoAlta, 'contrasena' => ''], '', 401);
 $duplicada = $datosAlta;
 $duplicada['correo'] = strtoupper($correoAlta);
+$rechazo = pedir('POST', '/trabajadores', $duplicada, $tokens['jefe'], 409);
+comprobar(str_contains($rechazo['error']['mensaje'], 'correo'), 'El aviso identifica el correo duplicado.');
+$duplicada['correo'] = '  ' . $correoAlta . '  ';
 pedir('POST', '/trabajadores', $duplicada, $tokens['jefe'], 409);
+pedir('POST', '/trabajadores', $datosAlta, $tokens['jefe'], 409);
+comprobar((int)sql('SELECT COUNT(*) FROM USUARIOS WHERE email = ?', [$correoAlta])->fetchColumn() === 1,
+    'Los reintentos, espacios y mayúsculas conservan una sola cuenta.');
+$homonima = $datosAlta;
+$homonima['correo'] = "homonima-$sufijo@example.org";
+pedir('POST', '/trabajadores', $homonima, $tokens['jefe'], 201);
+comprobar((int)sql('SELECT COUNT(*) FROM USUARIOS WHERE nombre = ? AND id_parque = ?',
+    [$datosAlta['nombre'], $parques[0]])->fetchColumn() === 2, 'Dos personas pueden compartir nombre con correos distintos.');
+try {
+    sql('INSERT INTO USUARIOS (nombre,email,password_hash,id_rol,id_parque,id_organizacion)
+        VALUES (?, ?, ?, 4, ?, ?)', ['Intento directo', $correoAlta, $hash, $parques[0], $organizacion]);
+    throw new RuntimeException('MySQL aceptó un correo duplicado fuera de la API.');
+} catch (PDOException $error) {
+    comprobar(($error->errorInfo[1] ?? 0) === 1062, 'UNIQUE protege el correo incluso sin pasar por la web.');
+}
+comprobar((int)sql('SELECT id_rol FROM USUARIOS WHERE email = ?', [$correoAlta])->fetchColumn()
+    === (int)sql("SELECT id_rol FROM ROLES WHERE codigo = 'trabajador'")->fetchColumn(), 'El alta usa el catálogo de roles.');
+try {
+    sql('UPDATE USUARIOS SET id_rol = 255 WHERE email = ?', [$correoAlta]);
+    throw new RuntimeException('Se aceptó un rol inexistente.');
+} catch (PDOException $error) {
+    comprobar(($error->errorInfo[1] ?? 0) === 1452, 'La clave foránea rechaza roles inexistentes.');
+}
+try {
+    sql('UPDATE USUARIOS SET id_parque = NULL WHERE email = ?', [$correoAlta]);
+    throw new RuntimeException('Se aceptó un trabajador sin parque.');
+} catch (PDOException $error) {
+    comprobar(($error->errorInfo[1] ?? 0) === 3819, 'El catálogo conserva la obligación de parque del trabajador.');
+}
 $intrusion = $datosAlta;
 $intrusion['id_parque'] = $parques[1];
 pedir('POST', '/trabajadores', $intrusion, $tokens['jefe'], 422);

@@ -16,21 +16,27 @@ let tokenRecuperacion = '';
  * Descripción: Localiza un control conocido de la página. */
 function elemento(id) { return document.getElementById(id); }
 
-/** Diseño lógico: (texto, error) -> mensaje -> vacío.
+/** Diseño lógico: (texto, error, destino) -> mensaje -> vacío.
  * Descripción: Informa del resultado con texto seguro y aviso accesible. */
-function mensaje(texto, error = false) {
-    elemento('mensaje').textContent = texto;
-    elemento('mensaje').classList.toggle('error', error);
+function mensaje(texto, error = false, destino = 'mensaje') {
+    const aviso = elemento(destino);
+    aviso.textContent = texto;
+    aviso.classList.toggle('error', error);
+    aviso.hidden = texto === '';
+    if (texto && destino !== 'mensaje') {
+        aviso.focus({ preventScroll: true });
+        aviso.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
 }
 
 /** Diseño lógico: (sección) -> mostrar -> vacío.
  * Descripción: Cambia de pantalla sin duplicar formularios. */
 function mostrar(seccion) {
     // Al cambiar de pantalla, todas las claves vuelven a quedar ocultas.
-    for (const boton of document.querySelectorAll('[data-ver-contrasena]')) {
-        elemento(boton.getAttribute('aria-controls')).type = 'password';
-        boton.textContent = 'Mostrar contraseña';
-        boton.setAttribute('aria-pressed', 'false');
+    ocultarContrasenas();
+    for (const aviso of document.querySelectorAll('.aviso-formulario')) {
+        aviso.textContent = '';
+        aviso.hidden = true;
     }
     for (const id of ['acceso', 'recuperacion', 'restablecer', 'cambio-inicial', 'panel']) {
         elemento(id).hidden = id !== seccion;
@@ -38,6 +44,17 @@ function mostrar(seccion) {
     document.body.classList.toggle('panel-abierto', seccion === 'panel');
     elemento('navegacion-privada').hidden = seccion !== 'panel' || usuarioActual?.rol !== 'jefe_parque';
     mensaje('');
+}
+
+/** Diseño lógico: (contenedor) -> ocultarContrasenas -> vacío.
+ * Descripción: Restablece la privacidad de los campos al navegar o terminar un alta. */
+function ocultarContrasenas(contenedor = document) {
+    for (const boton of contenedor.querySelectorAll('[data-ver-contrasena]')) {
+        elemento(boton.getAttribute('aria-controls')).type = 'password';
+        boton.setAttribute('aria-label', 'Mostrar contraseña');
+        boton.title = 'Mostrar contraseña';
+        boton.setAttribute('aria-pressed', 'false');
+    }
 }
 
 /** Diseño lógico: (ruta, método, datos) -> api -> datos de respuesta o error.
@@ -65,7 +82,9 @@ async function api(ruta, metodo = 'GET', datos = null) {
         elemento('lectura').replaceChildren();
     }
     if (!respuesta.ok || contenido.ok !== true) {
-        throw new Error(contenido.error?.mensaje || 'No se ha podido completar la operación.');
+        const error = new Error(contenido.error?.mensaje || 'No se ha podido completar la operación.');
+        error.campos = contenido.error?.campos || {};
+        throw error;
     }
     return contenido.data;
 }
@@ -74,12 +93,28 @@ async function api(ruta, metodo = 'GET', datos = null) {
  * Descripción: Evita envíos repetidos y presenta errores sin perder el formulario. */
 async function ejecutarFormulario(evento, operacion) {
     evento.preventDefault();
-    const boton = evento.currentTarget.querySelector('button[type="submit"]');
+    const formulario = evento.currentTarget;
+    const boton = formulario.querySelector('button[type="submit"]');
+    const destino = `aviso-${formulario.id}`;
     if (boton.disabled) return;
     boton.disabled = true;
-    mensaje('');
+    for (const campo of formulario.querySelectorAll('[aria-invalid]')) {
+        campo.removeAttribute('aria-invalid');
+        campo.removeAttribute('aria-describedby');
+    }
+    mensaje('', false, destino);
     try { await operacion(); }
-    catch (error) { mensaje(error.message, true); }
+    catch (error) {
+        // Si la sesión caduca, el aviso debe aparecer en el acceso que acaba de abrirse.
+        const receptor = formulario.closest('[hidden]') ? 'aviso-form-login' : destino;
+        for (const campo of formulario.querySelectorAll('input')) {
+            if (error.campos?.[campo.name]) {
+                campo.setAttribute('aria-invalid', 'true');
+                campo.setAttribute('aria-describedby', receptor);
+            }
+        }
+        mensaje(error.message, true, receptor);
+    }
     finally { boton.disabled = false; }
 }
 
@@ -168,7 +203,8 @@ async function registrarTrabajador(evento) {
         const datos = await api('/trabajadores', 'POST', { nombre: elemento('nombre-trabajador').value,
             correo: elemento('correo-trabajador').value, contrasena_inicial: contrasena });
         elemento('form-alta').reset();
-        mensaje(datos.mensaje || 'Cuenta creada. El trabajador debe cambiar la contraseña inicial en su primer acceso.');
+        ocultarContrasenas(elemento('form-alta'));
+        mensaje(datos.mensaje || 'Cuenta creada. El trabajador debe cambiar la contraseña inicial en su primer acceso.', false, 'aviso-form-alta');
     });
 }
 
@@ -178,7 +214,7 @@ async function solicitarRecuperacion(evento) {
     await ejecutarFormulario(evento, async function realizarSolicitud() {
         // Diseño lógico: () -> realizarSolicitud -> promesa vacía. Descripción: Presenta la respuesta genérica de recuperación.
         const datos = await api('/recuperaciones', 'POST', { correo: elemento('correo-recuperacion').value });
-        mensaje(datos.mensaje);
+        mensaje(datos.mensaje, false, 'aviso-form-recuperacion');
     });
 }
 
@@ -252,7 +288,9 @@ function alternarContrasena(evento) {
     const campo = elemento(boton.getAttribute('aria-controls'));
     const visible = campo.type === 'password';
     campo.type = visible ? 'text' : 'password';
-    boton.textContent = visible ? 'Ocultar contraseña' : 'Mostrar contraseña';
+    const etiqueta = visible ? 'Ocultar contraseña' : 'Mostrar contraseña';
+    boton.setAttribute('aria-label', etiqueta);
+    boton.title = etiqueta;
     boton.setAttribute('aria-pressed', String(visible));
 }
 
@@ -262,17 +300,39 @@ function prepararVisibilidadContrasenas() {
     for (const campo of document.querySelectorAll('input[type="password"]')) {
         const boton = document.createElement('button');
         boton.type = 'button'; // Mostrar la clave nunca debe enviar el formulario.
-        boton.className = 'enlace';
-        boton.textContent = 'Mostrar contraseña';
+        boton.className = 'ver-contrasena';
+        boton.setAttribute('aria-label', 'Mostrar contraseña');
+        boton.title = 'Mostrar contraseña';
+        // Icono propio sin dependencias externas; el nombre accesible queda en el botón.
+        boton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="ojo-tachado" d="m3 3 18 18"/></svg>';
         boton.dataset.verContrasena = '';
         boton.setAttribute('aria-controls', campo.id);
         boton.setAttribute('aria-pressed', 'false');
         boton.addEventListener('click', alternarContrasena);
-        campo.after(boton);
+        const grupo = document.createElement('div');
+        grupo.className = 'campo-contrasena';
+        campo.before(grupo);
+        grupo.append(campo, boton);
     }
 }
 
 prepararVisibilidadContrasenas();
+
+/** Diseño lógico: () -> prepararAvisosFormularios -> vacío.
+ * Descripción: Coloca cada resultado junto al botón donde se realiza la operación. */
+function prepararAvisosFormularios() {
+    for (const formulario of document.querySelectorAll('form')) {
+        const aviso = document.createElement('div');
+        aviso.id = `aviso-${formulario.id}`;
+        aviso.className = 'aviso-formulario';
+        aviso.setAttribute('role', 'status');
+        aviso.setAttribute('aria-live', 'polite');
+        aviso.tabIndex = -1;
+        aviso.hidden = true;
+        formulario.querySelector('button[type="submit"]').before(aviso);
+    }
+}
+prepararAvisosFormularios();
 
 elemento('form-login').addEventListener('submit', iniciarSesion);
 elemento('form-alta').addEventListener('submit', registrarTrabajador);

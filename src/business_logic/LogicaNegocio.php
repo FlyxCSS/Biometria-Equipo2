@@ -68,7 +68,8 @@ final class LogicaNegocio
         }
         $this->db->beginTransaction();
         try {
-            $usuario = $this->consulta('SELECT u.*, o.estado AS estado_organizacion FROM USUARIOS u
+            $usuario = $this->consulta('SELECT u.*, r.codigo AS rol, o.estado AS estado_organizacion FROM USUARIOS u
+                JOIN ROLES r ON r.id_rol = u.id_rol
                 LEFT JOIN ORGANIZACIONES o ON o.id_organizacion = u.id_organizacion
                 WHERE u.email = ? FOR UPDATE', [$correo])->fetch();
             // Hash ficticio válido para realizar también el trabajo de verificación si no existe cuenta.
@@ -99,8 +100,9 @@ final class LogicaNegocio
         if (!preg_match('/^[a-f0-9]{64}$/D', $token)) {
             throw new ErrorApi(401, 'SESION_INVALIDA', 'Inicia sesión de nuevo.');
         }
-        $usuario = $this->consulta('SELECT u.*, s.expira_en, s.token_hash FROM SESIONES s
+        $usuario = $this->consulta('SELECT u.*, r.codigo AS rol, s.expira_en, s.token_hash FROM SESIONES s
             JOIN USUARIOS u ON u.id_usuario = s.id_usuario
+            JOIN ROLES r ON r.id_rol = u.id_rol
             LEFT JOIN ORGANIZACIONES o ON o.id_organizacion = u.id_organizacion
             WHERE s.token_hash = ? AND s.expira_en > UTC_TIMESTAMP(3) AND u.activo = 1
             AND (u.id_organizacion IS NULL OR o.estado = ?)', [hash('sha256', $token), 'activo'])->fetch();
@@ -231,8 +233,8 @@ final class LogicaNegocio
         }
         $this->db->beginTransaction();
         try {
-            $this->consulta('INSERT INTO USUARIOS (nombre, email, password_hash, debe_cambiar_contrasena, rol, id_parque, id_organizacion)
-                VALUES (?, ?, ?, 1, ?, ?, ?)', [trim($datos['nombre']), $correo, password_hash($contrasena, PASSWORD_BCRYPT),
+            $this->consulta('INSERT INTO USUARIOS (nombre, email, password_hash, debe_cambiar_contrasena, id_rol, id_parque, id_organizacion)
+                VALUES (?, ?, ?, 1, (SELECT id_rol FROM ROLES WHERE codigo = ?), ?, ?)', [trim($datos['nombre']), $correo, password_hash($contrasena, PASSWORD_BCRYPT),
                     'trabajador', $usuario['id_parque'], $usuario['id_organizacion']]);
             $nuevo = ['id_usuario' => (int)$this->db->lastInsertId(), 'nombre' => trim($datos['nombre']),
                 'email' => $correo, 'rol' => 'trabajador', 'id_parque' => $usuario['id_parque'], 'debe_cambiar_contrasena' => true];
@@ -242,7 +244,8 @@ final class LogicaNegocio
         } catch (Throwable $error) {
             $this->db->rollBack();
             if ($error instanceof PDOException && ($error->errorInfo[1] ?? 0) === 1062) {
-                throw new ErrorApi(409, 'ALTA_NO_DISPONIBLE', 'No se puede completar el alta con esos datos.');
+                throw new ErrorApi(409, 'ALTA_NO_DISPONIBLE', 'Ya existe una cuenta con ese correo electrónico. Utiliza otro.',
+                    ['correo' => 'Este correo ya está registrado.']);
             }
             throw $error;
         }

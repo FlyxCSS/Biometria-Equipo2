@@ -83,7 +83,7 @@ Restringir acceso a la tabla de correos y sus copias: contiene el enlace en clar
 
 ## Correspondencia con vuestro diagrama
 
-Se conservan las cinco tablas y sus campos. La fecha pasa a `DATETIME(3)` y la PK de MEDICIONES sigue siendo `(fecha_hora, id_llavero)`.
+Se conservan las cinco entidades del diagrama. La fecha pasa a `DATETIME(3)` y la PK de MEDICIONES sigue siendo `(fecha_hora, id_llavero)`. El rol ahora se normaliza en ROLES: USUARIOS guarda `id_rol` como clave foránea en lugar del texto `rol`. La API mantiene `usuario.rol` para los clientes Android y web.
 
 API `correo` -> BD `USUARIOS.email`. API `nombre_micro` (`S-001`) -> búsqueda por `LLAVEROS.identificador_ble` único -> guardado del `id_llavero` (`DEMO-S-001` en la demo). No se presupone que el ID de BD coincida con el nombre BLE.
 
@@ -100,6 +100,10 @@ Las cuentas nuevas guardan inmediatamente `password_hash` y `debe_cambiar_contra
 En el visor local, USUARIOS muestra `estado_contrasena`: «Configurada (hash)», «Inicial: debe cambiarla» o «Pendiente de establecer», sin revelar el hash. En Estructura se ve el campo real `password_hash VARCHAR(255)`. `activo=1` no implica haber completado la contraseña. Las cuentas antiguas sin contraseña no se han modificado automáticamente: deben completar su recuperación, sin asignarles contraseñas inventadas o compartidas.
 
 Actualización de una instalación anterior: `php tools/gestionar.php actualizar-contrasenas`. Aplica la migración `002_contrasena_inicial.sql` solo si falta el campo, sin cambiar contraseñas existentes. La instalación nueva ya lo incluye. En phpMyAdmin de una BD anterior, importar esta migración una sola vez si el campo no existe.
+
+Roles: tras una copia de seguridad, ejecutar `php tools/gestionar.php actualizar-roles` por consola con la configuración de la base que se quiere migrar. La migración `003_roles.sql` copia el rol de cada cuenta a su clave foránea, conserva las contraseñas y sustituye los CHECK antiguos. Los identificadores 1–4 del catálogo son estables; 3 y 4 exigen parque también en MySQL. El comando no repite una migración completada y detiene una instalación parcial para revisión. MySQL y MariaDB confirman los cambios de esquema implícitamente: ante un fallo, revisar el estado antes de reintentar. No importar ese archivo completo con phpMyAdmin, cuyo analizador puede seleccionar `information_schema` al consultar los metadatos. La instalación nueva ya incluye ROLES y no necesita esta migración.
+
+El correo de USUARIOS sigue siendo UNIQUE: el servidor normaliza mayúsculas y espacios y devuelve 409 ante un duplicado; MySQL protege también las inserciones concurrentes o directas. Los nombres pueden repetirse porque dos personas distintas pueden llamarse igual. El aviso de alta se presenta en el formulario, marca el correo inválido y recibe el foco; el icono de ojo permite mostrar u ocultar cada clave sin enviar el formulario.
 
 El SQL es una creación inicial, **no una migración para una BD poblada**. Si hay datos reales, preparar antes migración y copia de seguridad. Se conservan los cupos, pero no se implementan aún las operaciones administrativas de alta/asignación de llaveros ni sus validaciones de cupos.
 

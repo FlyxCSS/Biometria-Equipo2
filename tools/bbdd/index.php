@@ -32,10 +32,12 @@ function escapar(mixed $valor): string
 }
 
 $consultas = [
-    'USUARIOS' => "SELECT id_usuario, nombre, email,
+    'ROLES' => 'SELECT id_rol, codigo, nombre FROM ROLES ORDER BY id_rol',
+    'USUARIOS' => "SELECT u.id_usuario, u.nombre, u.email,
         CASE WHEN password_hash IS NULL OR password_hash = '' THEN 'Pendiente de establecer'
         WHEN debe_cambiar_contrasena = 1 THEN 'Inicial: debe cambiarla' ELSE 'Configurada (hash)' END AS estado_contrasena,
-        debe_cambiar_contrasena, rol, id_parque, activo, id_organizacion FROM USUARIOS ORDER BY id_usuario DESC LIMIT 100",
+        debe_cambiar_contrasena, u.id_rol, r.codigo AS rol, id_parque, activo, id_organizacion
+        FROM USUARIOS u JOIN ROLES r ON r.id_rol = u.id_rol ORDER BY id_usuario DESC LIMIT 100",
     'ORGANIZACIONES' => 'SELECT id_organizacion, nombre, llaveros_contratados, email_contacto, estado FROM ORGANIZACIONES LIMIT 100',
     'PARQUES' => 'SELECT id_parque, nombre, id_organizacion, cupo_llaveros, ubicacion FROM PARQUES LIMIT 100',
     'LLAVEROS' => 'SELECT id_llavero, identificador_ble, id_parque, id_organizacion, estado, id_usuario FROM LLAVEROS LIMIT 100',

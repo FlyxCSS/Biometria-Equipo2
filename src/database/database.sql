@@ -28,22 +28,33 @@ CREATE TABLE PARQUES (
     CHECK (cupo_llaveros >= 0)
 ) ENGINE=InnoDB;
 
+CREATE TABLE ROLES (
+    id_rol TINYINT UNSIGNED PRIMARY KEY,
+    codigo VARCHAR(20) NOT NULL UNIQUE,
+    nombre VARCHAR(60) NOT NULL
+) ENGINE=InnoDB;
+
+-- Identificadores estables: 3 y 4 exigen un parque en la restricción de USUARIOS.
+INSERT INTO ROLES (id_rol, codigo, nombre) VALUES
+    (1, 'proveedor', 'Proveedor'), (2, 'organizacion', 'Organización'),
+    (3, 'jefe_parque', 'Jefe de parque'), (4, 'trabajador', 'Trabajador');
+
 CREATE TABLE USUARIOS (
     id_usuario INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255), -- NULL solo en cuentas antiguas que aún no han establecido su contraseña.
     debe_cambiar_contrasena BOOLEAN NOT NULL DEFAULT FALSE,
-    rol VARCHAR(20) NOT NULL,
+    id_rol TINYINT UNSIGNED NOT NULL,
     id_parque INT,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     id_organizacion INT,
     UNIQUE KEY usuario_parque (id_usuario, id_parque),
+    CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES ROLES(id_rol),
     FOREIGN KEY (id_organizacion) REFERENCES ORGANIZACIONES(id_organizacion),
     FOREIGN KEY (id_parque, id_organizacion) REFERENCES PARQUES(id_parque, id_organizacion),
     CHECK (id_parque IS NULL OR id_organizacion IS NOT NULL),
-    CHECK (rol IN ('proveedor', 'organizacion', 'jefe_parque', 'trabajador')),
-    CHECK (rol NOT IN ('jefe_parque', 'trabajador') OR id_parque IS NOT NULL)
+    CONSTRAINT usuario_rol_parque CHECK (id_rol NOT IN (3, 4) OR id_parque IS NOT NULL)
 ) ENGINE=InnoDB;
 
 CREATE TABLE LLAVEROS (
