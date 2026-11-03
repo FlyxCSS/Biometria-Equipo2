@@ -32,7 +32,8 @@ CREATE TABLE USUARIOS (
     id_usuario INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password_hash VARCHAR(255), -- NULL hasta completar el enlace de alta.
+    password_hash VARCHAR(255), -- NULL solo en cuentas antiguas que aún no han establecido su contraseña.
+    debe_cambiar_contrasena BOOLEAN NOT NULL DEFAULT FALSE,
     rol VARCHAR(20) NOT NULL,
     id_parque INT,
     activo BOOLEAN NOT NULL DEFAULT TRUE,

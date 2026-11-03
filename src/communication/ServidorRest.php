@@ -54,6 +54,7 @@ function atenderApi(): never
         $rutas = [
             '/api/v1/sesiones' => ['POST'],
             '/api/v1/sesiones/actual' => ['GET', 'DELETE'],
+            '/api/v1/usuarios/actual/contrasena' => ['POST'],
             '/api/v1/mediciones' => ['POST'],
             '/api/v1/trabajadores' => ['POST'],
             '/api/v1/recuperaciones' => ['POST'],
@@ -103,8 +104,15 @@ function atenderApi(): never
                 throw new ErrorApi(401, 'SESION_INVALIDA', 'Inicia sesión de nuevo.');
             }
             $usuario = $logica->autenticar($coincidencias[1]);
+            if ((bool)$usuario['debe_cambiar_contrasena']
+                && !in_array($ruta, ['/api/v1/sesiones/actual', '/api/v1/usuarios/actual/contrasena'], true)) {
+                throw new ErrorApi(403, 'CAMBIO_CONTRASENA_REQUERIDO', 'Debes cambiar la contraseña inicial antes de continuar.');
+            }
             if ($ruta === '/api/v1/sesiones/actual') {
                 $resultado = $metodo === 'GET' ? $logica->consultarSesion($usuario) : $logica->cerrarSesion($usuario);
+            } elseif ($ruta === '/api/v1/usuarios/actual/contrasena') {
+                $logica->limitar($ruta, $_SERVER['REMOTE_ADDR'] ?? 'desconocida', (string)$usuario['id_usuario']);
+                $resultado = $logica->cambiarContrasena($usuario, $datos);
             } elseif ($ruta === '/api/v1/mediciones') {
                 $resultado = $logica->guardarMedicion($usuario, $datos);
                 $estado = $resultado['duplicada'] ? 200 : 201;

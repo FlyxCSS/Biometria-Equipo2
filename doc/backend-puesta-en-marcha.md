@@ -67,7 +67,7 @@ Para producción configurar HTTPS, `environment=production`, `app_url=https://..
 
 ## Correo de alta y recuperación
 
-El endpoint encola el correo en `CORREOS_PENDIENTES` en la misma transacción que el alta o el token. Entregar pendientes por consola:
+El alta nueva utiliza contraseña inicial asignada por el jefe; no depende del correo. La recuperación de una contraseña olvidada sigue encolando un mensaje en `CORREOS_PENDIENTES` dentro de la transacción del token. Los antiguos enlaces de alta emitidos siguen siendo utilizables hasta su caducidad. Entregar pendientes por consola:
 
 ```powershell
 ./.local/tools/php/php.exe tools/gestionar.php correo
@@ -95,7 +95,11 @@ Ampliaciones documentadas:
 - CORREOS_PENDIENTES: entrega recuperable del correo.
 - LIMITES: control de intentos por cuenta y por IP.
 
-`password_hash` admite NULL antes de completar el enlace de alta: la cuenta no puede entrar mientras tanto. Las FK compuestas impiden asignaciones entre parques u organizaciones incompatibles. Roles operativos: `jefe_parque` y `trabajador`; el esquema admite además `proveedor` y `organizacion`, sin sus pantallas administrativas.
+Las cuentas nuevas guardan inmediatamente `password_hash` y `debe_cambiar_contrasena=1`. `password_hash` admite NULL para conservar las cuentas antiguas aún no completadas, que no pueden iniciar sesión. Las FK compuestas impiden asignaciones entre parques u organizaciones incompatibles. Roles operativos: `jefe_parque` y `trabajador`; el esquema admite además `proveedor` y `organizacion`, sin sus pantallas administrativas.
+
+En el visor local, USUARIOS muestra `estado_contrasena`: «Configurada (hash)», «Inicial: debe cambiarla» o «Pendiente de establecer», sin revelar el hash. En Estructura se ve el campo real `password_hash VARCHAR(255)`. `activo=1` no implica haber completado la contraseña. Las cuentas antiguas sin contraseña no se han modificado automáticamente: deben completar su recuperación, sin asignarles contraseñas inventadas o compartidas.
+
+Actualización de una instalación anterior: `php tools/gestionar.php actualizar-contrasenas`. Aplica la migración `002_contrasena_inicial.sql` solo si falta el campo, sin cambiar contraseñas existentes. La instalación nueva ya lo incluye. En phpMyAdmin de una BD anterior, importar esta migración una sola vez si el campo no existe.
 
 El SQL es una creación inicial, **no una migración para una BD poblada**. Si hay datos reales, preparar antes migración y copia de seguridad. Se conservan los cupos, pero no se implementan aún las operaciones administrativas de alta/asignación de llaveros ni sus validaciones de cupos.
 
@@ -106,6 +110,8 @@ Base `/api/v1`, token en `Authorization: Bearer ...`, sesión de 24 horas sin re
 Fechas UTC con milisegundos y Z, con máximo cinco minutos de adelanto del reloj. Coordenadas válidas obligatorias; nunca sustituirlas por una posición de otro instante. O3 entero en ppb de 0 a 65535: rango técnico de BLE, no criterio ambiental.
 
 La web guarda la sesión solo en memoria; recargar exige entrar de nuevo. Android deberá proteger su token y no sustituirlo por permiso biométrico. La persistencia de recorridos sigue pendiente de acuerdo con Persona 2.
+
+Alta de trabajador: el jefe introduce nombre, correo y contraseña inicial en la web. El login devuelve `usuario.debe_cambiar_contrasena=true`. Hasta cambiarla, solo se permite consultar/cerrar sesión y usar `POST /api/v1/usuarios/actual/contrasena` con `contrasena_actual` y `contrasena_nueva`. Tras responder 200 se exige un nuevo login, pues todas las sesiones quedan revocadas. El endpoint está implementado y probado; el compañero de Android debe conectar su pantalla. La web auxiliar ofrece también ese cambio obligatorio para comprobar el flujo sin esperar a Android.
 
 Un móvil físico no alcanza el `127.0.0.1` del ordenador. La demo está limitada al equipo; acordar una URL HTTPS de integración. No está probado el flujo desde Android ni desde el llavero físico.
 

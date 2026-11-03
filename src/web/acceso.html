@@ -48,6 +48,17 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
       <button id="cancelar-restablecer" class="enlace" type="button">Volver al acceso</button>
     </section>
 
+    <section id="cambio-inicial" class="tarjeta estrecha" hidden>
+      <p class="ceja">Primer acceso</p><h1>Haz tuya la contraseña.</h1>
+      <p>El jefe te ha asignado una contraseña inicial. Debes cambiarla antes de utilizar tu cuenta. También podrás hacerlo desde la app Android cuando esté integrado este flujo.</p>
+      <form id="form-cambio-inicial">
+        <label for="actual-inicial">Contraseña inicial</label><input id="actual-inicial" name="actual" type="password" autocomplete="current-password" required>
+        <label for="nueva-inicial">Nueva contraseña</label><input id="nueva-inicial" name="nueva" type="password" minlength="12" autocomplete="new-password" required>
+        <label for="repetir-inicial">Repetir nueva contraseña</label><input id="repetir-inicial" name="repetir" type="password" autocomplete="new-password" required>
+        <button type="submit">Cambiar contraseña</button>
+      </form>
+      <button id="salir-cambio" class="enlace" type="button">Cerrar sesión</button>
+    </section>
     <section id="panel" hidden>
       <div class="titulo-panel"><div><p class="ceja">Panel del parque</p><h1 id="saludo">Bienvenido</h1><p id="parque"></p></div><button id="salir" class="secundario" type="button">Cerrar sesión</button></div>
       <div id="contenido-jefe" class="columnas" hidden>
@@ -56,8 +67,8 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
           <div id="lectura" aria-live="polite"><p>Aún no se ha consultado.</p></div>
           <p class="nota">La lectura no constituye una evaluación oficial de la calidad del aire.</p>
         </section>
-        <section id="alta-trabajador" class="tarjeta"><h2>Registrar trabajador</h2><p>La cuenta quedará asociada a este parque. Recibirá un enlace para establecer su contraseña.</p>
-          <form id="form-alta"><label for="nombre-trabajador">Nombre</label><input id="nombre-trabajador" name="nombre" maxlength="100" autocomplete="name" required><label for="correo-trabajador">Correo electrónico</label><input id="correo-trabajador" name="correo" type="email" maxlength="100" autocomplete="email" required><button type="submit">Crear cuenta</button></form>
+        <section id="alta-trabajador" class="tarjeta"><h2>Registrar trabajador</h2><p>La cuenta quedará asociada a este parque. Asigna una contraseña inicial; el trabajador deberá cambiarla en su primer acceso.</p>
+          <form id="form-alta"><label for="nombre-trabajador">Nombre</label><input id="nombre-trabajador" name="nombre" maxlength="100" autocomplete="name" required><label for="correo-trabajador">Correo electrónico</label><input id="correo-trabajador" name="correo" type="email" maxlength="100" autocomplete="email" required><label for="contrasena-trabajador">Contraseña inicial</label><input id="contrasena-trabajador" name="contrasena_inicial" type="password" minlength="12" autocomplete="new-password" required><p class="nota">Entre 12 y 72 bytes UTF-8. Comunícala al trabajador; no se podrá consultar después.</p><button type="submit">Crear cuenta</button></form>
           <p class="nota">El alta no asigna un llavero. Esta web temporal no incluye toda la gestión de trabajadores.</p>
         </section>
       </div>

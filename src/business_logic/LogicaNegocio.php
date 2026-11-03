@@ -32,7 +32,8 @@ final class LogicaNegocio
     private function usuarioPublico(array $usuario): array
     {
         return ['id_usuario' => (int)$usuario['id_usuario'], 'nombre' => $usuario['nombre'],
-            'rol' => $usuario['rol'], 'id_parque' => $usuario['id_parque'] === null ? null : (int)$usuario['id_parque']];
+            'rol' => $usuario['rol'], 'id_parque' => $usuario['id_parque'] === null ? null : (int)$usuario['id_parque'],
+            'debe_cambiar_contrasena' => (bool)($usuario['debe_cambiar_contrasena'] ?? false)];
     }
 
     /** Diseño lógico: (operación, IP, correo) -> limitar -> vacío o error 429.
@@ -217,30 +218,66 @@ final class LogicaNegocio
                 "Abre este enlace para establecer tu contraseña. Caduca en 30 minutos y solo puede usarse una vez.\n\n$enlace\n\nSi no lo has solicitado, ignora este correo."]);
     }
 
-    /** Diseño lógico: (jefe, nombre y correo) -> registrarTrabajador -> usuario creado.
-     * Descripción: Crea una cuenta de su parque y encola el enlace de primera contraseña. */
+    /** Diseño lógico: (jefe, nombre, correo, contraseña inicial) -> registrarTrabajador -> usuario creado.
+     * Descripción: Guarda el hash inicial y exige al trabajador cambiarlo antes de operar. */
     public function registrarTrabajador(array $usuario, array $datos): array
     {
         $this->exigirRol($usuario, 'jefe_parque');
-        exigirCampos($datos, ['nombre', 'correo']);
+        exigirCampos($datos, ['nombre', 'correo', 'contrasena_inicial']);
         $correo = validarCorreo($datos['correo']);
+        $contrasena = validarContrasena($datos['contrasena_inicial']);
         if (!is_string($datos['nombre']) || trim($datos['nombre']) === '' || mb_strlen(trim($datos['nombre']), 'UTF-8') > 100) {
             throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Introduce un nombre de hasta 100 caracteres.');
         }
         $this->db->beginTransaction();
         try {
-            $this->consulta('INSERT INTO USUARIOS (nombre, email, rol, id_parque, id_organizacion)
-                VALUES (?, ?, ?, ?, ?)', [trim($datos['nombre']), $correo, 'trabajador', $usuario['id_parque'], $usuario['id_organizacion']]);
+            $this->consulta('INSERT INTO USUARIOS (nombre, email, password_hash, debe_cambiar_contrasena, rol, id_parque, id_organizacion)
+                VALUES (?, ?, ?, 1, ?, ?, ?)', [trim($datos['nombre']), $correo, password_hash($contrasena, PASSWORD_BCRYPT),
+                    'trabajador', $usuario['id_parque'], $usuario['id_organizacion']]);
             $nuevo = ['id_usuario' => (int)$this->db->lastInsertId(), 'nombre' => trim($datos['nombre']),
-                'email' => $correo, 'rol' => 'trabajador', 'id_parque' => $usuario['id_parque']];
-            $this->prepararEnlace($nuevo, 'alta');
+                'email' => $correo, 'rol' => 'trabajador', 'id_parque' => $usuario['id_parque'], 'debe_cambiar_contrasena' => true];
             $this->db->commit();
-            return ['usuario' => $this->usuarioPublico($nuevo), 'requiere_establecer_contrasena' => true];
+            return ['usuario' => $this->usuarioPublico($nuevo), 'requiere_cambiar_contrasena' => true,
+                'mensaje' => 'Cuenta creada con contraseña inicial. Comunícala al trabajador: deberá cambiarla en su primer acceso.'];
         } catch (Throwable $error) {
             $this->db->rollBack();
             if ($error instanceof PDOException && ($error->errorInfo[1] ?? 0) === 1062) {
                 throw new ErrorApi(409, 'ALTA_NO_DISPONIBLE', 'No se puede completar el alta con esos datos.');
             }
+            throw $error;
+        }
+    }
+
+    /** Diseño lógico: (usuario, contraseña actual y nueva) -> cambiarContrasena -> confirmación.
+     * Descripción: Cambia la contraseña propia, elimina la obligación inicial y revoca sesiones y enlaces. */
+    public function cambiarContrasena(array $usuario, array $datos): array
+    {
+        exigirCampos($datos, ['contrasena_actual', 'contrasena_nueva']);
+        $nueva = validarContrasena($datos['contrasena_nueva']);
+        $actual = $datos['contrasena_actual'];
+        if (!is_string($actual) || strlen($actual) > 72 || str_contains($actual, "\0")) {
+            throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Introduce la contraseña actual.');
+        }
+        $this->db->beginTransaction();
+        try {
+            $cuenta = $this->consulta('SELECT u.* FROM USUARIOS u JOIN SESIONES s ON s.id_usuario = u.id_usuario
+                WHERE u.id_usuario = ? AND s.token_hash = ? AND s.expira_en > UTC_TIMESTAMP(3)
+                AND u.activo = 1 FOR UPDATE', [$usuario['id_usuario'], $usuario['token_hash']])->fetch();
+            if (!$cuenta) throw new ErrorApi(401, 'SESION_INVALIDA', 'Inicia sesión de nuevo.');
+            if (!$cuenta['password_hash'] || !password_verify($actual, $cuenta['password_hash'])) {
+                throw new ErrorApi(403, 'CONTRASENA_ACTUAL_INVALIDA', 'La contraseña actual no es correcta.');
+            }
+            if (password_verify($nueva, $cuenta['password_hash'])) {
+                throw new ErrorApi(422, 'DATOS_INVALIDOS', 'La contraseña nueva debe ser diferente de la inicial o actual.');
+            }
+            $this->consulta('UPDATE USUARIOS SET password_hash = ?, debe_cambiar_contrasena = 0 WHERE id_usuario = ?',
+                [password_hash($nueva, PASSWORD_BCRYPT), $cuenta['id_usuario']]);
+            $this->consulta('UPDATE TOKENS_ACCESO SET usado_en = UTC_TIMESTAMP(3) WHERE id_usuario = ? AND usado_en IS NULL', [$cuenta['id_usuario']]);
+            $this->consulta('DELETE FROM SESIONES WHERE id_usuario = ?', [$cuenta['id_usuario']]);
+            $this->db->commit();
+            return ['actualizada' => true, 'requiere_iniciar_sesion' => true];
+        } catch (Throwable $error) {
+            $this->db->rollBack();
             throw $error;
         }
     }
@@ -311,7 +348,7 @@ final class LogicaNegocio
             if (!$usuario || !$token) {
                 throw new ErrorApi(422, 'ENLACE_INVALIDO', 'El enlace no es válido o ha caducado.');
             }
-            $this->consulta('UPDATE USUARIOS SET password_hash = ? WHERE id_usuario = ?',
+            $this->consulta('UPDATE USUARIOS SET password_hash = ?, debe_cambiar_contrasena = 0 WHERE id_usuario = ?',
                 [password_hash($contrasena, PASSWORD_BCRYPT), $usuario['id_usuario']]);
             $this->consulta('UPDATE TOKENS_ACCESO SET usado_en = UTC_TIMESTAMP(3) WHERE id_usuario = ? AND usado_en IS NULL',
                 [$usuario['id_usuario']]);

@@ -11,6 +11,8 @@ Aportación: Documentar la base existente, los JSON y las decisiones de integrac
 
 Estado: IMPLEMENTADO LOCALMENTE como contrato provisional v1; pendiente de revisar con las Personas 1 y 2. Los ejemplos son ficticios. No constituye un acuerdo ya aprobado por los otros programadores.
 
+Cambio solicitado por Julia el 03/11/2026: el jefe establece `contrasena_inicial` al registrar al trabajador. El usuario debe cambiarla en su primer acceso; el backend devuelve `usuario.debe_cambiar_contrasena`. Se incorpora `POST /usuarios/actual/contrasena`. Android debe integrar esta pantalla antes de usar mediciones con una cuenta nueva. La recuperación por correo se mantiene para contraseñas olvidadas; el alta nueva ya no depende del correo.
+
 Actualización con vuestro diagrama: se conservan las cinco tablas y la PK `(fecha_hora, id_llavero)` de MEDICIONES. `nombre_micro` en JSON se resuelve por `LLAVEROS.identificador_ble` a la PK `id_llavero`. Se usan milisegundos (`DATETIME(3)`) y campos técnicos de unidad, procedencia, autor y parque histórico. Detalles en `doc/backend-puesta-en-marcha.md`.
 
 Decisiones provisionales implementadas: sesión de 24 horas sin renovación; roles `jefe_parque` y `trabajador`; coordenadas obligatorias; O3 entero en ppb; máximo cinco minutos de adelanto del reloj de captura. Todas las rutas de la sección 4 están implementadas. El correo se encola y se entrega con `php tools/gestionar.php correo`; probado en buzón privado local, sin destinatarios reales. Se añade el error 413 para cuerpos mayores de 16 KiB.
@@ -77,7 +79,8 @@ La notación es entrada -> nombre de operación -> salida. Las operaciones de la
 | sesión -> cerrarSesion -> cerrado | DELETE `/sesiones/actual` | Revocar la sesión presentada. |
 | sesión, medición -> guardarMedicion -> identidad, resultado | POST `/mediciones` | Validar permisos y persistir una lectura. |
 | sesión, parque -> consultarUltimaMedicion -> medición o null | GET `/parques/{id_parque}/mediciones/ultima` | Última lectura de cualquier llavero del parque autorizado. |
-| sesión de jefe, nombre, correo -> registrarTrabajador -> usuario | POST `/trabajadores` | Crear trabajador en el parque del jefe autenticado. |
+| sesión de jefe, nombre, correo, contraseña inicial -> registrarTrabajador -> usuario | POST `/trabajadores` | Crear trabajador con contraseña temporal en el parque del jefe. |
+| sesión, contraseña actual y nueva -> cambiarContrasena -> actualizado | POST `/usuarios/actual/contrasena` | Cambiar la contraseña propia y revocar sesiones. |
 | correo -> solicitarRecuperacion -> mensaje genérico | POST `/recuperaciones` | Solicitar enlace sin revelar si existe la cuenta. |
 | token, contraseña nueva -> restablecerContrasena -> actualizado | POST `/recuperaciones/confirmacion` | Consumir un enlace válido y cambiar contraseña. |
 
@@ -92,7 +95,7 @@ Petición de inicio:
 Respuesta 200:
 
 ```json
-{"ok":true,"data":{"token":"<token-opaco>","expira_en":"2026-11-03T12:00:00.000Z","usuario":{"id_usuario":12,"nombre":"Trabajador de prueba","rol":"trabajador","id_parque":3}}}
+{"ok":true,"data":{"token":"<token-opaco>","expira_en":"2026-11-03T12:00:00.000Z","usuario":{"id_usuario":12,"nombre":"Trabajador de prueba","rol":"trabajador","id_parque":3,"debe_cambiar_contrasena":true}}}
 ```
 
 Propuesta de roles de esta entrega: `trabajador` y `jefe_parque`; otros roles del producto quedan pendientes. `GET /sesiones/actual` devuelve `data.usuario` con la misma estructura y `data.expira_en`, sin reemitir el token. Cierre válido: 200 con `{"ok":true,"data":{"cerrado":true}}`.
@@ -142,14 +145,28 @@ Sin lecturas: 200 con `{"ok":true,"data":{"id_parque":3,"medicion":null}}`. Otro
 Solo jefe activo. El parque se obtiene de su sesión, no de un selector enviado por el navegador.
 
 ```json
-{"nombre":"Trabajador de prueba","correo":"trabajador@example.org"}
+{"nombre":"Trabajador de prueba","correo":"trabajador@example.org","contrasena_inicial":"InicialSoloParaPruebas-2026"}
 ```
 
-Propuesta: crear la cuenta y enviar un enlace de un solo uso para establecer la contraseña, sin devolver contraseñas por la API. El envío de correo requiere configuración real de SMTP antes de demostrar el flujo completo.
+El jefe introduce una contraseña inicial de 12 a 72 bytes UTF-8. Se guarda su hash y `debe_cambiar_contrasena=1`; nunca se devuelve la contraseña. El jefe debe comunicársela al trabajador. No se genera correo de alta ni se crea una cuenta si falta la contraseña o incumple la política.
 
-Respuesta 201: `{"ok":true,"data":{"usuario":{"id_usuario":12,"nombre":"Trabajador de prueba","rol":"trabajador","id_parque":3},"requiere_establecer_contrasena":true}}`.
+Respuesta 201: `{"ok":true,"data":{"usuario":{"id_usuario":12,"nombre":"Trabajador de prueba","rol":"trabajador","id_parque":3,"debe_cambiar_contrasena":true},"requiere_cambiar_contrasena":true,"mensaje":"Cuenta creada con contraseña inicial. Comunícala al trabajador: deberá cambiarla en su primer acceso."}}`.
 
 Validar nombre y correo y aplicar unicidad de correo en BD. Si no puede crearse: 409 `ALTA_NO_DISPONIBLE`, sin identificar cuentas de otros parques. La asignación de llavero y la desactivación/listado completos de HU-09 no forman parte de esta operación temporal; preparar asignaciones de prueba en datos SQL identificados como ficticios.
+
+### Cambio de contraseña desde Android o la web de prueba
+
+Tras el login, si `usuario.debe_cambiar_contrasena=true`, mostrar obligatoriamente la pantalla de cambio. La sesión permite consultar su propio estado, cerrar sesión y cambiar contraseña; cualquier otra operación protegida responde 403 `CAMBIO_CONTRASENA_REQUERIDO`.
+
+`POST /api/v1/usuarios/actual/contrasena`, con `Authorization: Bearer <token>`:
+
+```json
+{"contrasena_actual":"InicialSoloParaPruebas-2026","contrasena_nueva":"PersonalSoloParaPruebas-2026"}
+```
+
+Respuesta 200: `{"ok":true,"data":{"actualizada":true,"requiere_iniciar_sesion":true}}`. Android debe borrar la sesión local y pedir un nuevo login. El servidor revoca todas las sesiones y enlaces pendientes del usuario, guarda el hash nuevo y elimina el indicador de cambio obligatorio en una transacción. No recibe un ID de usuario: solo permite cambiar la contraseña propia.
+
+Contraseña actual incorrecta: 403 `CONTRASENA_ACTUAL_INVALIDA`. Contraseña nueva igual a la actual o fuera de la política: 422 `DATOS_INVALIDOS`. Sesión inexistente/caducada: 401. La misma operación permite al usuario cambiar voluntariamente su contraseña posteriormente, verificando la actual. La contraseña inicial deja de funcionar tras el cambio.
 
 ### Recuperación: HU-21
 

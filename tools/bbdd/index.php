@@ -32,7 +32,10 @@ function escapar(mixed $valor): string
 }
 
 $consultas = [
-    'USUARIOS' => 'SELECT id_usuario, nombre, email, rol, id_parque, activo, id_organizacion FROM USUARIOS ORDER BY id_usuario DESC LIMIT 100',
+    'USUARIOS' => "SELECT id_usuario, nombre, email,
+        CASE WHEN password_hash IS NULL OR password_hash = '' THEN 'Pendiente de establecer'
+        WHEN debe_cambiar_contrasena = 1 THEN 'Inicial: debe cambiarla' ELSE 'Configurada (hash)' END AS estado_contrasena,
+        debe_cambiar_contrasena, rol, id_parque, activo, id_organizacion FROM USUARIOS ORDER BY id_usuario DESC LIMIT 100",
     'ORGANIZACIONES' => 'SELECT id_organizacion, nombre, llaveros_contratados, email_contacto, estado FROM ORGANIZACIONES LIMIT 100',
     'PARQUES' => 'SELECT id_parque, nombre, id_organizacion, cupo_llaveros, ubicacion FROM PARQUES LIMIT 100',
     'LLAVEROS' => 'SELECT id_llavero, identificador_ble, id_parque, id_organizacion, estado, id_usuario FROM LLAVEROS LIMIT 100',
@@ -80,6 +83,7 @@ try {
 <form method="get"><label>Tabla<select name="tabla"><?php foreach ($consultas as $opcion => $sql): ?><option value="<?= escapar($opcion) ?>" <?= $opcion === $tabla ? 'selected' : '' ?>><?= escapar($opcion) ?></option><?php endforeach; ?></select></label>
 <label>Mostrar<select name="modo"><option value="registros" <?= $modo === 'registros' ? 'selected' : '' ?>>Registros</option><option value="estructura" <?= $modo === 'estructura' ? 'selected' : '' ?>>Estructura</option></select></label><button type="submit">Ver / actualizar</button></form>
 <h1><?= escapar($tabla) ?></h1><p class="nota">Base <?= escapar($nombre) ?> · <?= $total ?> registros · Consulta del <?= escapar((new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->format('d/m/Y H:i:s')) ?></p>
+<?php if ($tabla === 'USUARIOS'): ?><p>La contraseña se guarda en <strong>password_hash</strong>, no en texto legible. En Registros se muestra su estado; en Estructura puedes comprobar el campo original. «Inicial: debe cambiarla» permite entrar solo para cambiar la contraseña. «Pendiente de establecer» indica una cuenta antigua sin contraseña que todavía no puede iniciar sesión.</p><?php endif; ?>
 <div class="tabla"><table><thead><tr><?php foreach ($columnas as $columna): ?><th scope="col"><?= escapar($columna) ?></th><?php endforeach; ?></tr></thead><tbody><?php foreach ($filas as $fila): ?><tr><?php foreach ($columnas as $columna): ?><td><?= escapar($fila[$columna]) ?></td><?php endforeach; ?></tr><?php endforeach; ?></tbody></table></div>
 <?php if (!$filas): ?><p>Esta tabla todavía no tiene registros.</p><?php endif; ?>
 <p class="nota"><?= $modo === 'registros' ? 'Se muestran hasta 100 filas. Pulsa Ver / actualizar para consultar de nuevo los datos actuales.' : 'Field: campo · Type: tipo · Null: admite vacío · Key: clave o índice · Default: valor inicial.' ?></p>

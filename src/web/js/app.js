@@ -25,7 +25,7 @@ function mensaje(texto, error = false) {
 /** Diseño lógico: (sección) -> mostrar -> vacío.
  * Descripción: Cambia de pantalla sin duplicar formularios. */
 function mostrar(seccion) {
-    for (const id of ['acceso', 'recuperacion', 'restablecer', 'panel']) {
+    for (const id of ['acceso', 'recuperacion', 'restablecer', 'cambio-inicial', 'panel']) {
         elemento(id).hidden = id !== seccion;
     }
     document.body.classList.toggle('panel-abierto', seccion === 'panel');
@@ -136,6 +136,10 @@ async function iniciarSesion(evento) {
         tokenSesion = datos.token;
         usuarioActual = datos.usuario;
         elemento('contrasena').value = '';
+        if (usuarioActual.debe_cambiar_contrasena) {
+            mostrar('cambio-inicial');
+            return;
+        }
         mostrar('panel');
         elemento('saludo').textContent = `Hola, ${usuarioActual.nombre}.`;
         elemento('parque').textContent = usuarioActual.id_parque ? `Parque ${usuarioActual.id_parque}` : '';
@@ -147,13 +151,17 @@ async function iniciarSesion(evento) {
 }
 
 /** Diseño lógico: (evento submit) -> registrarTrabajador -> promesa vacía.
- * Descripción: Crea la cuenta del parque y comunica que el enlace está en cola. */
+ * Descripción: Crea la cuenta del parque con contraseña inicial elegida por el jefe. */
 async function registrarTrabajador(evento) {
     await ejecutarFormulario(evento, async function realizarAlta() {
         // Diseño lógico: () -> realizarAlta -> promesa vacía. Descripción: Envía los datos del alta al servidor.
-        await api('/trabajadores', 'POST', { nombre: elemento('nombre-trabajador').value, correo: elemento('correo-trabajador').value });
+        const contrasena = elemento('contrasena-trabajador').value;
+        const longitud = new TextEncoder().encode(contrasena).length;
+        if (longitud < 12 || longitud > 72) throw new Error('La contraseña inicial debe ocupar entre 12 y 72 bytes UTF-8.');
+        const datos = await api('/trabajadores', 'POST', { nombre: elemento('nombre-trabajador').value,
+            correo: elemento('correo-trabajador').value, contrasena_inicial: contrasena });
         elemento('form-alta').reset();
-        mensaje('Cuenta creada. El enlace para establecer la contraseña está pendiente de entrega por correo.');
+        mensaje(datos.mensaje || 'Cuenta creada. El trabajador debe cambiar la contraseña inicial en su primer acceso.');
     });
 }
 
@@ -186,6 +194,26 @@ async function restablecerContrasena(evento) {
     });
 }
 
+/** Diseño lógico: (evento submit) -> cambiarContrasenaInicial -> promesa vacía.
+ * Descripción: Permite probar el mismo cambio autenticado que utilizará Android. */
+async function cambiarContrasenaInicial(evento) {
+    await ejecutarFormulario(evento, async function realizarCambioInicial() {
+        // Diseño lógico: () -> realizarCambioInicial -> promesa vacía. Descripción: Cambia la clave propia y solicita un login nuevo.
+        const nueva = elemento('nueva-inicial').value;
+        if (nueva !== elemento('repetir-inicial').value) throw new Error('Las contraseñas no coinciden.');
+        const longitud = new TextEncoder().encode(nueva).length;
+        if (longitud < 12 || longitud > 72) throw new Error('La contraseña debe ocupar entre 12 y 72 bytes UTF-8.');
+        await api('/usuarios/actual/contrasena', 'POST', {
+            contrasena_actual: elemento('actual-inicial').value, contrasena_nueva: nueva,
+        });
+        tokenSesion = '';
+        usuarioActual = null;
+        elemento('form-cambio-inicial').reset();
+        mostrar('acceso');
+        mensaje('Contraseña cambiada. Inicia sesión con la nueva contraseña.');
+    });
+}
+
 /** Diseño lógico: () -> cerrarSesion -> promesa vacía.
  * Descripción: Revoca la sesión remota y conserva la posibilidad de reintentar si falla. */
 async function cerrarSesion() {
@@ -196,6 +224,7 @@ async function cerrarSesion() {
         usuarioActual = null;
         elemento('lectura').replaceChildren();
         elemento('form-alta').reset();
+        elemento('form-cambio-inicial').reset();
         mostrar('acceso');
         mensaje('Sesión cerrada.');
     } catch (error) { mensaje(error.message, true); }
@@ -213,6 +242,8 @@ elemento('form-login').addEventListener('submit', iniciarSesion);
 elemento('form-alta').addEventListener('submit', registrarTrabajador);
 elemento('form-recuperacion').addEventListener('submit', solicitarRecuperacion);
 elemento('form-restablecer').addEventListener('submit', restablecerContrasena);
+elemento('form-cambio-inicial').addEventListener('submit', cambiarContrasenaInicial);
+elemento('salir-cambio').addEventListener('click', cerrarSesion);
 elemento('abrir-recuperacion').addEventListener('click', abrirRecuperacion);
 elemento('volver-acceso').addEventListener('click', volverAcceso);
 elemento('cancelar-restablecer').addEventListener('click', volverAcceso);

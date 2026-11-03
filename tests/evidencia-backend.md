@@ -17,14 +17,20 @@ Verificación local realizada el 02/11/2026 sobre `feature/backend-web-simulacio
 | Sintaxis JavaScript (`node --check`) | Sin errores |
 | Análisis del script PowerShell | Sin errores |
 | `php tests/validacion.php` | 25 comprobaciones correctas |
-| `php tests/integracion.php`, ejecución final tras añadir web pública | 170 comprobaciones HTTP/MySQL correctas |
+| `php tests/integracion.php`, ejecución final con contraseña inicial y cambio propio | 203 comprobaciones HTTP/MySQL correctas |
 | Importación del SQL en las dos bases vacías | Correcta |
 | Navegador: login de jefe, parque sin datos y actualización | Correcto |
 | Captura ficticia enviada mediante login + POST de la API | Guardada; visible como 42 ppb de S-001 |
 | Navegador: alta de trabajador ficticio | Cuenta creada; enlace encolado |
 | Buzón local y uso de enlaces en pruebas HTTP | Alta y recuperación correctas |
 
-Las 170 comprobaciones cuentan tanto estados HTTP y estructura de respuesta como aserciones sobre datos: no representan 170 historias o endpoints distintos. No contienen tokens ni datos personales reales. La ampliación comprueba el guardado real de una solicitud pública, el rechazo de campos incorrectos, la ausencia de listado público, las páginas OZORA/acceso y la disponibilidad de logos, fotografía y fuentes locales.
+Las 203 comprobaciones cuentan tanto estados HTTP y estructura de respuesta como aserciones sobre datos: no representan 203 historias o endpoints distintos. No contienen tokens ni datos personales reales. La ampliación comprueba el guardado real de una solicitud pública, el rechazo de campos incorrectos, la ausencia de listado público, las páginas OZORA/acceso y la disponibilidad de logos, fotografía y fuentes locales.
+
+Actualización del 03/11/2026: alta con contraseña inicial elegida por el jefe, guardada como hash y no devuelta; rechazo de alta sin contraseña o demasiado corta; indicador de cambio obligatorio en el login; bloqueo de operaciones antes del cambio; verificación de contraseña actual; rechazo de nueva contraseña idéntica o intento de elegir otra cuenta; cambio correcto, revocación de todas las sesiones y rechazo de la contraseña inicial después. El cambio se prueba por HTTP como lo consumirá Android, sin cambiar cuentas de la demo. Las capturas anteriores corresponden a la versión previa de la interfaz.
+
+Comprobado en navegador el formulario actualizado del jefe, con el campo de contraseña inicial:
+
+![Alta con contraseña inicial](evidencias/alta-contrasena-inicial.jpg)
 
 Cobertura de integración: credenciales incorrectas; cuenta y organización inactivas; sesiones válidas, caducadas, revocadas por logout o cambio de contraseña; rol de jefe y trabajador; aislamiento de dos organizaciones y parques; llavero ajeno/inactivo; JSON incorrecto, arrays, tipo MIME erróneo y cuerpo grande; validación sin inserciones; guardado confirmado; reintento sin duplicar; conflicto sin sobrescribir; milisegundos y precisión completa de coordenadas; última captura entre varios llaveros, empates y orden diferente al de recepción; reasignación sin trasladar histórico; alta con correo único y sin inyección de parque; enlace de alta; respuesta genérica de recuperación; token caducado, consumido y cuenta desactivada; revocación de sesiones; métodos y rutas incorrectos; límite de intentos; archivos privados inaccesibles por HTTP.
 

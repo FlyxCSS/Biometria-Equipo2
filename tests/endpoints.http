@@ -37,7 +37,14 @@ POST {{base}}/trabajadores
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
-{"nombre":"Trabajador de ejemplo","correo":"alta@example.org"}
+{"nombre":"Trabajador de ejemplo","correo":"alta@example.org","contrasena_inicial":"InicialSoloParaPruebas-2026"}
+
+### Cambio de contraseña propia: usar la sesión del trabajador; obliga a iniciar sesión otra vez.
+POST {{base}}/usuarios/actual/contrasena
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{"contrasena_actual":"InicialSoloParaPruebas-2026","contrasena_nueva":"PersonalSoloParaPruebas-2026"}
 
 ### Solicitud genérica de recuperación
 POST {{base}}/recuperaciones
