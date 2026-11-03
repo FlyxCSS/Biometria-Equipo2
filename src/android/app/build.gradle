@@ -14,11 +14,15 @@ android {
         targetSdk 36
         versionCode 1
         versionName "1.0"
+        resValue "string", "senda_api_base", providers.gradleProperty("SENDA_API_BASE").getOrElse("")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            resValue "string", "senda_api_base", providers.gradleProperty("SENDA_API_BASE").getOrElse("http://10.0.2.2:8080/api/v1")
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
