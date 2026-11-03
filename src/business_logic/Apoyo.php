@@ -19,6 +19,27 @@ final class ErrorApi extends RuntimeException
     }
 }
 
+/** Diseño lógico: () -> rutaBaseAplicacion -> prefijo de instalación.
+ * Descripción: Permite instalar SENDA en su propia carpeta, sin cambiar otras webs del dominio. */
+function rutaBaseAplicacion(): string
+{
+    $base = defined('SENDA_BASE_PATH') ? SENDA_BASE_PATH : (getenv('SENDA_BASE_PATH') ?: '');
+    if (!is_string($base) || !preg_match('~^(?:/[a-zA-Z0-9_-]+)*$~D', $base)) {
+        throw new RuntimeException('Ruta base de instalación inválida');
+    }
+    return $base;
+}
+
+/** Diseño lógico: () -> rutaPeticionAplicacion -> ruta relativa o null.
+ * Descripción: Retira únicamente el prefijo de esta instalación, respetando los demás proyectos. */
+function rutaPeticionAplicacion(): ?string
+{
+    $ruta = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $base = rutaBaseAplicacion();
+    if (!is_string($ruta) || ($base !== '' && $ruta !== $base && !str_starts_with($ruta, $base . '/'))) return null;
+    return substr($ruta, strlen($base)) ?: '/';
+}
+
 /** Diseño lógico: () -> configuracion -> array.
  * Descripción: Lee la configuración privada local, nunca servida por HTTP. */
 function configuracion(): array

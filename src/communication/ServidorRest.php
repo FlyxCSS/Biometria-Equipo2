@@ -49,7 +49,7 @@ function leerJson(): array
 function atenderApi(): never
 {
     try {
-        $ruta = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $ruta = rutaPeticionAplicacion();
         $metodo = $_SERVER['REQUEST_METHOD'];
         $rutas = [
             '/api/v1/sesiones' => ['POST'],

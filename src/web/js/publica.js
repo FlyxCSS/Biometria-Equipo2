@@ -7,6 +7,7 @@
  * Aportación: Formulario público real, sin confirmaciones simuladas ni persistencia en navegador.
  */
 'use strict';
+const RUTA_BASE = document.documentElement.dataset.basePath || '';
 const formularioContacto = document.getElementById('form-contacto');
 const resultadoContacto = document.getElementById('resultado-contacto');
 
@@ -21,7 +22,7 @@ async function solicitarInformacion(evento) {
     resultadoContacto.classList.remove('error');
     try {
         const datos = Object.fromEntries(new FormData(formularioContacto));
-        const respuesta = await fetch('/api/v1/solicitudes', {
+        const respuesta = await fetch(`${RUTA_BASE}/api/v1/solicitudes`, {
             method: 'POST', headers: {'Content-Type': 'application/json', Accept: 'application/json'},
             body: JSON.stringify(datos), credentials: 'omit', signal: AbortSignal.timeout(15000),
         });
@@ -39,4 +40,4 @@ formularioContacto.addEventListener('submit', solicitarInformacion);
 
 // Los correos emitidos antes de separar la landing enlazaban a /#token=... .
 const enlaceAntiguo = new URLSearchParams(location.hash.slice(1));
-if (enlaceAntiguo.has('token')) location.replace('/acceso' + location.hash);
+if (enlaceAntiguo.has('token')) location.replace(RUTA_BASE + '/acceso' + location.hash);

@@ -7,6 +7,7 @@
  * Aportación: Acceso, alta, última lectura y recuperación sin datos simulados de interfaz.
  */
 'use strict';
+const RUTA_BASE = document.documentElement.dataset.basePath || '';
 let tokenSesion = ''; // Solo en memoria: recargar requiere iniciar sesión otra vez.
 let usuarioActual = null;
 let tokenRecuperacion = '';
@@ -41,7 +42,7 @@ async function api(ruta, metodo = 'GET', datos = null) {
     if (datos !== null) headers['Content-Type'] = 'application/json';
     let respuesta;
     try {
-        respuesta = await fetch(`/api/v1${ruta}`, {
+        respuesta = await fetch(`${RUTA_BASE}/api/v1${ruta}`, {
             method: metodo, headers, body: datos === null ? null : JSON.stringify(datos),
             cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(15000),
         });
