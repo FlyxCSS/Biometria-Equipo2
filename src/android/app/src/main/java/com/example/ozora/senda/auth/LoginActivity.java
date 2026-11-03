@@ -50,6 +50,13 @@ public final class LoginActivity extends FieldScreen {
                 public void error(String s){ mensaje(s); }
             });
         });
+        if(DemoAccess.available()) {
+            texto("DEMOSTRACIÓN DEBUG · Cuenta y parque ficticios. Sin conexión al backend.",16,true);
+            boton("Entrar en demostración (Debug)",()->{
+                if(ocupado) return;
+                DemoAccess.open(); abrirPanel();
+            });
+        }
         mensajes();
     }
     private void autenticar(String correo,String clave,String guardado) {

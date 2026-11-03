@@ -36,7 +36,7 @@ public final class PreparadorMediciones {
                 - ubicacion.getElapsedRealtimeNanos() / 1_000_000L;
         if (edadMs < 0 || edadMs > MAX_EDAD_UBICACION_MS)
             return Resultado.error("Ubicación antigua: esperar otra posición.");
-        if (!ubicacion.hasAccuracy() || ubicacion.getAccuracy() > MAX_PRECISION_METROS)
+        if (!ubicacion.hasAccuracy() || (!Float.isFinite(ubicacion.getAccuracy()) || ubicacion.getAccuracy() < 0 || ubicacion.getAccuracy() > MAX_PRECISION_METROS))
             return Resultado.error("Ubicación imprecisa: esperar mejor señal.");
         double lat = ubicacion.getLatitude(), lon = ubicacion.getLongitude();
         if (!Double.isFinite(lat) || !Double.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180)

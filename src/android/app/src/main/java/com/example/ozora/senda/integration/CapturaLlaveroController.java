@@ -78,7 +78,7 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
         return true;
     }
     /** Diseño lógico: () -> detener() -> (void). */
-    public void detener() { activo = false; ble.detenerEscaneo(); gps.detener(); ultima = null; pendienteUbicacion = null; instantePendienteMs = 0; }
+    public void detener() { activo = false; principal.removeCallbacksAndMessages(null); ble.detenerEscaneo(); gps.detener(); ultima = null; pendienteUbicacion = null; instantePendienteMs = 0; }
     /** Diseño lógico: (IBeaconParser.Resultado, String) -> alRecibirTrama() -> (void). */
     @Override public void alRecibirTrama(IBeaconParser.Resultado trama, String mac) {
         principal.post(() -> {

@@ -21,6 +21,8 @@ public final class RutaService extends Service implements CapturaLlaveroControll
     private final Handler handler=new Handler(Looper.getMainLooper());
     @Override public IBinder onBind(Intent i) { return null; }
     @Override public int onStartCommand(Intent i,int flags,int startId) {
+        com.example.ozora.senda.auth.SessionManager sesion=com.example.ozora.senda.auth.SessionManager.current();
+        if(sesion==null) { stopSelf(); return START_NOT_STICKY; }
         if(i==null) { stopSelf(); return START_NOT_STICKY; }
         if(actual!=0) {
             if(actual!=i.getLongExtra("ruta",0) || !i.getBooleanExtra("reanudar",false)) return START_NOT_STICKY;
@@ -30,11 +32,15 @@ public final class RutaService extends Service implements CapturaLlaveroControll
                 new NotificationChannel("campo","Recorrido en curso",NotificationManager.IMPORTANCE_LOW));
         Notification.Builder n=Build.VERSION.SDK_INT>=26 ? new Notification.Builder(this,"campo") : new Notification.Builder(this);
         Intent home=new Intent(this,HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startForeground(31,n.setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle("SENDA · Recorrido en curso")
+        try { startForeground(31,n.setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle(sesion.demo ? "SENDA · DEMOSTRACIÓN DEBUG" : "SENDA · Recorrido en curso")
             .setContentText("Abre la app para ver o finalizar el recorrido.").setOngoing(true)
-            .setContentIntent(PendingIntent.getActivity(this,0,home,PendingIntent.FLAG_IMMUTABLE)).build());
+                        .setContentIntent(PendingIntent.getActivity(this,0,home,PendingIntent.FLAG_IMMUTABLE)).build());
+        } catch(SecurityException ex) {
+            estado="Captura interrumpida. Concede ubicación precisa y reanuda desde la app.";
+            stopSelf(); return START_NOT_STICKY;
+        }
         if(rutas==null) rutas=new RouteManager(this);
-        actual=i.getLongExtra("ruta",0); vence=i.getLongExtra("vence",0);
+        actual=i.getLongExtra("ruta",0); vence=Math.min(i.getLongExtra("vence",0),sesion.expiresAt);
         if(actual==0 || caducada()) { stopSelf(); return START_NOT_STICKY; }
         handler.postDelayed(this::caducada,Math.max(1,vence-System.currentTimeMillis()));
         segmento=SystemClock.elapsedRealtimeNanos(); desde=SystemClock.elapsedRealtime(); ultimoAnuncio=0;
@@ -43,6 +49,7 @@ public final class RutaService extends Service implements CapturaLlaveroControll
             captura=new CapturaLlaveroController(this,this);
             if(captura.seleccionarQr(sensor) && captura.iniciar()) return START_NOT_STICKY;
         }
+        if(captura!=null) { captura.detener(); captura=null; }
         gps=new LocationTracker(this,this);
         estado="Registrando GPS";
         if(!gps.iniciar()) { estado="Captura interrumpida. Revisa la ubicación y los permisos."; stopSelf(); }
