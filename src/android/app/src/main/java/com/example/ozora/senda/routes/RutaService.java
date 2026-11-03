@@ -1,3 +1,11 @@
+/*
+ * Nombre: RutaService.java
+ * Descripción: Captura BLE/GPS durante un recorrido y solicita su sincronización.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 03/11/2026.
+ * Autor: Equipo Android y Julia (integración con asistencia de Codex).
+ * Aportación: Mantener el guardado local antes del envío REST.
+ */
 package com.example.ozora.senda.routes;
 
 import com.example.ozora.senda.ui.HomeActivity;
@@ -8,6 +16,7 @@ import android.os.*;
 import com.example.ozora.senda.integration.CapturaLlaveroController;
 import com.example.ozora.senda.location.LocationTracker;
 import com.example.ozora.senda.model.MedicionAmbiental;
+import com.example.ozora.senda.network.MeasurementSync;
 
 /** Mantiene la captura si el trabajador bloquea la pantalla durante el recorrido. */
 public final class RutaService extends Service implements CapturaLlaveroController.Oyente,LocationTracker.Oyente {
@@ -72,7 +81,11 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         rutas.punto(actual,p,segmento,distancia); previa=new Location(p);
     }
     @Override public void alPrepararMedicion(MedicionAmbiental m,int rssi) {
-        if(!caducada()) { rutas.lectura(actual,m); estado="GPS y lectura recibidos"; }
+        if(!caducada()) {
+            rutas.lectura(actual,m);
+            estado="GPS y lectura guardados en el móvil";
+            MeasurementSync.sincronizar(this);
+        }
     }
     private void detenerSensores() {
         handler.removeCallbacksAndMessages(null);

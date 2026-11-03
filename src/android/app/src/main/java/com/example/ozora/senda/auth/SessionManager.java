@@ -1,3 +1,11 @@
+/*
+ * Nombre: SessionManager.java
+ * Descripción: Sesión en memoria compartida entre interfaz y sincronización.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 03/11/2026.
+ * Autor: Equipo Android y Julia (integración con asistencia de Codex).
+ * Aportación: Publicar de forma segura cambios de sesión a los envíos en segundo plano.
+ */
 package com.example.ozora.senda.auth;
 
 import com.example.ozora.senda.model.Worker;
@@ -7,7 +15,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public final class SessionManager {
-    private static SessionManager current;
+    private static volatile SessionManager current;
     public final Worker worker;
     public final long expiresAt;
     public final String token;

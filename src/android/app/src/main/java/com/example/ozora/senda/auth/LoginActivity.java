@@ -1,9 +1,21 @@
+/*
+ * Nombre: LoginActivity.java
+ * Descripción: Acceso de trabajador y cambio obligatorio de contraseña inicial.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 03/11/2026.
+ * Autor: Equipo Android y Julia (integración con asistencia de Codex).
+ * Aportación: Impedir entrar al panel hasta completar el primer cambio en PHP.
+ */
 package com.example.ozora.senda.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.text.method.PasswordTransformationMethod;
+import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,6 +30,10 @@ public final class LoginActivity extends FieldScreen {
     private ApiClient api;
     private BiometricHelper bio;
     private boolean ocupado;
+    private String tokenInicial;
+    private long venceInicial;
+    /** Diseño lógico: (estado) -> onCreate -> vacío.
+     * Descripción: Prepara acceso o reutiliza exclusivamente una sesión ya admitida. */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         api=new ApiClient(this);
@@ -25,16 +41,22 @@ public final class LoginActivity extends FieldScreen {
         if(SessionManager.current()!=null) abrirPanel();
         else { acceso(); mensaje(getIntent().getStringExtra("mensaje")); }
     }
+    /** Diseño lógico: () -> abrirPanel -> vacío.
+     * Descripción: Abre el cuaderno tras un login sin cambio pendiente. */
     private void abrirPanel() {
         startActivity(new Intent(this,HomeActivity.class));
         finish();
     }
-    @Override protected void onDestroy() { bio.cancelar(); super.onDestroy(); }
+    /** Diseño lógico: () -> onDestroy -> vacío.
+     * Descripción: Cancela la biometría y descarta el token temporal de primer acceso. */
+    @Override protected void onDestroy() { tokenInicial=null; bio.cancelar(); super.onDestroy(); }
+    /** Diseño lógico: () -> acceso -> vacío.
+     * Descripción: Muestra contraseña, biometría y demo según la variante instalada. */
     private void acceso() {
         pagina("Acceso de campo"); texto("Identifícate con la cuenta de tu parque.",16,false);
         EditText email=campo("Correo electrónico",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         EditText pass=campo("Contraseña",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        contenido.addView(email); contenido.addView(pass);
+        contenido.addView(email); agregarClave(pass);
         boton("Iniciar sesión",()->{
             String correo=email.getText().toString().trim(), clave=pass.getText().toString();
             if(!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches() || clave.isEmpty()) {
@@ -59,6 +81,8 @@ public final class LoginActivity extends FieldScreen {
         }
         mensajes();
     }
+    /** Diseño lógico: (correo, clave, token biométrico) -> autenticar -> vacío.
+     * Descripción: Verifica sesión y deriva al primer cambio antes de guardar el acceso al panel. */
     private void autenticar(String correo,String clave,String guardado) {
         if(ocupado) return;
         ocupado=true; mensaje("Comprobando la sesión…");
@@ -72,9 +96,16 @@ public final class LoginActivity extends FieldScreen {
                 long fin=SessionManager.instante(d.getString("expira_en"));
                 if(fin<=System.currentTimeMillis()) throw new ApiClient.Error(401,"Sesión caducada.");
                 int uid=u.getInt("id_usuario"), pid=u.getInt("id_parque"); String n=u.getString("nombre");
+                boolean cambioInicial=u.optBoolean("debe_cambiar_contrasena",false);
                 runOnUiThread(()->{
                     if(isDestroyed() || isFinishing()) return;
                     if(guardado==null) bio.borrar();
+                    if(cambioInicial) {
+                        bio.borrar();
+                        tokenInicial=nuevo; venceInicial=fin; ocupado=false;
+                        primerAcceso(correo);
+                        return;
+                    }
                     SessionManager.open(new Worker(uid,pid,n),fin,nuevo); ocupado=false; abrirPanel();
                 });
             } catch(Exception e) {
@@ -88,5 +119,81 @@ public final class LoginActivity extends FieldScreen {
                 });
             }
         });
+    }
+
+    /** Diseño lógico: (campo contraseña) -> agregarClave -> vacío.
+     * Descripción: Añade un icono de ojo con nombre accesible sin cambiar el texto escrito. */
+    private void agregarClave(EditText clave) {
+        LinearLayout fila=new LinearLayout(this);
+        fila.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        fila.addView(clave,new LinearLayout.LayoutParams(0,LinearLayout.LayoutParams.WRAP_CONTENT,1));
+        ImageButton ojo=new ImageButton(this);
+        ojo.setImageResource(android.R.drawable.ic_menu_view);
+        ojo.setContentDescription("Mostrar contraseña");
+        ojo.setOnClickListener(v->{
+            boolean mostrar=clave.getTransformationMethod() instanceof PasswordTransformationMethod;
+            clave.setTransformationMethod(mostrar ? null : PasswordTransformationMethod.getInstance());
+            clave.setSelection(clave.length());
+            ojo.setContentDescription(mostrar ? "Ocultar contraseña" : "Mostrar contraseña");
+        });
+        fila.addView(ojo,new LinearLayout.LayoutParams(dp(48),dp(48)));
+        contenido.addView(fila);
+    }
+
+    /** Diseño lógico: (correo utilizado) -> primerAcceso -> vacío.
+     * Descripción: Solicita la clave actual y la nueva; el token temporal no abre recorridos ni biometría. */
+    private void primerAcceso(String correo) {
+        pagina("Cambia tu contraseña inicial");
+        texto("Antes de comenzar, elige una contraseña propia de 12 a 72 bytes UTF-8.",16,false);
+        EditText actual=campo("Contraseña inicial",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        EditText nueva=campo("Nueva contraseña",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        EditText repetir=campo("Repetir nueva contraseña",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        agregarClave(actual); agregarClave(nueva); agregarClave(repetir);
+        boton("Guardar nueva contraseña",()->{
+            if(ocupado) return;
+            String valor=nueva.getText().toString(), anterior=actual.getText().toString();
+            int bytes=valor.getBytes(StandardCharsets.UTF_8).length;
+            if(bytes<12 || bytes>72 || !valor.equals(repetir.getText().toString()) || valor.equals(anterior)) {
+                mensaje("La nueva clave debe coincidir en ambos campos, ser distinta de la inicial y ocupar entre 12 y 72 bytes UTF-8.");
+                return;
+            }
+            if(tokenInicial==null || System.currentTimeMillis()>=venceInicial) {
+                tokenInicial=null; acceso(); mensaje("La sesión ha caducado. Vuelve a entrar con tu contraseña inicial."); return;
+            }
+            ocupado=true;
+            String token=tokenInicial;
+            mensaje("Guardando la nueva contraseña…");
+            RED.execute(()->{
+                try {
+                    api.pedir("POST","/usuarios/actual/contrasena",token,new JSONObject()
+                            .put("contrasena_actual",anterior).put("contrasena_nueva",valor));
+                    runOnUiThread(()->{
+                        if(isDestroyed() || isFinishing()) return;
+                        tokenInicial=null; ocupado=false; SessionManager.clear(); bio.borrar();
+                        actual.setText(""); nueva.setText(""); repetir.setText("");
+                        acceso(); mensaje("Contraseña cambiada. Inicia sesión con la nueva contraseña.");
+                    });
+                } catch(Exception error) {
+                    runOnUiThread(()->{
+                        if(isDestroyed() || isFinishing()) return;
+                        ocupado=false;
+                        if(error instanceof ApiClient.Error && ((ApiClient.Error)error).status==401) {
+                            tokenInicial=null; acceso();
+                        }
+                        mensaje(error instanceof ApiClient.Error ? error.getMessage() : "No se pudo confirmar el cambio. Revisa la conexión; si ya se guardó, entra con la nueva clave.");
+                    });
+                }
+            });
+        });
+        boton("Volver al acceso",()->{
+            if(ocupado) return;
+            String anterior=tokenInicial; tokenInicial=null;
+            if(anterior!=null) RED.execute(()->{
+                try { api.pedir("DELETE","/sesiones/actual",anterior,null); }
+                catch(Exception ignorado) { /* El token sigue limitado por su caducidad en PHP. */ }
+            });
+            acceso();
+        });
+        mensajes();
     }
 }

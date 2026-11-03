@@ -1,3 +1,11 @@
+/*
+ * Nombre: HomeActivity.java
+ * Descripción: Panel del trabajador, recorridos y estado de sincronización.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 03/11/2026.
+ * Autor: Equipo Android y Julia (integración con asistencia de Codex).
+ * Aportación: Informar de lecturas locales y confirmadas y reintentar las pendientes.
+ */
 package com.example.ozora.senda.ui;
 
 import android.Manifest;
@@ -29,6 +37,7 @@ import com.example.ozora.senda.auth.LoginActivity;
 import com.example.ozora.senda.auth.BiometricHelper;
 import com.example.ozora.senda.model.Route;
 import com.example.ozora.senda.network.ApiClient;
+import com.example.ozora.senda.network.MeasurementSync;
 import com.example.ozora.senda.qr.QrScannerActivity;
 import com.example.ozora.senda.routes.RouteActivity;
 import com.example.ozora.senda.routes.RutaService;
@@ -40,14 +49,19 @@ public final class HomeActivity extends FieldScreen {
     private SessionManager session;
     private RouteManager rutas;
     private BiometricHelper bio;
-    private TextView ultima, dispositivo, resumen, aviso;
+    private TextView ultima, dispositivo, resumen, aviso, sincronizacion;
     private Button accion, seleccion;
     private boolean activo;
     private long id;
     private String sensorRuta;
+    private long ultimoEnvio;
     private final Handler reloj=new Handler(Looper.getMainLooper());
     private final Runnable tick=new Runnable() { public void run() {
         if(SessionManager.current()==null) { salir(false); return; }
+        if(!session.demo && SystemClock.elapsedRealtime()-ultimoEnvio>=15000) {
+            ultimoEnvio=SystemClock.elapsedRealtime();
+            MeasurementSync.sincronizar(HomeActivity.this);
+        }
         actualizar(); reloj.postDelayed(this,1000);
     }};
     @Override protected void onCreate(Bundle state) {
@@ -73,6 +87,12 @@ public final class HomeActivity extends FieldScreen {
         pagina("Cuaderno de campo"); if(session.demo) texto("DEMOSTRACIÓN DEBUG · Trabajador y parque ficticios · Datos locales de prueba",16,true); texto(session.worker.name+"  ·  Parque "+session.worker.parkId,17,false);
         ultima=tarjeta("Última medición de O₃",23); dispositivo=tarjeta("Llavero y señal BLE",16);
         aviso=texto("",16,true); aviso.setTextColor(0xff8a4919); resumen=tarjeta("Resumen del recorrido",17);
+        sincronizacion=tarjeta("Envío al servidor",15);
+        if(!session.demo) boton("Reintentar envíos pendientes",()->{
+            rutas.reintentarEnvios(session.worker);
+            MeasurementSync.sincronizar(this);
+            actualizar();
+        });
         accion=boton("",()->{ if(activo) confirmarFin(); else preparar(); });
         boton("Ver mapa del recorrido",()->startActivity(new Intent(this,RouteActivity.class)));
         boton("Consultar resumen",()->startActivity(new Intent(this,SummaryActivity.class)));
@@ -85,6 +105,8 @@ public final class HomeActivity extends FieldScreen {
     }
     private void actualizar() {
         if(session==null || resumen==null) return;
+        sincronizacion.setText(session.demo ? "Demostración: las lecturas permanecen en el móvil, sin envío REST."
+                : rutas.estadoEnvios(session.worker)+"\n"+MeasurementSync.estado);
         Route route=rutas.ultimaRuta(session.worker);
         id=route==null ? 0 : route.id;
         activo=route!=null && route.end==null;
