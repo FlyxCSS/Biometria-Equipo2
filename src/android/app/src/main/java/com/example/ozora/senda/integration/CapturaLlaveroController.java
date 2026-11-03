@@ -22,6 +22,7 @@ import com.example.ozora.senda.qr.QrLlaveroParser;
 /** La selección QR NO es autorización. No transmite al servidor. */
 public final class CapturaLlaveroController implements BleScanner.Oyente, LocationTracker.Oyente {
     public interface Oyente {
+        default void alRecibirAnuncio() {}
         /** Diseño lógico: (String) -> alCambiarEstado() -> (void). */
         void alCambiarEstado(String mensaje);
         /** Diseño lógico: (Location) -> alRecibirUbicacion() -> (void). */
@@ -83,6 +84,7 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
         principal.post(() -> {
             if (!activo || llavero == null || trama == null || trama.nombreBle == null
                     || !llavero.equalsIgnoreCase(trama.nombreBle) || !trama.esOzono()) return;
+            oyente.alRecibirAnuncio();
             // Se recuerda la trama mientras llega la primera ubicación; no se considera enviada.
             if (ultima == null) {
                 pendienteUbicacion = trama;
