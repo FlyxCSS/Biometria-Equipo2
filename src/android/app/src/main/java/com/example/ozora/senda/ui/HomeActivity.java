@@ -70,7 +70,7 @@ public final class HomeActivity extends FieldScreen {
     private SharedPreferences ajustes() { return getSharedPreferences("campo-"+session.worker.id+"-"+session.worker.parkId,MODE_PRIVATE); }
     private String elegido() { return ajustes().getString("sensor",null); }
     private void panel() {
-        pagina("Cuaderno de campo"); texto(session.worker.name+"  ·  Parque "+session.worker.parkId,17,false);
+        pagina("Cuaderno de campo"); if(session.demo) texto("DEMOSTRACIÓN DEBUG · Trabajador y parque ficticios · Datos locales de prueba",16,true); texto(session.worker.name+"  ·  Parque "+session.worker.parkId,17,false);
         ultima=tarjeta("Última medición de O₃",23); dispositivo=tarjeta("Llavero y señal BLE",16);
         aviso=texto("",16,true); aviso.setTextColor(0xff8a4919); resumen=tarjeta("Resumen del recorrido",17);
         accion=boton("",()->{ if(activo) confirmarFin(); else preparar(); });
@@ -128,11 +128,12 @@ public final class HomeActivity extends FieldScreen {
     }
     private void configurar() {
         List<String> opciones=new ArrayList<>();
-        opciones.add(bio.activo()?"Desactivar biometría":"Activar biometría");
+        opciones.add(session.demo?"Biometría no disponible en demostración":bio.activo()?"Desactivar biometría":"Activar biometría");
         opciones.add("Umbral orientativo de ozono"); opciones.add("Tiempo sin anuncios BLE");
         if(activo) opciones.add("Reanudar captura");
         new AlertDialog.Builder(this).setTitle("Ajustes de campo").setItems(opciones.toArray(new String[0]),(d,w)->{
             if(w==0) {
+                if(session.demo) { mensaje("La demostración no tiene credenciales ni acceso biométrico."); return; }
                 if(bio.activo()) { bio.borrar(); mensaje("Acceso biométrico desactivado."); }
                 else if(!bio.disponible()) mensaje("Configura una huella o biometría compatible en los ajustes de Android.");
                 else try { bio.activar(session.token); mensaje("Biometría activada para la próxima apertura de la app."); }
@@ -193,8 +194,8 @@ public final class HomeActivity extends FieldScreen {
     }
     private void salir(boolean revocar) {
         String anterior=session.token;
-        finalizar(); bio.borrar(); SessionManager.clear();
-        if(revocar) {
+        finalizar(); if(!session.demo) bio.borrar(); SessionManager.clear();
+        if(revocar && !session.demo) {
             ApiClient api=new ApiClient(this);
             new Thread(()->{
                 try { api.pedir("DELETE","/sesiones/actual",anterior,null); }

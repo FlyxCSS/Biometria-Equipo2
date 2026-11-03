@@ -12,17 +12,25 @@ public final class SessionManager {
     public final long expiresAt;
     public final String token;
 
-    private SessionManager(Worker worker, long expiresAt, String token) {
+    public final boolean demo;
+    SessionManager(Worker worker, long expiresAt, String token, boolean demo) {
+        this.demo = demo;
         this.worker = worker;
         this.expiresAt = expiresAt;
         this.token = token;
     }
     public static void open(Worker worker, long expiresAt, String token) {
-        current = new SessionManager(worker, expiresAt, token);
+        current = new SessionManager(worker, expiresAt, token, false);
+    }
+    static void openDemo(SessionManager session) {
+        if (!DemoAccess.available() || !session.demo || session.token != null)
+            throw new SecurityException("Demostración no disponible");
+        current = session;
     }
     public static SessionManager current() {
         return current != null && System.currentTimeMillis() < current.expiresAt ? current : null;
     }
+    public static boolean isDemo() { return current != null && current.demo; }
     public static void clear() { current = null; }
     public static long instante(String iso) throws ParseException {
         SimpleDateFormat f=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",Locale.ROOT);

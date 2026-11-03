@@ -12,11 +12,16 @@ import java.util.List;
 
 /** Proyección Web Mercator compartida por las teselas y el trazado GPS. */
 public final class RouteActivity extends FieldScreen {
+    private WebView web;
+    @Override protected void onDestroy() {
+        if(web!=null) { ((android.view.ViewGroup)web.getParent()).removeView(web); web.destroy(); web=null; }
+        super.onDestroy();
+    }
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         SessionManager session=SessionManager.current();
         if(session==null) { finish(); return; }
-        pagina("Mapa del recorrido");
+        pagina("Mapa del recorrido"); if(session.demo) texto("DEMOSTRACIÓN DEBUG · Datos locales de prueba",16,true);
         List<double[]> puntos=new ArrayList<>();
         try(RouteManager manager=new RouteManager(this)) {
             Route route=manager.ultimaRuta(session.worker);
@@ -62,7 +67,7 @@ public final class RouteActivity extends FieldScreen {
                 .append(p[0]*world-left).append("' cy='").append(p[1]*world-top).append("'/>");
         }
         svg.append("</svg><p>Inicio en verde · Último punto en ocre<br>© OpenStreetMap contributors</p><p>El trazado está guardado en el móvil. El mapa base necesita conexión.</p>");
-        WebView web=new WebView(this); web.getSettings().setAllowFileAccess(false);
+        web=new WebView(this); web.getSettings().setAllowFileAccess(false);
         web.getSettings().setUserAgentString("SENDA-Equipo2/1.0 (Android; Biometria-Equipo2)");
         web.loadDataWithBaseURL("https://senda.invalid/",svg.toString(),"text/html","utf-8",null);
         contenido.addView(web);

@@ -17,12 +17,13 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 /**
  * Escáner BLE aislado de la interfaz gráfica.
@@ -44,24 +45,38 @@ public final class BleScanner {
     private final Context contexto;
     private final Oyente oyente;
     private BluetoothLeScanner escaner;
-    private boolean escaneando;
+    private volatile boolean escaneando;
+    // El nombre y el iBeacon pueden llegar en anuncios BLE diferentes de la misma MAC.
+    private final Map<String, String> nombresPorMac = new ConcurrentHashMap<>();
 
     private final ScanCallback callback = new ScanCallback() {
         @Override
         // Diseño lógico: (int, ScanResult) -> onScanResult() -> (void)
         // Descripción: Analiza los datos del fabricante de cada anuncio recibido.
         public void onScanResult(int callbackType, ScanResult resultado) {
-            if (resultado == null || resultado.getScanRecord() == null) {
+            if (!escaneando || resultado == null || resultado.getDevice() == null || resultado.getScanRecord() == null) {
                 return;
+            }
+            String mac;
+            try {
+                mac = resultado.getDevice().getAddress();
+            } catch (SecurityException ex) {
+                oyente.alOcurrirError("Permiso Bluetooth denegado al leer el dispositivo.");
+                return;
+            }
+            if (mac == null) return;
+            String nombre = resultado.getScanRecord().getDeviceName();
+            if (nombre != null && !nombre.trim().isEmpty()) {
+                nombresPorMac.put(mac, nombre);
+            } else {
+                nombre = nombresPorMac.get(mac);
             }
             byte[] fabricante = resultado.getScanRecord()
                     .getManufacturerSpecificData(IBeaconParser.COMPANY_ID_APPLE);
-            String nombre = resultado.getScanRecord().getDeviceName();
             IBeaconParser.Resultado medida = IBeaconParser.interpretar(
                     fabricante, nombre, resultado.getRssi());
-            if (medida != null) {
-                oyente.alRecibirTrama(medida, resultado.getDevice().getAddress());
-            }
+            // El parser verifica la UUID exacta del proyecto antes de notificar.
+            if (medida != null) oyente.alRecibirTrama(medida, mac);
         }
 
         @Override
@@ -111,9 +126,10 @@ public final class BleScanner {
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build();
         try {
-            ScanFilter filtro = new ScanFilter.Builder().setManufacturerData(
-                    IBeaconParser.COMPANY_ID_APPLE, new byte[]{0x02, 0x15}).build();
-            escaner.startScan(java.util.Collections.singletonList(filtro), ajustes, callback);
+            // Sin filtro a nivel del sistema: el nombre puede anunciarse por separado.
+            // Solo entregamos tramas iBeacon con UUID SENDA validada por IBeaconParser.
+            nombresPorMac.clear();
+            escaner.startScan(java.util.Collections.singletonList(new android.bluetooth.le.ScanFilter.Builder().build()), ajustes, callback);
             escaneando = true;
             return true;
         } catch (SecurityException ex) {
@@ -130,9 +146,9 @@ public final class BleScanner {
      * Descripción: Detiene la exploración activa y libera la referencia al escáner.
      */
     public void detenerEscaneo() {
-        if (!escaneando || escaner == null) {
-            return;
-        }
+        escaneando = false;
+        nombresPorMac.clear();
+        if (escaner == null) return;
         try {
             escaner.stopScan(callback);
         } catch (SecurityException ex) {
@@ -142,6 +158,7 @@ public final class BleScanner {
         } finally {
             escaneando = false;
             escaner = null;
+            nombresPorMac.clear();
         }
     }
 

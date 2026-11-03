@@ -11,7 +11,7 @@ public final class SummaryActivity extends FieldScreen {
         super.onCreate(state);
         SessionManager session=SessionManager.current();
         if(session==null) { finish(); return; }
-        pagina("Resumen del recorrido");
+        pagina("Resumen del recorrido"); if(session.demo) texto("DEMOSTRACIÓN DEBUG · Datos locales de prueba",16,true);
         try(RouteManager manager=new RouteManager(this)) {
             Route route=manager.ultimaRuta(session.worker);
             tarjeta("Duración, distancia y ozono",18).setText(StatisticsCalculator.resumen(route,System.currentTimeMillis()));
