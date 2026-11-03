@@ -26,6 +26,12 @@ function mensaje(texto, error = false) {
 /** Diseño lógico: (sección) -> mostrar -> vacío.
  * Descripción: Cambia de pantalla sin duplicar formularios. */
 function mostrar(seccion) {
+    // Al cambiar de pantalla, todas las claves vuelven a quedar ocultas.
+    for (const boton of document.querySelectorAll('[data-ver-contrasena]')) {
+        elemento(boton.getAttribute('aria-controls')).type = 'password';
+        boton.textContent = 'Mostrar contraseña';
+        boton.setAttribute('aria-pressed', 'false');
+    }
     for (const id of ['acceso', 'recuperacion', 'restablecer', 'cambio-inicial', 'panel']) {
         elemento(id).hidden = id !== seccion;
     }
@@ -238,6 +244,35 @@ function abrirRecuperacion() { mostrar('recuperacion'); }
 /** Diseño lógico: () -> volverAcceso -> vacío.
  * Descripción: Descarta el enlace local y limpia los campos de contraseña. */
 function volverAcceso() { tokenRecuperacion = ''; elemento('form-restablecer').reset(); mostrar('acceso'); }
+
+/** Diseño lógico: (evento click) -> alternarContrasena -> vacío.
+ * Descripción: Muestra u oculta exclusivamente el campo asociado al botón. */
+function alternarContrasena(evento) {
+    const boton = evento.currentTarget;
+    const campo = elemento(boton.getAttribute('aria-controls'));
+    const visible = campo.type === 'password';
+    campo.type = visible ? 'text' : 'password';
+    boton.textContent = visible ? 'Ocultar contraseña' : 'Mostrar contraseña';
+    boton.setAttribute('aria-pressed', String(visible));
+}
+
+/** Diseño lógico: () -> prepararVisibilidadContrasenas -> vacío.
+ * Descripción: Añade controles accesibles a las claves de acceso, alta y cambio. */
+function prepararVisibilidadContrasenas() {
+    for (const campo of document.querySelectorAll('input[type="password"]')) {
+        const boton = document.createElement('button');
+        boton.type = 'button'; // Mostrar la clave nunca debe enviar el formulario.
+        boton.className = 'enlace';
+        boton.textContent = 'Mostrar contraseña';
+        boton.dataset.verContrasena = '';
+        boton.setAttribute('aria-controls', campo.id);
+        boton.setAttribute('aria-pressed', 'false');
+        boton.addEventListener('click', alternarContrasena);
+        campo.after(boton);
+    }
+}
+
+prepararVisibilidadContrasenas();
 
 elemento('form-login').addEventListener('submit', iniciarSesion);
 elemento('form-alta').addEventListener('submit', registrarTrabajador);

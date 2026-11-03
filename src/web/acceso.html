@@ -13,7 +13,7 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SENDA · Parque</title>
   <link rel="stylesheet" href="/css/estilos.css">
-  <script src="/js/app.js" defer></script>
+  <script src="/js/app.js?v=20261103-2" defer></script>
 </head>
 <body>
   <header class="cabecera"><a class="marca" href="/acceso"><img src="/assets/senda.svg" alt="" width="32" height="30.1714"><span>SENDA<small>por Ozora</small></span></a><span class="etiqueta">Web auxiliar · Sprint 2</span><nav id="navegacion-privada" aria-label="Navegación del parque" hidden><a href="#ultima-lectura">Última medición</a><a href="#alta-trabajador">Registrar trabajador</a></nav><a class="volver-publica" href="/">Volver a OZORA</a></header>
@@ -50,7 +50,8 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
 
     <section id="cambio-inicial" class="tarjeta estrecha" hidden>
       <p class="ceja">Primer acceso</p><h1>Haz tuya la contraseña.</h1>
-      <p>El jefe te ha asignado una contraseña inicial. Debes cambiarla antes de utilizar tu cuenta. También podrás hacerlo desde la app Android cuando esté integrado este flujo.</p>
+      <p>Tu cuenta tiene una contraseña inicial. Debes cambiarla antes de utilizarla. También podrás hacerlo desde la app Android cuando esté integrado este flujo.</p>
+      <p class="nota">La nueva contraseña debe tener al menos 12 caracteres y no superar 72 bytes UTF-8.</p>
       <form id="form-cambio-inicial">
         <label for="actual-inicial">Contraseña inicial</label><input id="actual-inicial" name="actual" type="password" autocomplete="current-password" required>
         <label for="nueva-inicial">Nueva contraseña</label><input id="nueva-inicial" name="nueva" type="password" minlength="12" autocomplete="new-password" required>

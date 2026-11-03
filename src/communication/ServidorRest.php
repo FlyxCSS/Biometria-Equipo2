@@ -99,7 +99,8 @@ function atenderApi(): never
             $logica->limitar($ruta, $_SERVER['REMOTE_ADDR'] ?? 'desconocida');
             $resultado = $logica->restablecerContrasena($datos);
         } else {
-            $cabecera = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+            // Apache puede anteponer REDIRECT_ al pasar por el controlador público.
+            $cabecera = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
             if (!preg_match('/^Bearer ([a-f0-9]{64})$/D', $cabecera, $coincidencias)) {
                 throw new ErrorApi(401, 'SESION_INVALIDA', 'Inicia sesión de nuevo.');
             }

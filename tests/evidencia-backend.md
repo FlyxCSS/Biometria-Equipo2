@@ -52,7 +52,7 @@ Captura de la demo, con cuentas, coordenadas y medición ficticias:
 
 ## Límites
 
-Comprobación parcial en Plesk del 03/11/2026: portada y acceso servidos por HTTPS en `/senda`, solicitud ficticia guardada en MySQL y confirmada en phpMyAdmin; sesión sin credenciales rechazada con 401 y configuración privada inaccesible con 404. El esquema está importado y la conexión configurada. El panel autenticado remoto sigue pendiente de la creación de cuentas de prueba.
+Comprobación parcial en Plesk del 03/11/2026: portada y acceso servidos por HTTPS en `/senda`, solicitud ficticia guardada en MySQL y confirmada en phpMyAdmin; sesión sin credenciales rechazada con 401 y configuración privada inaccesible con 404. El esquema está importado y la conexión configurada. Cuentas de demo importadas por la propietaria. Reproducido y corregido el fallo de reenvío de Authorization entre Apache y PHP-FPM: login correcto seguido de sesión 401 antes del arreglo, sesión 200 después. Login del jefe confirmado en navegador hasta la pantalla de cambio obligatorio. Verificado el botón Mostrar/Ocultar cambiando el tipo del campo sin enviar el formulario; disponible también en cambio inicial, recuperación y alta. Cambio personal de contraseña completado por la propietaria; panel del jefe y botón Actualizar comprobados en Plesk, con la lectura simulada de 42 ppb del llavero S-001. Tras el arreglo se han repetido las 203 comprobaciones HTTP/MySQL locales, todas correctas.
 
 No se ha probado SMTP/correo a destinatarios reales, carga concurrente, Android en teléfono, BLE físico ni persistencia de recorridos. Las comprobaciones de Plesk no sustituyen la integración completa con Android ni validan toda la configuración del servidor.
 
