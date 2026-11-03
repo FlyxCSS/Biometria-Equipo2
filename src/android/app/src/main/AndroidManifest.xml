@@ -2,7 +2,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permisos Bluetooth para Android 11 y anteriores -->
+    <!-- INTERNET: conexion con el servidor -->
+    <uses-permission
+        android:name="android.permission.INTERNET" />
+
+    <!-- BIOMETRIA: Persona 2 -->
+    <uses-permission
+        android:name="android.permission.USE_BIOMETRIC" />
+
+    <uses-permission
+        android:name="android.permission.USE_FINGERPRINT" />
+
+    <!-- UBICACION: Persona 1 y Persona 2 -->
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- BLUETOOTH: Android 11 y anteriores -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
@@ -11,59 +29,81 @@
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
 
-    <!-- Permisos Bluetooth para Android 12 y posteriores -->
+    <!-- BLUETOOTH: Android 12 y posteriores -->
     <uses-permission
         android:name="android.permission.BLUETOOTH_SCAN" />
 
     <uses-permission
         android:name="android.permission.BLUETOOTH_CONNECT" />
 
-    <!-- Ubicación necesaria para GPS y escaneo BLE antiguo -->
+    <!-- SERVICIO DE RECORRIDO: Persona 2 -->
     <uses-permission
-        android:name="android.permission.ACCESS_FINE_LOCATION"
-        tools:ignore="CoarseFineLocation" />
+        android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <!-- El dispositivo debe disponer de Bluetooth LE -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <!-- SENSOR BLE NECESARIO -->
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
 
     <application
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SENDA">
 
-        <!-- Activity principal: NO MODIFICADA -->
+        <!-- PANTALLA INICIAL: PERSONA 2 -->
         <activity
-            android:name=".MainActivity"
+            android:name=".auth.LoginActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
 
-        <!-- Pantalla temporal para probar las tramas BLE -->
+        <!-- PANTALLAS DE PERSONA 2 -->
+        <activity
+            android:name=".ui.HomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".routes.RouteActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.SummaryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".qr.QrScannerActivity"
+            android:exported="false" />
+
+        <!-- SERVICIO DE RECORRIDOS: PERSONA 2 -->
+        <service
+            android:name=".routes.RutaService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
+
+        <!-- PANTALLAS DE DIAGNOSTICO: PERSONA 1 -->
         <activity
             android:name=".bluetooth.BleTestActivity"
-            android:exported="true" />
+            android:exported="false" />
 
-        <!-- Pantalla temporal para probar lectura QR -->
         <activity
             android:name=".qr.QrTestActivity"
-            android:exported="true" />
+            android:exported="false" />
 
-
-        <!-- Pantalla temporal de integración QR + BLE + GPS -->
         <activity
             android:name=".integration.LlaveroFlowTestActivity"
-            android:exported="true" />
-
+            android:exported="false" />
 
     </application>
 
