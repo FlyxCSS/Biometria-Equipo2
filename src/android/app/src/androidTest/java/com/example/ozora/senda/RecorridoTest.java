@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteConstraintException;
 import android.location.Location;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.example.ozora.senda.model.MedicionAmbiental;
+import com.example.ozora.senda.model.Worker;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -42,5 +43,39 @@ public class RecorridoTest {
             assertFalse(ajeno.moveToFirst()); assertFalse(otroParque.moveToFirst());
             assertTrue(rutas.iniciar(12,3,null)>c.getLong(0));
         } finally { contexto.deleteDatabase(archivo); }
+    }
+
+    @Test public void historialYPaginacionSoloDevuelvenDatosDelTrabajadorYParque() {
+        android.content.Context contexto = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        String archivo = "test-" + java.util.UUID.randomUUID() + ".db";
+        Worker trabajador = new Worker(12, 3, "Prueba");
+        try (RouteManager rutas = new RouteManager(contexto, archivo)) {
+            long antigua = rutas.iniciar(12, 3, "S-001");
+            rutas.lectura(antigua, new MedicionAmbiental("S-001", 2, 39, -0.1, 5, "2026-11-02T12:00:00.000Z", 1));
+            rutas.finalizar(antigua);
+            long nueva = rutas.iniciar(12, 3, "S-002");
+            rutas.lectura(nueva, new MedicionAmbiental("S-002", 5, 39, -0.1, 5, "2026-11-02T13:00:00.000Z", 2));
+            long ajena = rutas.iniciar(17, 3, "S-001");
+            rutas.lectura(ajena, new MedicionAmbiental("S-001", 99, 39, -0.1, 5, "2026-11-02T14:00:00.000Z", 3));
+
+            try (Cursor rutasAnteriores = rutas.listar(trabajador, 1, 1);
+                 Cursor recientes = rutas.historial(trabajador, null, 20, 0);
+                 Cursor sensor = rutas.historial(trabajador, "S-001", 20, 0)) {
+                assertTrue(rutasAnteriores.moveToFirst());
+                assertEquals(antigua, rutasAnteriores.getLong(0));
+                assertFalse(rutasAnteriores.moveToNext());
+                assertTrue(recientes.moveToFirst());
+                assertEquals(nueva, recientes.getLong(3));
+                assertEquals(2, recientes.getCount());
+                assertTrue(sensor.moveToFirst());
+                assertEquals(2, sensor.getInt(0));
+                assertFalse(sensor.moveToNext());
+            }
+            assertEquals(1, rutas.ruta(trabajador, antigua).count);
+            assertNull(rutas.ruta(trabajador, ajena));
+            assertNull(rutas.ruta(new Worker(12, 4, "Otro parque"), antigua));
+        } finally {
+            contexto.deleteDatabase(archivo);
+        }
     }
 }

@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 import com.example.ozora.senda.model.Worker;
 import com.example.ozora.senda.network.ApiClient;
 import com.example.ozora.senda.ui.FieldScreen;
-import com.example.ozora.senda.ui.HomeActivity;
+import com.example.ozora.senda.MainActivity;
 
 public final class LoginActivity extends FieldScreen {
     private static final ExecutorService RED=Executors.newSingleThreadExecutor();
@@ -44,7 +44,7 @@ public final class LoginActivity extends FieldScreen {
     /** Diseño lógico: () -> abrirPanel -> vacío.
      * Descripción: Abre el cuaderno tras un login sin cambio pendiente. */
     private void abrirPanel() {
-        startActivity(new Intent(this,HomeActivity.class));
+        startActivity(new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
         finish();
     }
     /** Diseño lógico: () -> onDestroy -> vacío.

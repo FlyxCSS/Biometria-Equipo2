@@ -1,5 +1,6 @@
 package com.example.ozora.senda.routes;
 
+import com.example.ozora.senda.MainActivity;
 import com.example.ozora.senda.model.Route;
 import com.example.ozora.senda.model.RoutePoint;
 import com.example.ozora.senda.auth.SessionManager;
@@ -13,6 +14,11 @@ import java.util.List;
 /** Proyección Web Mercator compartida por las teselas y el trazado GPS. */
 public final class RouteActivity extends FieldScreen {
     private WebView web;
+    @Override protected void onStart() {
+        super.onStart();
+        if (com.example.ozora.senda.auth.SessionManager.current() == null) finish();
+    }
+
     @Override protected void onDestroy() {
         if(web!=null) { ((android.view.ViewGroup)web.getParent()).removeView(web); web.destroy(); web=null; }
         super.onDestroy();
@@ -24,7 +30,8 @@ public final class RouteActivity extends FieldScreen {
         pagina("Mapa del recorrido"); if(session.demo) texto("DEMOSTRACIÓN DEBUG · Datos locales de prueba",16,true);
         List<double[]> puntos=new ArrayList<>();
         try(RouteManager manager=new RouteManager(this)) {
-            Route route=manager.ultimaRuta(session.worker);
+            long id = getIntent().getLongExtra(MainActivity.EXTRA_ROUTE_ID, 0);
+            Route route = id == 0 ? manager.ultimaRuta(session.worker) : manager.ruta(session.worker, id);
             if(route!=null) for(RoutePoint point:manager.puntos(route.id)) {
                 puntos.add(new double[]{point.latitude,point.longitude,point.segment});
             }

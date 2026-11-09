@@ -104,11 +104,45 @@ public final class RouteManager extends SQLiteOpenHelper {
         }
         return puntos;
     }
+    /** Páginas de solo lectura, restringidas al trabajador y parque actuales. */
+    public Cursor listar(Worker worker, int limite, int desplazamiento) {
+        return getReadableDatabase().rawQuery(
+                "SELECT id,inicio,fin FROM ruta WHERE usuario=? AND parque=? ORDER BY id DESC LIMIT ? OFFSET ?",
+                new String[]{String.valueOf(worker.id), String.valueOf(worker.parkId),
+                        String.valueOf(limite), String.valueOf(desplazamiento)});
+    }
+
+    public Cursor historial(Worker worker, String sensor, int limite, int desplazamiento) {
+        String identidad = "COALESCE(l.nombre_micro,r.sensor)";
+        String sql = "SELECT l.ppb,l.fecha," + identidad + ",r.id FROM lectura l JOIN ruta r ON r.id=l.ruta"
+                + " WHERE r.usuario=? AND r.parque=?" + (sensor == null ? "" : " AND " + identidad + "=?")
+                + " ORDER BY l.fecha DESC,l.id DESC LIMIT ? OFFSET ?";
+        String usuario = String.valueOf(worker.id), parque = String.valueOf(worker.parkId);
+        String max = String.valueOf(limite), offset = String.valueOf(desplazamiento);
+        return getReadableDatabase().rawQuery(sql, sensor == null
+                ? new String[]{usuario, parque, max, offset}
+                : new String[]{usuario, parque, sensor, max, offset});
+    }
+
+    public Route ruta(Worker worker, long id) {
+        try (Cursor c = getReadableDatabase().rawQuery(
+                "SELECT r.id,inicio,fin,metros,sensor,COUNT(l.id),AVG(ppb),MIN(ppb),MAX(ppb)"
+                        + " FROM ruta r LEFT JOIN lectura l ON l.ruta=r.id"
+                        + " WHERE r.usuario=? AND r.parque=? AND r.id=? GROUP BY r.id",
+                new String[]{String.valueOf(worker.id), String.valueOf(worker.parkId), String.valueOf(id)})) {
+            return leerRuta(c);
+        }
+    }
+
     public Route ultimaRuta(Worker worker) {
         try (Cursor c = resumen(worker.id, worker.parkId)) {
-            if (!c.moveToFirst()) return null;
-            return new Route(c.getLong(0), c.getLong(1), c.isNull(2) ? null : c.getLong(2),
-                    c.getDouble(3), c.getString(4), c.getInt(5), c.getDouble(6), c.getInt(7), c.getInt(8));
+            return leerRuta(c);
         }
+    }
+
+    private Route leerRuta(Cursor c) {
+        if (!c.moveToFirst()) return null;
+        return new Route(c.getLong(0), c.getLong(1), c.isNull(2) ? null : c.getLong(2),
+                c.getDouble(3), c.getString(4), c.getInt(5), c.getDouble(6), c.getInt(7), c.getInt(8));
     }
 }

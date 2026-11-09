@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView style="@style/SendaSectionTitle" android:text="@string/main_inicio" />
+    <TextView android:id="@+id/text_account" style="@style/SendaSectionText" />
+    <TextView style="@style/SendaSectionLabel" android:text="@string/main_last_o3" />
+    <TextView android:id="@+id/text_last_o3" style="@style/SendaSectionText" />
+    <TextView android:id="@+id/text_o3_warning" style="@style/SendaSectionText" />
+    <TextView style="@style/SendaSectionLabel" android:text="@string/main_device" />
+    <TextView android:id="@+id/text_device" style="@style/SendaSectionText" />
+    <TextView android:id="@+id/text_location" style="@style/SendaSectionText" />
+    <TextView style="@style/SendaSectionLabel" android:text="@string/main_route_state" />
+    <TextView android:id="@+id/text_route_summary" style="@style/SendaSectionText" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/button_start_route" style="@style/SendaSectionButton" android:text="@string/main_start" />
+</LinearLayout>

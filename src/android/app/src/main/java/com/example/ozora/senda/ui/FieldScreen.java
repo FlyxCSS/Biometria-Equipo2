@@ -8,24 +8,36 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.LinearLayout;
 import android.widget.Button;
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public abstract class FieldScreen extends AppCompatActivity {
-    private static final int BOSQUE=0xff234d39, CREMA=0xfff8f6eb, TEXTO=0xff20372b;
+    private static final int BOSQUE=0xff234d39, TEXTO=0xff20372b;
     protected LinearLayout contenido;
     private TextView error;
     protected int dp(int n) { return Math.round(n*getResources().getDisplayMetrics().density); }
-    protected void pagina(String titulo) {
-        ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.setBackgroundColor(CREMA);
-        ViewCompat.setOnApplyWindowInsetsListener(scroll,(v,w)->{
-            Insets i=w.getInsets(WindowInsetsCompat.Type.systemBars()|WindowInsetsCompat.Type.ime());
-            v.setPadding(i.left,i.top,i.right,i.bottom); return w;
+    /** Una sola aplicación de insets por ventana, también para recortes laterales e IME. */
+    protected void protegerBarras(View root) {
+        int superficie = getColor(com.example.ozora.senda.R.color.senda_surface);
+        EdgeToEdge.enable(this, SystemBarStyle.light(superficie, 0xff20372b),
+                SystemBarStyle.light(superficie, 0xff20372b));
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, insets) -> {
+            Insets safe = insets.getInsets(WindowInsetsCompat.Type.systemBars()
+                    | WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.ime());
+            view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+            return WindowInsetsCompat.CONSUMED;
         });
+        ViewCompat.requestApplyInsets(root);
+    }
+
+    protected void pagina(String titulo) {
+        ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.setBackgroundColor(getColor(com.example.ozora.senda.R.color.senda_surface));
         contenido=new LinearLayout(this); contenido.setOrientation(LinearLayout.VERTICAL);
-        contenido.setPadding(dp(22),dp(24),dp(22),dp(24)); scroll.addView(contenido); setContentView(scroll);
+        contenido.setPadding(dp(22),dp(24),dp(22),dp(24)); scroll.addView(contenido); setContentView(scroll); protegerBarras(scroll);
         texto("S E N D A    /    OZORA",13,true); texto(titulo,29,true);
     }
     protected TextView texto(String valor,int tam,boolean negrita) {

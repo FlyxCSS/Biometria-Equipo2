@@ -20,7 +20,7 @@ private:
 
   // Valor ficticio utilizado durante el Sprint 0.
   // Se expresa directamente en ppb.
-  const uint16_t VALOR_O3_PRUEBA_PPB = 2;
+  const uint16_t VALOR_O3_PRUEBA_PPB = 777;
 
 
 public:

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView style="@style/SendaSectionTitle" android:text="@string/main_historial" />
+    <TextView style="@style/SendaSectionLabel" android:text="@string/main_recent_readings" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/button_refresh_history" style="@style/SendaSectionButton" android:text="@string/main_refresh" />
+    <TextView android:id="@+id/text_list_empty" style="@style/SendaSectionText" android:text="@string/main_empty_history" />
+    <LinearLayout android:id="@+id/list_history" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+    <TextView android:id="@+id/page_number" style="@style/SendaSectionText" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_previous" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:text="@string/main_prev" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_next" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:text="@string/main_next" />
+    </LinearLayout>
+</LinearLayout>

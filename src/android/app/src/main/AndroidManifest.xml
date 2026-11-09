@@ -60,6 +60,7 @@
         <!-- PANTALLA INICIAL: PERSONA 2 -->
         <activity
             android:name=".auth.LoginActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true">
 
             <intent-filter>
@@ -71,7 +72,7 @@
 
         <!-- PANTALLAS DE PERSONA 2 -->
         <activity
-            android:name=".ui.HomeActivity"
+            android:name=".MainActivity"
             android:exported="false" />
 
         <activity
@@ -84,6 +85,7 @@
 
         <activity
             android:name=".qr.QrScannerActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <!-- SERVICIO DE RECORRIDOS: PERSONA 2 -->

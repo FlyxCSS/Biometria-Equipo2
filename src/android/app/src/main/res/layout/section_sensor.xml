@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView style="@style/SendaSectionTitle" android:text="@string/main_sensor" />
+    <TextView style="@style/SendaSectionLabel" android:text="@string/main_device" />
+    <TextView android:id="@+id/text_device" style="@style/SendaSectionText" />
+    <TextView style="@style/SendaSectionLabel" android:text="@string/main_sensor_last" />
+    <TextView android:id="@+id/text_last_o3" style="@style/SendaSectionText" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/button_select_sensor" style="@style/SendaSectionButton" android:text="@string/main_select" />
+</LinearLayout>
