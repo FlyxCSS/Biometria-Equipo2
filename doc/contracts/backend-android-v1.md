@@ -15,7 +15,7 @@ Cambio solicitado por Julia el 03/11/2026: el jefe establece `contrasena_inicial
 
 Actualización con vuestro diagrama: se conservan las cinco tablas y la PK `(fecha_hora, id_llavero)` de MEDICIONES. `nombre_micro` en JSON se resuelve por `LLAVEROS.identificador_ble` a la PK `id_llavero`. Se usan milisegundos (`DATETIME(3)`) y campos técnicos de unidad, procedencia, autor y parque histórico. Detalles en `doc/backend-puesta-en-marcha.md`.
 
-Decisiones provisionales implementadas: sesión de 24 horas sin renovación; roles `jefe_parque` y `trabajador`; coordenadas obligatorias; O3 entero en ppb; máximo cinco minutos de adelanto del reloj de captura. Todas las rutas de la sección 4 están implementadas. El correo se encola y se entrega con `php tools/gestionar.php correo`; probado en buzón privado local, sin destinatarios reales. Se añade el error 413 para cuerpos mayores de 16 KiB.
+Decisiones provisionales implementadas: sesión de 24 horas sin renovación; roles `jefe_parque` y `trabajador`; coordenadas obligatorias; O3 entero en ppb; máximo cinco minutos de adelanto del reloj de captura. Todas las rutas de la sección 4 están implementadas. El correo se encola y se entrega con `php src/tools/gestionar.php correo`; probado en buzón privado local, sin destinatarios reales. Se añade el error 413 para cuerpos mayores de 16 KiB.
 
 ## 1. Revisión del repositorio
 
@@ -213,7 +213,7 @@ Usar InnoDB, claves foráneas, consultas preparadas PDO y UTC con precisión de 
 9. Recuperación con respuesta genérica, caducidad, segundo uso, cuenta inactiva y revocación de sesiones.
 10. Web con alta real, última lectura simulada claramente indicada y tratamiento de error sin mostrar datos ficticios como reales.
 
-Guardar en `tests/` ejemplos y evidencias sin credenciales ni tokens reales. La entrega ya ejecuta pruebas con PHP y MySQL; resultados y alcance en `tests/evidencia-backend.md`.
+Guardar en `src/tests/` ejemplos y evidencias sin credenciales ni tokens reales. La entrega ya ejecuta pruebas con PHP y MySQL; resultados y alcance en `doc/evidencia-backend.md`.
 
 ## 7. Decisiones pendientes de coordinar con el equipo
 

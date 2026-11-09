@@ -22,7 +22,7 @@ if (!in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)
     http_response_code(403);
     exit('Este visor solo está disponible en http://127.0.0.1:8082/.');
 }
-require_once dirname(__DIR__, 2) . '/src/business_logic/Apoyo.php';
+require_once dirname(__DIR__, 2) . '/business_logic/Apoyo.php';
 
 /** Diseño lógico: (valor) -> escapar -> texto HTML seguro.
  * Descripción: Presenta los datos como texto, sin interpretar contenido guardado. */

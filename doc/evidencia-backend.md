@@ -16,8 +16,8 @@ Verificación local realizada el 02/11/2026 sobre `feature/backend-web-simulacio
 | Sintaxis de los archivos PHP añadidos/modificados | Sin errores |
 | Sintaxis JavaScript (`node --check`) | Sin errores |
 | Análisis del script PowerShell | Sin errores |
-| `php tests/validacion.php` | 25 comprobaciones correctas |
-| `php tests/integracion.php`, ejecución final con contraseña inicial y cambio propio | 203 comprobaciones HTTP/MySQL correctas |
+| `php src/tests/validacion.php` | 25 comprobaciones correctas |
+| `php src/tests/integracion.php`, ejecución final con contraseña inicial y cambio propio | 203 comprobaciones HTTP/MySQL correctas |
 | Importación del SQL en las dos bases vacías | Correcta |
 | Navegador: login de jefe, parque sin datos y actualización | Correcto |
 | Captura ficticia enviada mediante login + POST de la API | Guardada; visible como 42 ppb de S-001 |

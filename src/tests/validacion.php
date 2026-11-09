@@ -8,7 +8,7 @@
  * Aportación: Comprobar fechas, tipos y coordenadas sin necesitar MySQL.
  */
 declare(strict_types=1);
-require_once dirname(__DIR__) . '/src/business_logic/Apoyo.php';
+require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
 $comprobaciones = 0;
 
 /** Diseño lógico: (condición, descripción) -> comprobar -> vacío o fallo.

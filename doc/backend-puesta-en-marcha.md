@@ -13,9 +13,9 @@ Implementación local en `feature/backend-web-simulacion`. Contrato provisional 
 
 La portada pública OZORA está en `/`; el acceso y el panel SENDA, en `/acceso`. Se han seguido la landing HiFi `54:220`, el panel `59:1206` y la arquitectura de información de la carpeta secundaria. La web pública presenta el diseño previsto y distingue los mapas e históricos conceptuales de las funciones ya operativas.
 
-Actualización para una instalación de la versión anterior: `php tools/gestionar.php actualizar-contacto`. Añade solo `SOLICITUDES_CONTACTO`, sin borrar ni cambiar registros existentes. La instalación nueva con `instalar` ya aplica esta ampliación. Si se importa únicamente `database.sql` manualmente, importar después `src/database/migrations/001_solicitudes_contacto.sql`.
+Actualización para una instalación de la versión anterior: `php src/tools/gestionar.php actualizar-contacto`. Añade solo `SOLICITUDES_CONTACTO`, sin borrar ni cambiar registros existentes. La instalación nueva con `instalar` ya aplica esta ampliación. Si se importa únicamente `database.sql` manualmente, importar después `src/database/migrations/001_solicitudes_contacto.sql`.
 
-El formulario público usa `POST /api/v1/solicitudes`: nombre, correo, organización y mensaje, con validación y límite de intentos. La confirmación corresponde al guardado real. No envía correos externos ni da de alta cuentas. El administrador puede consultar las últimas 50 solicitudes mediante `php tools/gestionar.php solicitudes`, desde su consola privada; no hay un endpoint público para listarlas. Proteger estos registros y no copiarlos a las evidencias.
+El formulario público usa `POST /api/v1/solicitudes`: nombre, correo, organización y mensaje, con validación y límite de intentos. La confirmación corresponde al guardado real. No envía correos externos ni da de alta cuentas. El administrador puede consultar las últimas 50 solicitudes mediante `php src/tools/gestionar.php solicitudes`, desde su consola privada; no hay un endpoint público para listarlas. Proteger estos registros y no copiarlos a las evidencias.
 
 Los nuevos correos de recuperación enlazan a `/acceso#token=...`. La landing redirige los antiguos enlaces `/#token=...` al acceso y allí se borra el fragmento. Se conserva compatibilidad con los enlaces ya emitidos.
 
@@ -23,7 +23,7 @@ Los nuevos correos de recuperación enlazan a `/acceso#token=...`. La landing re
 
 PHP 8.4.27 y MySQL 8.4.13 portables, descargados desde sus distribuidores oficiales bajo `.local/tools/`, sin instalar servicios de Windows. MySQL escucha solo en `127.0.0.1:3307`; la web de demo en `http://127.0.0.1:8080`. Bases independientes: `senda_local` para demo y `senda_test` para pruebas.
 
-Las credenciales privadas están en `config/local.php` y `.local/config-test.php`. No versionar estos archivos, el buzón, las herramientas ni los datos MySQL. `.gitignore` ya los excluye.
+Las credenciales privadas están en `src/config/local.php` y `.local/config-test.php`. Si conservas una configuración de la estructura anterior en `config/local.php`, muévela a `src/config/local.php` o apunta `SENDA_CONFIG` a su ruta privada. Mantén las credenciales, el buzón y los datos locales fuera de Git.
 
 Para volver a arrancar desde PowerShell en la raíz:
 
@@ -31,7 +31,7 @@ Para volver a arrancar desde PowerShell en la raíz:
 ./tools/iniciar-local.ps1
 ```
 
-Para consultar MySQL en el navegador, abrir **http://127.0.0.1:8082/**. El visor separado permite elegir tabla y alternar Registros/Estructura; cada pulsación de Ver / actualizar consulta la BD actual. No permite editar ni ejecutar SQL, limita la vista a 100 filas y oculta contraseñas, hashes, tokens y cuerpos de correo. Solo responde en loopback, con Host `127.0.0.1:8082`, y en entorno local. No desplegar `tools/bbdd` en un servidor público.
+Para consultar MySQL en el navegador, abrir **http://127.0.0.1:8082/**. El visor separado permite elegir tabla y alternar Registros/Estructura; cada pulsación de Ver / actualizar consulta la BD actual. No permite editar ni ejecutar SQL, limita la vista a 100 filas y oculta contraseñas, hashes, tokens y cuerpos de correo. Solo responde en loopback, con Host `127.0.0.1:8082`, y en entorno local. No desplegar `src/tools/bbdd` en un servidor público.
 
 Si la política local impide ejecutar scripts, no cambiarla: usar las instrucciones de arranque PHP/MySQL de la siguiente sección. El script usa los puertos del entorno portable preparado y no inicializa ni instala servicios.
 
@@ -48,7 +48,7 @@ Para enviar una captura nueva por HTTP y después pulsar Actualizar en la web de
 
 ```powershell
 $env:SENDA_DEMO_PASSWORD = 'EjemploSoloParaPruebas-2026'
-./.local/tools/php/php.exe tools/enviar-demo.php
+./.local/tools/php/php.exe src/tools/enviar-demo.php
 Remove-Item Env:/SENDA_DEMO_PASSWORD
 ```
 
@@ -56,10 +56,10 @@ Remove-Item Env:/SENDA_DEMO_PASSWORD
 
 1. PHP 8.2 o superior con `pdo_mysql` y `mbstring`, y MySQL 8.4. Comprobado con PHP 8.4.27 / MySQL 8.4.13. No necesita Composer.
 2. Crear una BD vacía UTF-8 y usuario exclusivo. Para instalar requiere permisos de esquema; en producción separar la cuenta de migraciones de la de aplicación con permisos mínimos.
-3. Copiar `config/example.php` como `config/local.php` y ajustar conexión, URL y correo. No se carga `.env` automáticamente. La variable de proceso `SENDA_CONFIG` permite elegir otra configuración privada.
-4. Ejecutar `php tools/gestionar.php instalar`. Se niega a continuar si la BD ya contiene tablas. No elimina tablas. Si la importación falla a medias, revisar el esquema antes de repetir.
-5. Solo en local: establecer `SENDA_DEMO_PASSWORD` y ejecutar `php tools/gestionar.php demo`. No sobrescribe las cuentas existentes.
-6. Arrancar desde la raíz: `php -S 127.0.0.1:8080 -t src/web router.php`. El servidor integrado es solo de desarrollo.
+3. Copiar `src/config/example.php` como `src/config/local.php` y ajustar conexión, URL y correo. No se carga `.env` automáticamente. La variable de proceso `SENDA_CONFIG` permite elegir otra configuración privada.
+4. Ejecutar `php src/tools/gestionar.php instalar`. Se niega a continuar si la BD ya contiene tablas. No elimina tablas. Si la importación falla a medias, revisar el esquema antes de repetir.
+5. Solo en local: establecer `SENDA_DEMO_PASSWORD` y ejecutar `php src/tools/gestionar.php demo`. No sobrescribe las cuentas existentes.
+6. Arrancar desde la raíz: `php -S 127.0.0.1:8080 -t src/web src/router.php`. El servidor integrado es solo de desarrollo.
 
 En Apache, DocumentRoot **solo `src/web`**, con reescritura y `.htaccess` habilitados. En otros servidores, dirigir rutas a `src/web/index.php`. Nunca publicar la raíz del repositorio. No se ha probado Apache/Nginx en este equipo.
 
@@ -70,16 +70,16 @@ Para producción configurar HTTPS, `environment=production`, `app_url=https://..
 El alta nueva utiliza contraseña inicial asignada por el jefe; no depende del correo. La recuperación de una contraseña olvidada sigue encolando un mensaje en `CORREOS_PENDIENTES` dentro de la transacción del token. Los antiguos enlaces de alta emitidos siguen siendo utilizables hasta su caducidad. Entregar pendientes por consola:
 
 ```powershell
-./.local/tools/php/php.exe tools/gestionar.php correo
+./.local/tools/php/php.exe src/tools/gestionar.php correo
 ```
 
 En local aparecen `.eml` en `var/mail/`, fuera de la web. Abrir el enlace del mensaje para establecer contraseña. Contiene un token en el fragmento `#token=...`, que no viaja al servidor al abrir la página y se retira de la barra. No compartir el mensaje: permite cambiar la contraseña durante 30 minutos. Solo se ha probado el buzón local, no un destinatario real.
 
-En producción configurar `mail()` de PHP y programar `php tools/gestionar.php correo`, por ejemplo cada minuto. No se ha creado una tarea de Windows. `mail` entrega al transporte configurado, no garantiza llegada al destinatario: verificarla con el servicio elegido. Un fallo deja la tarea pendiente. Si el proceso se corta entre envío y confirmación de BD puede repetirse el correo; el enlace sigue siendo de un solo uso.
+En producción configurar `mail()` de PHP y programar `php src/tools/gestionar.php correo`, por ejemplo cada minuto. No se ha creado una tarea de Windows. `mail` entrega al transporte configurado, no garantiza llegada al destinatario: verificarla con el servicio elegido. Un fallo deja la tarea pendiente. Si el proceso se corta entre envío y confirmación de BD puede repetirse el correo; el enlace sigue siendo de un solo uso.
 
 Restringir acceso a la tabla de correos y sus copias: contiene el enlace en claro hasta entregarlo; después se vacían cuerpo y dirección. Sesiones y tokens solo guardan hashes. Encolar no equivale a enviar.
 
-`php tools/gestionar.php limpiar` elimina registros técnicos caducados y correos enviados antiguos. No elimina personas ni mediciones.
+`php src/tools/gestionar.php limpiar` elimina registros técnicos caducados y correos enviados antiguos. No elimina personas ni mediciones.
 
 ## Correspondencia con vuestro diagrama
 
@@ -99,9 +99,9 @@ Las cuentas nuevas guardan inmediatamente `password_hash` y `debe_cambiar_contra
 
 En el visor local, USUARIOS muestra `estado_contrasena`: «Configurada (hash)», «Inicial: debe cambiarla» o «Pendiente de establecer», sin revelar el hash. En Estructura se ve el campo real `password_hash VARCHAR(255)`. `activo=1` no implica haber completado la contraseña. Las cuentas antiguas sin contraseña no se han modificado automáticamente: deben completar su recuperación, sin asignarles contraseñas inventadas o compartidas.
 
-Actualización de una instalación anterior: `php tools/gestionar.php actualizar-contrasenas`. Aplica la migración `002_contrasena_inicial.sql` solo si falta el campo, sin cambiar contraseñas existentes. La instalación nueva ya lo incluye. En phpMyAdmin de una BD anterior, importar esta migración una sola vez si el campo no existe.
+Actualización de una instalación anterior: `php src/tools/gestionar.php actualizar-contrasenas`. Aplica la migración `002_contrasena_inicial.sql` solo si falta el campo, sin cambiar contraseñas existentes. La instalación nueva ya lo incluye. En phpMyAdmin de una BD anterior, importar esta migración una sola vez si el campo no existe.
 
-Roles: tras una copia de seguridad, ejecutar `php tools/gestionar.php actualizar-roles` por consola con la configuración de la base que se quiere migrar. La migración `003_roles.sql` copia el rol de cada cuenta a su clave foránea, conserva las contraseñas y sustituye los CHECK antiguos. Los identificadores 1–4 del catálogo son estables; 3 y 4 exigen parque también en MySQL. El comando no repite una migración completada y detiene una instalación parcial para revisión. MySQL y MariaDB confirman los cambios de esquema implícitamente: ante un fallo, revisar el estado antes de reintentar. No importar ese archivo completo con phpMyAdmin, cuyo analizador puede seleccionar `information_schema` al consultar los metadatos. La instalación nueva ya incluye ROLES y no necesita esta migración.
+Roles: tras una copia de seguridad, ejecutar `php src/tools/gestionar.php actualizar-roles` por consola con la configuración de la base que se quiere migrar. La migración `003_roles.sql` copia el rol de cada cuenta a su clave foránea, conserva las contraseñas y sustituye los CHECK antiguos. Los identificadores 1–4 del catálogo son estables; 3 y 4 exigen parque también en MySQL. El comando no repite una migración completada y detiene una instalación parcial para revisión. MySQL y MariaDB confirman los cambios de esquema implícitamente: ante un fallo, revisar el estado antes de reintentar. No importar ese archivo completo con phpMyAdmin, cuyo analizador puede seleccionar `information_schema` al consultar los metadatos. La instalación nueva ya incluye ROLES y no necesita esta migración.
 
 El correo de USUARIOS sigue siendo UNIQUE: el servidor normaliza mayúsculas y espacios y devuelve 409 ante un duplicado; MySQL protege también las inserciones concurrentes o directas. Los nombres pueden repetirse porque dos personas distintas pueden llamarse igual. El aviso de alta se presenta en el formulario, marca el correo inválido y recibe el foco; el icono de ojo permite mostrar u ocultar cada clave sin enviar el formulario.
 
@@ -121,21 +121,21 @@ Un móvil físico no alcanza el `127.0.0.1` del ordenador. La demo está limitad
 
 ## Pruebas
 
-`php tests/validacion.php` comprueba tipos y límites. `php tests/integracion.php` hace HTTP y verifica MySQL: exige entorno local y BD terminada en `_test`. Crea datos ficticios nuevos sin borrar los anteriores. Ejemplos manuales en `tests/endpoints.http` y `tests/ejemplos/`.
+`php src/tests/validacion.php` comprueba tipos y límites. `php src/tests/integracion.php` hace HTTP y verifica MySQL: exige entorno local y BD terminada en `_test`. Crea datos ficticios nuevos sin borrar los anteriores. Ejemplos manuales en `src/tests/endpoints.http` y `src/tests/ejemplos/`.
 
 Crear una configuración privada independiente para pruebas y establecer `SENDA_CONFIG` tanto en el servidor como en el comprobador. `app_url` debe apuntar a ese servidor, separado de la demo. En el entorno ya preparado:
 
 ```powershell
 $env:SENDA_CONFIG = (Resolve-Path .local/config-test.php).Path
 # Consola 1, mantener el servidor en primer plano:
-./.local/tools/php/php.exe -S 127.0.0.1:8081 -t src/web router.php
+./.local/tools/php/php.exe -S 127.0.0.1:8081 -t src/web src/router.php
 # Consola 2, con la misma variable SENDA_CONFIG:
-./.local/tools/php/php.exe tests/integracion.php
+./.local/tools/php/php.exe src/tests/integracion.php
 Remove-Item Env:/SENDA_CONFIG
 ```
 
 Si el servidor de pruebas ya está activo no arrancar otro sobre el mismo puerto. Repetir muchas veces puede agotar el límite global de 100 intentos de autenticación por IP en 15 minutos. Esperar a la siguiente ventana; no desactivar el límite en producción.
 
-Ver `tests/evidencia-backend.md`. Antes de cerrar historias completas falta coordinar el contrato con compañeros, correo real, HTTPS e integración Android/BLE.
+Ver `doc/evidencia-backend.md`. Antes de cerrar historias completas falta coordinar el contrato con compañeros, correo real, HTTPS e integración Android/BLE.
 
 Referencias: [consultas PDO](https://www.php.net/manual/en/pdo.prepared-statements.php), [hash de contraseñas](https://www.php.net/manual/en/function.password-hash.php) y [bloqueos MySQL](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).

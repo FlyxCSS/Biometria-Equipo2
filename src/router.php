@@ -7,4 +7,4 @@
  * Autor: Julia (con asistencia de Codex).
  * Aportación: Punto de entrada local que evita servir archivos privados.
  */
-require __DIR__ . '/src/web/index.php';
+require __DIR__ . '/web/index.php';

@@ -15,6 +15,6 @@ return [
     'environment' => 'local', // En producción exigir HTTPS y usar transporte mail.
     'mail_transport' => 'file', // file: buzón local privado; mail: transporte configurado de PHP.
     'mail_from' => 'senda@example.org',
-    'mail_directory' => dirname(__DIR__) . '/var/mail',
+    'mail_directory' => dirname(__DIR__, 2) . '/var/mail',
     'session_hours' => 24,
 ];

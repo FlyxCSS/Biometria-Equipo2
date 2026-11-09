@@ -12,8 +12,8 @@ if (PHP_SAPI !== 'cli') {
     http_response_code(404);
     exit;
 }
-require_once dirname(__DIR__) . '/src/business_logic/Apoyo.php';
-require_once dirname(__DIR__) . '/src/business_logic/Correo.php';
+require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
+require_once dirname(__DIR__) . '/business_logic/Correo.php';
 
 /** Diseño lógico: (PDO) -> instalarEsquema -> vacío.
  * Descripción: Importa tablas solo en una base vacía; nunca elimina tablas existentes. */
@@ -22,7 +22,7 @@ function instalarEsquema(PDO $db): void
     if ($db->query('SHOW TABLES')->fetch()) {
         throw new RuntimeException('La base ya tiene tablas. No se ha modificado.');
     }
-    $sql = file_get_contents(dirname(__DIR__) . '/src/database/database.sql');
+    $sql = file_get_contents(dirname(__DIR__) . '/database/database.sql');
     $db->exec($sql);
     actualizarContacto($db);
     actualizarContrasenas($db);
@@ -35,7 +35,7 @@ function instalarEsquema(PDO $db): void
 function actualizarContacto(PDO $db): void
 {
     if (!$db->query("SHOW TABLES LIKE 'SOLICITUDES_CONTACTO'")->fetch()) {
-        $db->exec(file_get_contents(dirname(__DIR__) . '/src/database/migrations/001_solicitudes_contacto.sql'));
+        $db->exec(file_get_contents(dirname(__DIR__) . '/database/migrations/001_solicitudes_contacto.sql'));
         echo "Tabla de contacto creada.\n";
     } else {
         echo "La tabla de contacto ya existe.\n";
@@ -47,7 +47,7 @@ function actualizarContacto(PDO $db): void
 function actualizarContrasenas(PDO $db): void
 {
     if (!$db->query("SHOW COLUMNS FROM USUARIOS LIKE 'debe_cambiar_contrasena'")->fetch()) {
-        $db->exec(file_get_contents(dirname(__DIR__) . '/src/database/migrations/002_contrasena_inicial.sql'));
+        $db->exec(file_get_contents(dirname(__DIR__) . '/database/migrations/002_contrasena_inicial.sql'));
         echo "Estado de contraseña inicial añadido.\n";
     } else {
         echo "El estado de contraseña inicial ya existe.\n";
@@ -67,7 +67,7 @@ function actualizarRoles(PDO $db): void
     if ($catalogo || !$antiguo) {
         throw new RuntimeException('El esquema de roles necesita revisión; no se ha repetido la migración.');
     }
-    $db->exec(file_get_contents(dirname(__DIR__) . '/src/database/migrations/003_roles.sql'));
+    $db->exec(file_get_contents(dirname(__DIR__) . '/database/migrations/003_roles.sql'));
     echo "Roles migrados; cuentas y contraseñas conservadas.\n";
 }
 
@@ -127,7 +127,7 @@ try {
             $db->exec('DELETE FROM CORREOS_PENDIENTES WHERE enviado_en IS NOT NULL AND enviado_en < UTC_TIMESTAMP(3) - INTERVAL 1 DAY');
             echo "Registros técnicos caducados eliminados.\n";
             break;
-        default: echo "Uso: php tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|actualizar-contrasenas|actualizar-roles|solicitudes\n"; exit(1);
+        default: echo "Uso: php src/tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|actualizar-contrasenas|actualizar-roles|solicitudes\n"; exit(1);
     }
 } catch (Throwable $error) {
     fwrite(STDERR, 'Error de administración: ' . $error->getMessage() . "\n");

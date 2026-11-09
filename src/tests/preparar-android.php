@@ -8,7 +8,7 @@
  * Aportación: Preparar una prueba reproducible sin credenciales reales ni base de producción.
  */
 declare(strict_types=1);
-require dirname(__DIR__) . '/src/business_logic/Apoyo.php';
+require dirname(__DIR__) . '/business_logic/Apoyo.php';
 $config = configuracion();
 $db = conectar($config);
 if (($config['environment'] ?? '') !== 'local'
@@ -51,7 +51,7 @@ try {
     $db->rollBack();
     throw $error;
 }
-$ruta = dirname(__DIR__) . '/.local/android-contract.json';
+$ruta = dirname(__DIR__, 2) . '/.local/android-contract.json';
 if (!is_dir(dirname($ruta))) mkdir(dirname($ruta), 0700, true);
 file_put_contents($ruta, json_encode($salida, JSON_THROW_ON_ERROR));
 chmod($ruta, 0600);

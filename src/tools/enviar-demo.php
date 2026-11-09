@@ -8,7 +8,7 @@
  * Aportación: Demostrar el flujo login -> HTTP -> MySQL -> web sin disponer del llavero.
  */
 declare(strict_types=1);
-require_once dirname(__DIR__) . '/src/business_logic/Apoyo.php';
+require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
 $config = configuracion();
 if (PHP_SAPI !== 'cli' || ($config['environment'] ?? '') !== 'local') {
     throw new RuntimeException('La simulación solo puede ejecutarse por consola en local.');

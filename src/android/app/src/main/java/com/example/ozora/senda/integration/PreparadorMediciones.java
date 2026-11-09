@@ -19,8 +19,8 @@ import java.util.TimeZone;
 
 /** Filtrado de calidad local. No autentica llaveros ni envía información. */
 public final class PreparadorMediciones {
-    public static final long MAX_EDAD_UBICACION_MS = 30_000L;
-    public static final float MAX_PRECISION_METROS = 50f;
+    public static final long MAX_EDAD_UBICACION_MS = 10_000L;
+    public static final float MAX_PRECISION_METROS = 100f;
     private final ControlContadores contadores = new ControlContadores();
 
     /** Diseño lógico: (String, IBeaconParser.Resultado, Location) -> preparar() -> (Resultado)

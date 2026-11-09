@@ -4,7 +4,7 @@
 -- Fecha: 03/11/2026.
 -- Autor: Julia (con asistencia de Codex).
 -- Aportación: Catálogo de roles y migración de la relación de cada cuenta.
--- Ejecutar por consola con tools/gestionar.php actualizar-roles, con copia previa.
+-- Ejecutar por consola con src/tools/gestionar.php actualizar-roles, con copia previa.
 -- No importar este archivo completo con phpMyAdmin: su analizador puede cambiar
 -- el contexto a information_schema al inspeccionar las restricciones antiguas.
 -- MySQL/MariaDB confirman DDL implícitamente: no envolver en una transacción ficticia.

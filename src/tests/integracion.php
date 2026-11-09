@@ -8,8 +8,8 @@
  * Aportación: Evidencia de permisos, persistencia, sesiones, alta y recuperación.
  */
 declare(strict_types=1);
-require_once dirname(__DIR__) . '/src/business_logic/Apoyo.php';
-require_once dirname(__DIR__) . '/src/business_logic/Correo.php';
+require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
+require_once dirname(__DIR__) . '/business_logic/Correo.php';
 $config = configuracion();
 $db = conectar($config);
 $nombreBd = $db->query('SELECT DATABASE()')->fetchColumn();
@@ -293,7 +293,7 @@ pedir('GET', '/sesiones/actual', null, $tokens['jefeOtro'], 401);
 pedir('POST', '/sesiones', ['correo' => $cuentas['jefeOtro']['correo'], 'contrasena' => $password], '', 401);
 
 // El servidor no publica ni fuentes ni herramientas, aunque se conozca su ruta.
-foreach (['/config/local.php', '/.local/config-test.php', '/src/database/database.sql', '/tools/gestionar.php', '/.git/config'] as $privada) {
+foreach (['/config/local.php', '/src/config/local.php', '/.local/config-test.php', '/src/database/database.sql', '/tools/gestionar.php', '/src/tools/gestionar.php', '/.git/config'] as $privada) {
     $texto = file_get_contents($base . $privada, false, stream_context_create(['http' => ['ignore_errors' => true, 'timeout' => 10]]));
     comprobar(str_contains($http_response_header[0] ?? '', '404'), "Recurso privado inaccesible: $privada");
     comprobar($texto === 'Página no encontrada.', 'El rechazo no entrega contenido privado.');
