@@ -50,7 +50,7 @@ import java.util.Date;
 import java.util.List;
 
 /** Mantiene la sesión y las acciones de campo al cambiar de sección. */
-public final class MainActivity extends FieldScreen {
+public final class      MainActivity extends FieldScreen {
     public static final String EXTRA_SHOW_ROUTES = "mostrar_rutas";
     public static final String EXTRA_ROUTE_ID = "ruta";
 
