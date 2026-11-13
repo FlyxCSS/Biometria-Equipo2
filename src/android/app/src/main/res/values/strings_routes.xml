@@ -1,0 +1,32 @@
+<resources>
+    <string name="route_info">Información de la ruta</string>
+    <string name="route_live">Recorrido en curso</string>
+    <string name="route_back">Volver</string>
+    <string name="route_unavailable">No se ha encontrado el recorrido.</string>
+    <string name="route_wait_gps">Esperando puntos GPS del recorrido…</string>
+    <string name="route_no_gps">No hay puntos GPS guardados.</string>
+    <string name="route_map_offline">Mapa base sin conexión</string>
+    <string name="route_map_description">Mapa del recorrido</string>
+    <string name="route_ozone">O₃</string>
+    <string name="route_temperature">Temperatura</string>
+    <string name="route_no_temperature">Este recorrido no tiene mediciones de temperatura.</string>
+    <string name="route_average">Promedio</string>
+    <string name="route_max">Máximo</string>
+    <string name="route_min">Mínimo</string>
+    <string name="route_points">Puntos medidos</string>
+    <string name="route_show_all">Ver todos ›</string>
+    <string name="route_show_less">Ver menos</string>
+    <string name="route_show_more">Cargar más</string>
+    <string name="route_ozone_value">%1$d ppb</string>
+    <string name="route_started">Hora inicio · %1$s</string>
+    <string name="route_duration">Duración</string>
+    <string name="route_measurements">Mediciones</string>
+    <string name="route_receiving">Conectado</string>
+    <string name="route_no_signal">Sin señal</string>
+    <string name="route_gps_only">Solo GPS</string>
+    <string name="route_paused">Captura interrumpida</string>
+    <string name="route_confirm_finish">¿Finalizar recorrido?</string>
+    <string name="route_confirm_message">Se cerrará la captura y podrás consultar la información del recorrido.</string>
+    <string name="route_confirm">Finalizar</string>
+    <string name="route_keep_running">Continuar</string>
+</resources>

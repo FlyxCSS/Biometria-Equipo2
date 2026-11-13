@@ -1,0 +1,14 @@
+# Nombre: .htaccess
+# Descripción: Rutas de SENDA cuando src/web es el DocumentRoot de Apache.
+# Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+# Fecha: 02/11/2026
+# Autor: Julia (con asistencia de Codex).
+# Aportación: Enviar todas las peticiones al controlador público.
+Options -Indexes
+DirectoryIndex index.php
+RewriteEngine On
+# Apache con PHP-FPM debe conservar la cabecera de la sesión al reescribir la ruta.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteRule ^index\.php$ - [L]
+RewriteRule ^ index.php [L]

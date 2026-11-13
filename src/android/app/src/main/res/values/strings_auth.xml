@@ -1,0 +1,20 @@
+<resources>
+<string name="auth_title">Accede a tu cuenta</string>
+<string name="auth_email">Correo electrónico</string>
+<string name="auth_email_hint">ejemplo@ejemplo.com</string>
+<string name="auth_password">Contraseña</string>
+<string name="auth_password_hint">Introduce tu contraseña</string>
+<string name="auth_forgot">¿Has olvidado tu contraseña?</string>
+<string name="auth_login">Iniciar sesión</string>
+<string name="auth_biometric">Acceder con biometría</string>
+<string name="auth_back">‹ Volver</string>
+<string name="auth_recovery_title">Recuperar contraseña</string>
+<string name="auth_recovery_description">Introduce tu correo electrónico para recibir el enlace de recuperación.</string>
+<string name="auth_send">Enviar enlace</string>
+<string name="auth_recovery_received">Si la cuenta permite recuperar el acceso, recibirás un enlace por correo. Revisa también la carpeta de correo no deseado.</string>
+<string name="auth_email_invalid">Introduce un correo electrónico válido.</string>
+<string name="auth_busy">Comprobando la sesión…</string>
+<string name="auth_sending">Enviando solicitud…</string>
+<string name="auth_recovery_error">No se pudo solicitar el enlace. Revisa la conexión y vuelve a intentarlo.</string>
+<string name="auth_bio_setup">Inicia sesión con tu contraseña y activa la biometría desde Ajustes.</string>
+</resources>

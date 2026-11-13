@@ -1,0 +1,21 @@
+<resources>
+    <style name="SendaSectionText" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:textColor">@color/senda_text</item>
+    </style>
+    <style name="SendaSectionLabel" parent="SendaSectionText">
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="SendaSectionTitle" parent="SendaSectionLabel">
+        <item name="android:textSize">26sp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+    <style name="SendaSectionButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+</resources>

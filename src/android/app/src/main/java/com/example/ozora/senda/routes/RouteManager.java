@@ -1,3 +1,11 @@
+/*
+ * Nombre: RouteManager.java
+ * Descripción: Recorridos y lecturas SQLite separados por trabajador y parque.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 03/11/2026.
+ * Autor: Equipo Android y Julia (integración con asistencia de Codex).
+ * Aportación: Migrar la cola REST sin borrar recorridos anteriores.
+ */
 package com.example.ozora.senda.routes;
 
 import android.content.ContentValues;
@@ -13,17 +21,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class RouteManager extends SQLiteOpenHelper {
-    public RouteManager(Context context) { this(context, com.example.ozora.senda.auth.SessionManager.isDemo() ? "recorridos-demo.db" : "recorridos.db"); }
-    public RouteManager(Context context,String archivo) { super(context,archivo,null,1); }
+    public RouteManager(Context context) { this(context, "recorridos.db"); }
+    public RouteManager(Context context,String archivo) { super(context,archivo,null,2); }
     @Override public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE ruta(id INTEGER PRIMARY KEY, usuario INTEGER NOT NULL, parque INTEGER NOT NULL, sensor TEXT, inicio INTEGER NOT NULL, fin INTEGER, metros REAL DEFAULT 0)");
         db.execSQL("CREATE UNIQUE INDEX ruta_activa ON ruta(usuario) WHERE fin IS NULL");
         db.execSQL("CREATE TABLE punto(id INTEGER PRIMARY KEY, ruta INTEGER, lat REAL, lon REAL, fecha INTEGER, segmento INTEGER)");
         db.execSQL("CREATE INDEX puntos_ruta ON punto(ruta,id)");
-        db.execSQL("CREATE TABLE lectura(id INTEGER PRIMARY KEY, ruta INTEGER, ppb INTEGER, fecha TEXT, lat REAL, lon REAL, contador INTEGER)");
+        db.execSQL("CREATE TABLE lectura(id INTEGER PRIMARY KEY, ruta INTEGER, ppb INTEGER, fecha TEXT, lat REAL, lon REAL, contador INTEGER, nombre_micro TEXT, enviado INTEGER NOT NULL DEFAULT 0, error_envio TEXT)");
         db.execSQL("CREATE INDEX lecturas_ruta ON lectura(ruta,id)");
     }
-    @Override public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion) { throw new IllegalStateException(); }
+    /** Diseño lógico: (SQLite, versión anterior, versión nueva) -> onUpgrade -> vacío.
+     * Descripción: Conserva el histórico; las lecturas antiguas sin identidad no se envían automáticamente. */
+    @Override public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion) {
+        if(oldVersion<2) {
+            db.execSQL("ALTER TABLE lectura ADD COLUMN nombre_micro TEXT");
+            db.execSQL("ALTER TABLE lectura ADD COLUMN enviado INTEGER NOT NULL DEFAULT 0");
+            db.execSQL("ALTER TABLE lectura ADD COLUMN error_envio TEXT");
+        }
+    }
 
     public long iniciar(int usuario,int parque,String sensor) {
         ContentValues v = new ContentValues();
@@ -63,6 +79,24 @@ public final class RouteManager extends SQLiteOpenHelper {
     public Cursor ultima(long ruta) {
         return MeasurementRepository.ultima(getReadableDatabase(),ruta);
     }
+    /** Diseño lógico: (trabajador) -> estadoEnvios -> resumen de su cola.
+     * Descripción: Cuenta solo lecturas con identidad del usuario y parque actuales. */
+    public String estadoEnvios(Worker trabajador) {
+        try(Cursor c=getReadableDatabase().rawQuery("SELECT SUM(CASE WHEN l.enviado=0 THEN 1 ELSE 0 END),"
+                + "SUM(CASE WHEN l.enviado=2 THEN 1 ELSE 0 END) FROM lectura l JOIN ruta r ON r.id=l.ruta "
+                + "WHERE r.usuario=? AND r.parque=? AND l.nombre_micro IS NOT NULL",
+                new String[]{String.valueOf(trabajador.id),String.valueOf(trabajador.parkId)})) {
+            c.moveToFirst();
+            return c.getInt(0)+" pendientes · "+c.getInt(1)+" rechazadas (conservadas localmente)";
+        }
+    }
+    /** Diseño lógico: (trabajador) -> reintentarEnvios -> vacío.
+     * Descripción: Recupera rechazos de su propia cola tras corregir asignación o datos. */
+    public void reintentarEnvios(Worker trabajador) {
+        getWritableDatabase().execSQL("UPDATE lectura SET enviado=0,error_envio=NULL WHERE enviado=2 "
+                + "AND ruta IN (SELECT id FROM ruta WHERE usuario=? AND parque=?)",
+                new Object[]{trabajador.id,trabajador.parkId});
+    }
     public List<RoutePoint> puntos(long ruta) {
         List<RoutePoint> puntos=new ArrayList<>();
         try(Cursor c=getReadableDatabase().rawQuery("SELECT lat,lon,segmento FROM punto WHERE ruta=? ORDER BY id", new String[]{String.valueOf(ruta)})) {
@@ -70,11 +104,70 @@ public final class RouteManager extends SQLiteOpenHelper {
         }
         return puntos;
     }
+    /** Páginas de solo lectura, restringidas al trabajador y parque actuales. */
+    public Cursor listar(Worker worker, int limite, int desplazamiento) {
+        return getReadableDatabase().rawQuery(
+                "SELECT id,inicio,fin FROM ruta WHERE usuario=? AND parque=? ORDER BY id DESC LIMIT ? OFFSET ?",
+                new String[]{String.valueOf(worker.id), String.valueOf(worker.parkId),
+                        String.valueOf(limite), String.valueOf(desplazamiento)});
+    }
+
+    /** Lecturas de la cuenta actual, agrupadas por posición y dentro del periodo UTC. */
+    public Cursor puntosCalor(Worker worker, String since, String until) {
+        return getReadableDatabase().rawQuery(
+                "SELECT ROUND(l.lat,5),ROUND(l.lon,5),AVG(l.ppb) FROM lectura l JOIN ruta r ON r.id=l.ruta"
+                + " WHERE r.usuario=? AND r.parque=? AND l.fecha>=? AND l.fecha<=?"
+                + " AND l.lat BETWEEN -90 AND 90 AND l.lon BETWEEN -180 AND 180"
+                + " GROUP BY ROUND(l.lat,5),ROUND(l.lon,5) ORDER BY MAX(l.fecha) DESC LIMIT 1500",
+                new String[]{String.valueOf(worker.id),String.valueOf(worker.parkId),since,until});
+    }
+
+    public Cursor ultimaConEnvio(Worker worker) {
+        return getReadableDatabase().rawQuery(
+                "SELECT l.ppb,l.fecha,COALESCE(l.nombre_micro,r.sensor),l.enviado FROM lectura l"
+                + " JOIN ruta r ON r.id=l.ruta WHERE r.usuario=? AND r.parque=? ORDER BY l.fecha DESC,l.id DESC LIMIT 1",
+                new String[]{String.valueOf(worker.id),String.valueOf(worker.parkId)});
+    }
+
+    public Cursor historial(Worker worker, String sensor, int limite, int desplazamiento) {
+        String identidad = "COALESCE(l.nombre_micro,r.sensor)";
+        String sql = "SELECT l.ppb,l.fecha," + identidad + ",r.id FROM lectura l JOIN ruta r ON r.id=l.ruta"
+                + " WHERE r.usuario=? AND r.parque=?" + (sensor == null ? "" : " AND " + identidad + "=?")
+                + " ORDER BY l.fecha DESC,l.id DESC LIMIT ? OFFSET ?";
+        String usuario = String.valueOf(worker.id), parque = String.valueOf(worker.parkId);
+        String max = String.valueOf(limite), offset = String.valueOf(desplazamiento);
+        return getReadableDatabase().rawQuery(sql, sensor == null
+                ? new String[]{usuario, parque, max, offset}
+                : new String[]{usuario, parque, sensor, max, offset});
+    }
+
+    public Cursor lecturasRuta(Worker worker, long id, int limite, int desplazamiento) {
+        return getReadableDatabase().rawQuery(
+                "SELECT l.ppb,l.fecha,l.lat,l.lon FROM lectura l JOIN ruta r ON r.id=l.ruta"
+                + " WHERE r.usuario=? AND r.parque=? AND r.id=? ORDER BY l.id LIMIT ? OFFSET ?",
+                new String[]{String.valueOf(worker.id), String.valueOf(worker.parkId), String.valueOf(id),
+                        String.valueOf(limite), String.valueOf(desplazamiento)});
+    }
+
+    public Route ruta(Worker worker, long id) {
+        try (Cursor c = getReadableDatabase().rawQuery(
+                "SELECT r.id,inicio,fin,metros,sensor,COUNT(l.id),AVG(ppb),MIN(ppb),MAX(ppb)"
+                        + " FROM ruta r LEFT JOIN lectura l ON l.ruta=r.id"
+                        + " WHERE r.usuario=? AND r.parque=? AND r.id=? GROUP BY r.id",
+                new String[]{String.valueOf(worker.id), String.valueOf(worker.parkId), String.valueOf(id)})) {
+            return leerRuta(c);
+        }
+    }
+
     public Route ultimaRuta(Worker worker) {
         try (Cursor c = resumen(worker.id, worker.parkId)) {
-            if (!c.moveToFirst()) return null;
-            return new Route(c.getLong(0), c.getLong(1), c.isNull(2) ? null : c.getLong(2),
-                    c.getDouble(3), c.getString(4), c.getInt(5), c.getDouble(6), c.getInt(7), c.getInt(8));
+            return leerRuta(c);
         }
+    }
+
+    private Route leerRuta(Cursor c) {
+        if (!c.moveToFirst()) return null;
+        return new Route(c.getLong(0), c.getLong(1), c.isNull(2) ? null : c.getLong(2),
+                c.getDouble(3), c.getString(4), c.getInt(5), c.getDouble(6), c.getInt(7), c.getInt(8));
     }
 }

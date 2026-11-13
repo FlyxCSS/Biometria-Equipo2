@@ -1,0 +1,17 @@
+<resources>
+<string name="home_hello">Hola, %1$s</string>
+<string name="home_park">Parque %1$d</string>
+<string name="home_heat_show">Mostrar mapa de calor</string>
+<string name="home_heat_hide">Ocultar mapa de calor</string>
+<string name="home_today">Hoy</string><string name="home_week">7 días</string>
+<string name="home_ozone">Ozono (O₃)</string>
+<string name="home_locate">Mi ubicación</string>
+<string name="home_wait_location">Buscando tu ubicación actual…</string>
+<string name="home_location_permission">Permite la ubicación precisa para centrar el mapa.</string>
+<string name="home_no_heat">Sin lecturas geolocalizadas en este periodo.</string>
+<string name="home_heat_note">Mapa orientativo · Lecturas de tu cuenta</string>
+<string name="home_map_offline">No se pudo cargar el mapa. Comprueba la conexión.</string>
+<string name="home_not_recording">El mapa muestra tu ubicación. Pulsa Iniciar recorrido para registrar.</string>
+<string name="home_not_receiving">Sin señal BLE</string>
+<string name="home_receiving">● Recibiendo</string>
+<string name="home_nav_sensor">Llavero</string><string name="home_nav_settings">Ajustes</string></resources>

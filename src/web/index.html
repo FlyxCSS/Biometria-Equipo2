@@ -1,0 +1,77 @@
+<!doctype html>
+<!--
+Nombre: index.html
+Descripción: Web pública de OZORA basada en el HiFi del equipo.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 02/11/2026
+Autor: Julia (con asistencia de Codex).
+Aportación: Presentación de SENDA, acceso privado y solicitud real de información.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="OZORA presenta SENDA: sensores portátiles, Android y datos geolocalizados para observar el ozono en espacios naturales.">
+  <title>OZORA · Conoce el aire. Protege el entorno.</title>
+  <link rel="stylesheet" href="/css/publica.css?v=20261104-2">
+  <script src="/js/publica.js" defer></script>
+</head>
+<body>
+  <a class="salto" href="#contenido">Saltar al contenido</a>
+  <header class="navegacion">
+    <a class="logo-ozora" href="/" aria-label="OZORA · Inicio"><img src="/assets/ozora.svg?v=20261104-2" alt="OZORA" width="134" height="64"></a>
+    <nav aria-label="Navegación principal"><a href="#solucion">Solución</a><a href="#beneficios">Beneficios</a><a href="#contacto">Contacto</a><a class="boton" href="/acceso">Acceso clientes</a></nav>
+  </header>
+  <main id="contenido">
+    <section class="hero" aria-labelledby="titulo">
+      <img class="foto-bosque" src="/assets/bosque.png" alt="" fetchpriority="high">
+      <div class="hero-contenido"><p class="insignia">Tecnología al servicio del territorio</p>
+        <h1 id="titulo">Conoce el aire.<br>Protege el entorno.</h1>
+        <p class="introduccion">Conectamos sensores, personas y datos para observar el ozono en los espacios naturales. Una nueva perspectiva para quienes cuidan del territorio.</p>
+        <div class="acciones"><a class="boton menta" href="#solucion">Descubrir la solución</a><a class="boton blanco" href="#contacto">Hablemos de tu parque</a></div>
+        <p class="pie-hero">Sensores portátiles <span>/</span> Datos geolocalizados <span>/</span> Gestión por parque</p>
+      </div>
+    </section>
+
+    <section id="solucion" class="seccion">
+      <p class="ceja">Nuestra solución</p><div class="cabecera-seccion"><h2>Todo conectado.<br>Todo en un lugar.</h2><p>Un ecosistema diseñado para administraciones y organismos gestores de espacios naturales.</p></div>
+      <div class="soluciones">
+        <article class="solucion"><p class="detalle">01 / BLE · Identificador único</p>
+          <div class="ilustracion"><div class="sensor" role="img" aria-label="Ilustración conceptual de un sensor portátil de ozono"><img class="sensor-cuerpo" src="/assets/sensor-cuerpo.svg" alt="" width="90" height="148"><img class="sensor-anilla" src="/assets/sensor-anilla.svg" alt="" width="20" height="20"><img class="sensor-pantalla" src="/assets/sensor-pantalla.svg" alt="" width="48" height="48"><span class="sensor-o3">O₃</span><img class="sensor-ble" src="/assets/sensor-ble.svg" alt="" width="33.9142" height="66.8716"></div></div>
+          <h3>Sensor portátil</h3><p>Recoge mediciones de ozono durante los recorridos de trabajo.</p><p class="detalle">Parte de un mismo ecosistema</p>
+        </article>
+        <article class="solucion"><p class="detalle">02 / Android · GPS</p><div class="ilustracion"><div class="pantalla-movil"><p>Mi sensor · Conectado</p><strong>123 ppb</strong><span>Última medida · 10:24</span></div></div><h3>App móvil</h3><p>Recibe cada medida y la acompaña de su ubicación y momento de registro.</p><p class="detalle">Vista ilustrativa de la aplicación</p></article>
+        <article class="solucion"><p class="detalle">03 / Mapas · Series · Gestión</p><div class="ilustracion"><div class="pantalla-web"><p>OZORA / Mi parque</p><div class="bloques"><i></i><i></i><i></i></div><span>Información en un solo lugar</span></div></div><h3>Plataforma web</h3><p>Un espacio para consultar las mediciones y gestionar los recursos de tu parque.</p><p class="detalle">Una plataforma en desarrollo</p></article>
+      </div>
+    </section>
+
+    <section class="seccion plataforma" aria-labelledby="titulo-plataforma">
+      <p class="ceja">La plataforma</p><div class="cabecera-seccion"><h2 id="titulo-plataforma">La visión completa<br>de tus parques.</h2><p>Del recorrido al panel. El lugar, el momento y el valor de cada medida, con su contexto.</p></div>
+      <div class="panel-conceptual" aria-label="Vista conceptual del panel con datos ficticios">
+        <aside class="menu-conceptual"><strong>OZORA</strong><span>Resumen</span><span>Mediciones</span><span>Sensores</span><span>Histórico</span><span>Mi parque</span></aside>
+        <div class="datos-conceptuales"><div class="titulo-conceptual"><h3>Parque Sierra Verde</h3><span class="insignia">Vista de ejemplo</span></div>
+          <div class="metricas"><div><strong>18 / 20</strong><span>Sensores activos</span></div><div><strong>530</strong><span>Mediciones registradas</span></div><div><strong>10:24</strong><span>Última recepción</span></div></div>
+          <div class="mapa-serie"><div class="mapa"><h4>Mediciones en el territorio</h4><img src="/assets/mapa-ejemplo.svg" alt="Mapa esquemático con puntos de medición ficticios" width="610" height="260" loading="lazy"><p class="detalle">Puntos de medición · Mapa esquemático</p></div>
+            <div class="serie"><h4>Evolución de O₃</h4><div class="grafica" role="img" aria-label="Serie ilustrativa de ozono entre las 08:00 y las 12:00; datos ficticios"><img class="rejilla" src="/assets/grafica-rejilla.svg" alt="" width="310" height="151"><img class="area" src="/assets/grafica-area.svg" alt="" width="310" height="145"><img class="linea" src="/assets/grafica-linea.svg" alt="" width="311.949" height="103.952"><span>08:00</span><span>12:00</span></div><p class="detalle">Serie ilustrativa · no operativa</p></div>
+          </div>
+        </div>
+      </div>
+      <p class="detalle">Vista conceptual con datos ficticios. Los mapas e históricos ilustran el diseño previsto; el panel actual permite registrar trabajadores y consultar la última medición. Los datos requieren calibración y validación antes de su uso operativo.</p>
+      <a class="boton" href="/acceso">Explorar el acceso de clientes</a>
+    </section>
+
+    <section id="beneficios" class="seccion beneficios"><div><p class="ceja">Beneficios y usuarios</p><h2>Datos más útiles<br>para cuidar<br>el territorio.</h2><p>Pensado para quienes observan, coordinan y toman decisiones en los espacios naturales.</p></div><ol><li><h3>Información geolocalizada</h3><p>Relaciona cada medida con el lugar y el momento en que se registró.</p></li><li><h3>Visualización clara</h3><p>Consulta cada lectura con su fecha, procedencia y ubicación. Series y mapas forman parte de la evolución prevista.</p></li><li><h3>Gestión por parque</h3><p>Accede al ámbito de tu cuenta y da de alta a los trabajadores de tu parque.</p></li></ol></section>
+
+    <section id="contacto" class="seccion contacto"><div><p class="ceja">Hablemos</p><h2>Tu parque.<br>Nuestro próximo<br>punto de partida.</h2><p>¿Representas a una organización que gestiona un espacio natural? Cuéntanos qué necesitas y exploremos una prueba piloto.</p><p class="modelo">Venta de sensores + suscripción a la plataforma.<br>Una propuesta ajustada a tu organización.</p></div>
+      <form id="form-contacto" class="formulario"><h3>Háblanos de tu parque</h3>
+        <label for="nombre-contacto">Nombre y apellidos</label><input id="nombre-contacto" name="nombre" maxlength="100" autocomplete="name" required>
+        <label for="correo-contacto">Correo profesional</label><input id="correo-contacto" name="correo" type="email" maxlength="100" autocomplete="email" required>
+        <label for="organizacion-contacto">Organización</label><input id="organizacion-contacto" name="organizacion" maxlength="100" autocomplete="organization" required>
+        <label for="necesidades-contacto">¿Qué necesitas?</label><textarea id="necesidades-contacto" name="mensaje" rows="3" minlength="10" maxlength="4000" required></textarea>
+        <p class="detalle">Usaremos estos datos para gestionar tu solicitud de información sobre SENDA.</p><button class="boton" type="submit">Solicitar información</button><p id="resultado-contacto" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+  <footer class="seccion pie"><div><strong class="firma">OZORA</strong><p>El aire, con más contexto.</p><p class="detalle">Monitorización ambiental para espacios naturales.</p></div><nav aria-label="Enlaces del pie"><h4>Explorar</h4><a href="#solucion">Nuestra solución</a><a href="#beneficios">Beneficios</a><a href="#contacto">Contacto</a></nav><div><h4>Clientes</h4><a href="/acceso">Acceder al panel</a><p class="detalle">© 2026 Ozora</p></div></footer>
+</body>
+</html>

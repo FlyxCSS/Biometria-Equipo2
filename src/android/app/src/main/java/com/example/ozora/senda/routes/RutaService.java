@@ -1,6 +1,14 @@
+/*
+ * Nombre: RutaService.java
+ * Descripción: Captura BLE/GPS durante un recorrido y solicita su sincronización.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 03/11/2026.
+ * Autor: Equipo Android y Julia (integración con asistencia de Codex).
+ * Aportación: Mantener el guardado local antes del envío REST.
+ */
 package com.example.ozora.senda.routes;
 
-import com.example.ozora.senda.ui.HomeActivity;
+import com.example.ozora.senda.MainActivity;
 import android.app.*;
 import android.content.*;
 import android.location.Location;
@@ -8,6 +16,7 @@ import android.os.*;
 import com.example.ozora.senda.integration.CapturaLlaveroController;
 import com.example.ozora.senda.location.LocationTracker;
 import com.example.ozora.senda.model.MedicionAmbiental;
+import com.example.ozora.senda.network.MeasurementSync;
 
 /** Mantiene la captura si el trabajador bloquea la pantalla durante el recorrido. */
 public final class RutaService extends Service implements CapturaLlaveroController.Oyente,LocationTracker.Oyente {
@@ -31,8 +40,9 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         if(Build.VERSION.SDK_INT>=26) getSystemService(NotificationManager.class).createNotificationChannel(
                 new NotificationChannel("campo","Recorrido en curso",NotificationManager.IMPORTANCE_LOW));
         Notification.Builder n=Build.VERSION.SDK_INT>=26 ? new Notification.Builder(this,"campo") : new Notification.Builder(this);
-        Intent home=new Intent(this,HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        try { startForeground(31,n.setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle(sesion.demo ? "SENDA · DEMOSTRACIÓN DEBUG" : "SENDA · Recorrido en curso")
+        Intent home=new Intent(this,MainActivity.class).putExtra(MainActivity.EXTRA_SHOW_ROUTES, true)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        try { startForeground(31,n.setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle("SENDA · Recorrido en curso")
             .setContentText("Abre la app para ver o finalizar el recorrido.").setOngoing(true)
                         .setContentIntent(PendingIntent.getActivity(this,0,home,PendingIntent.FLAG_IMMUTABLE)).build());
         } catch(SecurityException ex) {
@@ -55,6 +65,14 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         if(!gps.iniciar()) { estado="Captura interrumpida. Revisa la ubicación y los permisos."; stopSelf(); }
         return START_NOT_STICKY;
     }
+    public static void finalizar(Context context, RouteManager routes, long id) {
+        routes.finalizar(id);
+        if (actual == id) {
+            actual = 0;
+            context.stopService(new Intent(context, RutaService.class));
+        }
+    }
+
     private boolean caducada() {
         if(actual==0) return true;
         if(System.currentTimeMillis()<vence) return false;
@@ -72,7 +90,11 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         rutas.punto(actual,p,segmento,distancia); previa=new Location(p);
     }
     @Override public void alPrepararMedicion(MedicionAmbiental m,int rssi) {
-        if(!caducada()) { rutas.lectura(actual,m); estado="GPS y lectura recibidos"; }
+        if(!caducada()) {
+            rutas.lectura(actual,m);
+            estado="GPS y lectura guardados en el móvil";
+            MeasurementSync.sincronizar(this);
+        }
     }
     private void detenerSensores() {
         handler.removeCallbacksAndMessages(null);

@@ -20,9 +20,18 @@ public final class QrScannerActivity extends FieldScreen {
     private EditText codigo;
     private Button escanear;
 
+    @Override protected void onStart() {
+        super.onStart();
+        if (com.example.ozora.senda.auth.SessionManager.current() == null) finish();
+    }
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        if (com.example.ozora.senda.auth.SessionManager.current() == null) {
+            finish();
+            return;
+        }
         pagina("Llavero de campo");
         texto("Escanea la etiqueta o introduce el código del llavero.", 16, false);
         codigo = campo("Ej. S-001", InputType.TYPE_CLASS_TEXT);

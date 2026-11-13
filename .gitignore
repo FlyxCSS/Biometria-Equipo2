@@ -1,0 +1,6 @@
+# Entorno local, credenciales, herramientas portables y correos de prueba.
+/.local/
+/src/config/local.php
+/config/local.php
+/var/
+/.env

@@ -1,0 +1,7 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/tab_inicio" android:icon="@drawable/home_home" android:title="@string/main_inicio" />
+    <item android:id="@+id/tab_rutas" android:icon="@drawable/home_route" android:title="@string/main_rutas" />
+    <item android:id="@+id/tab_historial" android:icon="@drawable/home_history" android:title="@string/main_historial" />
+    <item android:id="@+id/tab_sensor" android:icon="@drawable/home_sensor" android:title="@string/home_nav_sensor" />
+    <item android:id="@+id/tab_mas" android:icon="@drawable/home_settings" android:title="@string/home_nav_settings" />
+</menu>
