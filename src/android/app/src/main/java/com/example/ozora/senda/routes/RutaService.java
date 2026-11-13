@@ -65,6 +65,14 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         if(!gps.iniciar()) { estado="Captura interrumpida. Revisa la ubicación y los permisos."; stopSelf(); }
         return START_NOT_STICKY;
     }
+    public static void finalizar(Context context, RouteManager routes, long id) {
+        routes.finalizar(id);
+        if (actual == id) {
+            actual = 0;
+            context.stopService(new Intent(context, RutaService.class));
+        }
+    }
+
     private boolean caducada() {
         if(actual==0) return true;
         if(System.currentTimeMillis()<vence) return false;

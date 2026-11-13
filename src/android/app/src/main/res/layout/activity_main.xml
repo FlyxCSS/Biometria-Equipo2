@@ -9,5 +9,5 @@ android:id="@+id/main_root" android:layout_width="match_parent" android:layout_h
 </ScrollView>
 </FrameLayout>
 <TextView android:id="@+id/main_feedback" style="@style/SendaSectionText" android:paddingStart="16dp" android:paddingEnd="16dp" android:visibility="gone" android:accessibilityLiveRegion="polite"/>
-<com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottom_navigation" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/home_card" app:itemIconTint="#1D4032" app:itemTextColor="#1D4032" app:itemActiveIndicatorStyle="@style/HomeNavigationIndicator" app:itemHorizontalTranslationEnabled="false" app:labelVisibilityMode="labeled" app:menu="@menu/main_navigation"/>
+<include layout="@layout/main_bottom_navigation"/>
 </LinearLayout>

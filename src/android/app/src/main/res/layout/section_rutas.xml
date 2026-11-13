@@ -10,7 +10,6 @@
     <TextView android:id="@+id/text_last_o3" style="@style/SendaSectionText" />
     <com.google.android.material.button.MaterialButton android:id="@+id/button_start_route" style="@style/SendaSectionButton" android:text="@string/main_start" />
     <com.google.android.material.button.MaterialButton android:id="@+id/button_resume_route" style="@style/SendaSectionButton" android:text="@string/main_resume" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_route_map" style="@style/SendaSectionButton" android:text="@string/main_map" />
     <com.google.android.material.button.MaterialButton android:id="@+id/button_route_summary" style="@style/SendaSectionButton" android:text="@string/main_summary" />
     <TextView style="@style/SendaSectionLabel" android:text="@string/main_recent_routes" />
     <TextView android:id="@+id/text_list_empty" style="@style/SendaSectionText" android:text="@string/main_empty_routes" />

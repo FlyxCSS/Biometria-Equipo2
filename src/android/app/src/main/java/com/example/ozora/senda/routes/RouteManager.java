@@ -141,6 +141,14 @@ public final class RouteManager extends SQLiteOpenHelper {
                 : new String[]{usuario, parque, sensor, max, offset});
     }
 
+    public Cursor lecturasRuta(Worker worker, long id, int limite, int desplazamiento) {
+        return getReadableDatabase().rawQuery(
+                "SELECT l.ppb,l.fecha,l.lat,l.lon FROM lectura l JOIN ruta r ON r.id=l.ruta"
+                + " WHERE r.usuario=? AND r.parque=? AND r.id=? ORDER BY l.id LIMIT ? OFFSET ?",
+                new String[]{String.valueOf(worker.id), String.valueOf(worker.parkId), String.valueOf(id),
+                        String.valueOf(limite), String.valueOf(desplazamiento)});
+    }
+
     public Route ruta(Worker worker, long id) {
         try (Cursor c = getReadableDatabase().rawQuery(
                 "SELECT r.id,inicio,fin,metros,sensor,COUNT(l.id),AVG(ppb),MIN(ppb),MAX(ppb)"

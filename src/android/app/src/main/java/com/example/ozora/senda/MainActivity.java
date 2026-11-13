@@ -53,6 +53,7 @@ import java.util.List;
 /** Mantiene la sesión y las acciones de campo al cambiar de sección. */
 public final class      MainActivity extends FieldScreen {
     public static final String EXTRA_SHOW_ROUTES = "mostrar_rutas";
+    public static final String EXTRA_SECTION = "section";
     public static final String EXTRA_ROUTE_ID = "ruta";
 
     private static final int PAGE_SIZE = 20;
@@ -117,7 +118,8 @@ public final class      MainActivity extends FieldScreen {
             mostrar(item.getItemId());
             return true;
         });
-        int initial = getIntent().getBooleanExtra(EXTRA_SHOW_ROUTES, false) ? R.id.tab_rutas : R.id.tab_inicio;
+        int initial = getIntent().getIntExtra(EXTRA_SECTION,
+                getIntent().getBooleanExtra(EXTRA_SHOW_ROUTES, false) ? R.id.tab_rutas : R.id.tab_inicio);
         if (state != null) {
             initial = state.getInt("section", initial);
             routePage = state.getInt("route_page");
@@ -130,13 +132,20 @@ public final class      MainActivity extends FieldScreen {
         }
         navigation.setSelectedItemId(initial);
         if (tab == 0) mostrar(initial);
+        if (state == null && getIntent().getBooleanExtra(EXTRA_SHOW_ROUTES, false) && activo)
+            abrirRuta(RouteActivity.class, id);
     }
 
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        if (navigation != null && intent.getBooleanExtra(EXTRA_SHOW_ROUTES, false)) {
+        if (navigation == null) return;
+        if (intent.hasExtra(EXTRA_SECTION)) {
+            navigation.setSelectedItemId(intent.getIntExtra(EXTRA_SECTION, R.id.tab_inicio));
+        } else if (intent.getBooleanExtra(EXTRA_SHOW_ROUTES, false)) {
             navigation.setSelectedItemId(R.id.tab_rutas);
+            actualizar();
+            if (activo) abrirRuta(RouteActivity.class, id);
         }
     }
 
@@ -208,13 +217,12 @@ public final class      MainActivity extends FieldScreen {
             accion(R.id.home_recenter, this::centrarMapa);
             if (!permiso(Manifest.permission.ACCESS_FINE_LOCATION) && !mapPermissionAsked) centrarMapa();
             accion(R.id.button_start_route, () -> {
-                if (activo) navigation.setSelectedItemId(R.id.tab_rutas);
+                if (activo) abrirRuta(RouteActivity.class, id);
                 else preparar();
             });
         } else if (destino == R.id.tab_rutas) {
-            accion(R.id.button_start_route, () -> { if (activo) confirmarFin(); else preparar(); });
+            accion(R.id.button_start_route, () -> { if (activo) abrirRuta(RouteActivity.class, id); else preparar(); });
             accion(R.id.button_resume_route, this::preparar);
-            accion(R.id.button_route_map, () -> abrirRuta(RouteActivity.class, id));
             accion(R.id.button_route_summary, () -> abrirRuta(SummaryActivity.class, id));
         } else if (destino == R.id.tab_historial) {
             accion(R.id.button_refresh_history, () -> { historyPage = 0; cargarPagina(true); });
@@ -290,9 +298,8 @@ public final class      MainActivity extends FieldScreen {
         } else if (tab == R.id.tab_rutas) {
             textoEn(R.id.text_route_summary, activo ? StatisticsCalculator.resumen(route, System.currentTimeMillis())
                     + "\n" + estadoSensor() : getString(R.string.main_no_route));
-            textoEn(R.id.button_start_route, getString(activo ? R.string.main_finish : R.string.main_start));
+            textoEn(R.id.button_start_route, getString(activo ? R.string.main_open_active : R.string.main_start));
             visible(R.id.button_resume_route, activo && RutaService.actual != id);
-            visible(R.id.button_route_map, activo);
             visible(R.id.button_route_summary, activo);
             visible(R.id.text_last_o3, activo);
             if (activo) mostrarUltima(sensorRuta, false);
@@ -413,11 +420,12 @@ public final class      MainActivity extends FieldScreen {
 
     private void agregarRuta(LinearLayout lista, Cursor ruta) {
         long routeId = ruta.getLong(0);
-        String estado = getString(ruta.isNull(2) ? R.string.main_route_active : R.string.main_route_done);
+        boolean rutaActiva = ruta.isNull(2);
+        String estado = getString(rutaActiva ? R.string.main_route_active : R.string.main_route_done);
         MaterialButton fila = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
         fila.setText(getString(R.string.main_route_row, fecha.format(new Date(ruta.getLong(1))), estado));
         fila.setMinHeight(dp(48));
-        fila.setOnClickListener(v -> abrirRuta(SummaryActivity.class, routeId));
+        fila.setOnClickListener(v -> abrirRuta(rutaActiva ? RouteActivity.class : SummaryActivity.class, routeId));
         lista.addView(fila, new LinearLayout.LayoutParams(-1, -2));
     }
 
@@ -524,22 +532,13 @@ public final class      MainActivity extends FieldScreen {
         try {
             if(Build.VERSION.SDK_INT>=26) startForegroundService(i); else startService(i);
             navigation.setSelectedItemId(R.id.tab_rutas);
+            abrirRuta(RouteActivity.class, id);
         } catch(RuntimeException e) { mensaje("Android no pudo iniciar la captura. Revisa los permisos y reanúdala desde Rutas."); }
         actualizar();
     }
-    private void confirmarFin() {
-        new AlertDialog.Builder(this).setTitle("¿Finalizar recorrido?").setMessage("Se cerrará la captura y podrás consultar el resumen y el mapa.")
-            .setPositiveButton("Finalizar",(d,w)->{
-                long terminada = id;
-                finalizar();
-                actualizar();
-                if (tab == R.id.tab_rutas) cargarPagina(false);
-                abrirRuta(SummaryActivity.class, terminada);
-            }).setNegativeButton("Continuar",null).show();
-    }
     private void finalizar() {
         if(activo) {
-            RutaService.actual=0; stopService(new Intent(this,RutaService.class)); rutas.finalizar(id); activo=false;
+            RutaService.finalizar(this, rutas, id); activo=false;
         }
     }
     private void salir(boolean revocar) {
