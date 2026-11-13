@@ -1,18 +1,43 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-    <TextView style="@style/SendaSectionTitle" android:text="@string/main_inicio" />
-    <TextView android:id="@+id/text_account" style="@style/SendaSectionText" />
-    <TextView style="@style/SendaSectionLabel" android:text="@string/main_last_o3" />
-    <TextView android:id="@+id/text_last_o3" style="@style/SendaSectionText" />
-    <TextView android:id="@+id/text_o3_warning" style="@style/SendaSectionText" />
-    <TextView style="@style/SendaSectionLabel" android:text="@string/main_device" />
-    <TextView android:id="@+id/text_device" style="@style/SendaSectionText" />
-    <TextView android:id="@+id/text_location" style="@style/SendaSectionText" />
-    <TextView style="@style/SendaSectionLabel" android:text="@string/main_route_state" />
-    <TextView android:id="@+id/text_route_summary" style="@style/SendaSectionText" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_start_route" style="@style/SendaSectionButton" android:text="@string/main_start" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent">
+<WebView android:id="@+id/home_map" android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="Mapa de tu ubicación y mediciones de ozono"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="top" android:orientation="vertical" android:padding="16dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:background="@drawable/home_card">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+<TextView android:id="@+id/text_account" style="@style/HomeText" android:layout_width="0dp" android:layout_weight="1" android:textSize="21sp" android:textStyle="bold"/>
+<TextView android:id="@+id/text_device" style="@style/HomeText" android:layout_width="wrap_content" android:maxWidth="120dp" android:padding="8dp" android:background="@drawable/home_pill" android:textSize="12sp"/>
 </LinearLayout>
+<TextView android:id="@+id/home_park" style="@style/HomeText" android:layout_marginTop="6dp" android:textSize="16sp" android:textColor="#466650"/>
+</LinearLayout>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:gravity="center_vertical">
+<com.google.android.material.button.MaterialButton android:id="@+id/home_heat_toggle" style="@style/HomeMapButton" android:text="" app:icon="@drawable/home_eye" app:iconTint="#1D4032" app:iconSize="24dp" app:iconPadding="0dp" android:contentDescription="@string/home_heat_show" android:checkable="true"/>
+<LinearLayout android:id="@+id/home_legend" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="10dp" android:layout_marginStart="10dp" android:background="@drawable/home_card" android:orientation="vertical" android:visibility="gone">
+<View android:layout_width="match_parent" android:layout_height="8dp" android:background="@drawable/home_gradient"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+<TextView android:id="@+id/home_min" style="@style/HomeText" android:layout_width="0dp" android:layout_weight="1"/>
+<TextView android:id="@+id/home_max" style="@style/HomeText" android:layout_width="wrap_content"/>
+</LinearLayout>
+</LinearLayout>
+</LinearLayout>
+<LinearLayout android:id="@+id/home_heat_filters" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center_vertical" android:visibility="gone">
+<com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/home_period" android:layout_width="wrap_content" android:layout_height="wrap_content" app:singleSelection="true" app:selectionRequired="true" app:checkedButton="@id/home_today">
+<com.google.android.material.button.MaterialButton android:id="@+id/home_today" style="@style/HomeMapButton" app:backgroundTint="@color/home_period_background" android:textColor="@color/home_period_text" android:text="@string/home_today"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/home_week" style="@style/HomeMapButton" app:backgroundTint="@color/home_period_background" android:textColor="@color/home_period_text" android:text="@string/home_week"/>
+</com.google.android.material.button.MaterialButtonToggleGroup>
+<TextView style="@style/HomeText" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="10dp" android:padding="10dp" android:background="@drawable/home_card" android:text="@string/home_ozone"/>
+</LinearLayout>
+<TextView android:id="@+id/home_map_status" style="@style/HomeText" android:textSize="12sp" android:background="@drawable/home_card" android:padding="8dp" android:layout_marginTop="8dp" android:text="@string/home_wait_location" android:accessibilityLiveRegion="polite"/>
+</LinearLayout>
+<com.google.android.material.button.MaterialButton android:id="@+id/home_recenter" style="@style/HomeMapButton" android:layout_gravity="end|center_vertical" android:layout_marginEnd="16dp" android:text="@string/home_locate"/>
+<LinearLayout android:id="@+id/home_bottom_card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:orientation="vertical" android:padding="16dp">
+
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:background="@drawable/home_card" android:orientation="vertical">
+<TextView style="@style/HomeText" android:text="@string/main_last_o3" android:textColor="#718276"/>
+<TextView android:id="@+id/text_last_o3" style="@style/HomeText" android:textSize="23sp" android:textStyle="bold" android:layout_marginTop="6dp"/>
+<TextView android:id="@+id/home_last_detail" style="@style/HomeText" android:textSize="12sp" android:textColor="#718276" android:layout_marginTop="6dp"/>
+<TextView android:id="@+id/text_o3_warning" style="@style/HomeText" android:textColor="#953E22" android:visibility="gone"/>
+<TextView android:id="@+id/text_route_summary" style="@style/HomeText" android:visibility="gone"/>
+<TextView android:id="@+id/text_location" style="@style/HomeText" android:visibility="gone"/>
+</LinearLayout>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_start_route" style="@style/SendaSectionButton" android:layout_marginTop="8dp" android:text="@string/main_start" android:textColor="#FFFFFF" app:cornerRadius="20dp" app:backgroundTint="#1D4032"/>
+</LinearLayout>
+</FrameLayout>

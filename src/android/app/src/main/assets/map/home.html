@@ -1,0 +1,90 @@
+<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><style>
+/*LEAFLET_CSS*/
+html,body,#map{height:100%;width:100%;padding:0;margin:0;background:#f3f3ee}
+/* Paleta Clean Cut adaptada a teselas raster. Se limita al fondo cartográfico. */
+.leaflet-tile-pane{filter:url(#clean-cut)}
+.leaflet-control-attribution{margin-bottom:var(--bottom,200px)!important;font:10px sans-serif;background:rgba(255,255,255,.9)!important}
+.leaflet-control-zoom{display:none}
+.heat-canvas{pointer-events:none}
+</style></head><body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute">
+<defs>
+<filter id="clean-cut" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="luminance"/>
+<feComponentTransfer in="luminance" result="base">
+<feFuncR type="table" tableValues=".20 .25 .30 .35 .40 .45 .50 .55 .60 .65 .70 .75 .80 .85 .90 .96 .82"/>
+<feFuncG type="table" tableValues=".22 .27 .32 .37 .42 .47 .52 .57 .62 .67 .72 .77 .82 .87 .92 .96 .82"/>
+<feFuncB type="table" tableValues=".20 .25 .30 .35 .40 .45 .50 .55 .60 .65 .70 .75 .80 .85 .89 .94 .72"/>
+</feComponentTransfer>
+<!-- Verdes suaves de parques y agua azul pálido de Clean Cut. -->
+<feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -8 8 0 0 -.25" result="parkMask"/>
+<feColorMatrix in="luminance" type="matrix" values=".1 0 0 0 .69  0 .1 0 0 .81  0 0 .1 0 .67  0 0 0 1 0" result="parkTint"/>
+<feComposite in="parkTint" in2="parkMask" operator="in" result="parks"/>
+<feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -8 0 8 0 -.6" result="waterMask"/>
+<feColorMatrix in="luminance" type="matrix" values=".1 0 0 0 .69  0 .1 0 0 .80  0 0 .1 0 .91  0 0 0 1 0" result="waterTint"/>
+<feComposite in="waterTint" in2="waterMask" operator="in" result="water"/>
+<feMerge><feMergeNode in="base"/><feMergeNode in="parks"/><feMergeNode in="water"/></feMerge>
+</filter>
+</defs>
+</svg>
+<div id="map" role="img" aria-label="Mapa de ubicación y ozono, estilo Clean Cut"></div><script>
+/*LEAFLET_JS*/
+</script><script>
+'use strict';
+const map=L.map('map',{zoomControl:false,attributionControl:true}).setView([0,0],2);
+map.attributionControl.setPrefix(false);
+const tiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+ maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+window.tileState={loaded:0,failed:0};
+tiles.on("loading",()=>{window.tileState={loaded:0,failed:0};});
+tiles.on("tileerror",()=>window.tileState.failed++);
+tiles.on("tileload",()=>window.tileState.loaded++);
+window.retryTiles=function(){if(window.tileState.failed>0)tiles.redraw();};
+let positioned=false, marker=null, accuracy=null, readings=[], heatEnabled=false, minimum=0, maximum=0;
+const canvas=L.DomUtil.create('canvas','heat-canvas');
+canvas.style.position='absolute';
+map.getPanes().overlayPane.appendChild(canvas);
+const context=canvas.getContext('2d');
+function drawHeat(){
+ const size=map.getSize(), origin=map.containerPointToLayerPoint([0,0]);
+ L.DomUtil.setPosition(canvas,origin);
+ canvas.width=size.x;canvas.height=size.y;
+ if(!heatEnabled)return;
+ // Agrupa por celda visible para que la intensidad represente concentración media,
+ // evitando que anuncios numerosos en el mismo lugar parezcan ozono más elevado.
+ const cells=new Map();
+ readings.forEach(p=>{
+  const point=map.latLngToContainerPoint([p[0],p[1]]);
+  if(point.x< -80||point.y< -80||point.x>size.x+80||point.y>size.y+80)return;
+  const key=Math.floor(point.x/24)+':'+Math.floor(point.y/24);
+  const cell=cells.get(key)||{x:0,y:0,sum:0,n:0};
+  cell.x+=point.x;cell.y+=point.y;cell.sum+=p[2];cell.n++;
+  cells.set(key,cell);
+ });
+ cells.forEach(cell=>{
+  const x=cell.x/cell.n,y=cell.y/cell.n,value=cell.sum/cell.n;
+  const fraction=maximum>minimum?Math.max(0,Math.min(1,(value-minimum)/(maximum-minimum))):.5;
+  const green=Math.round(235-190*fraction),color='255,'+green+',35';
+  const gradient=context.createRadialGradient(x,y,0,x,y,65);
+  gradient.addColorStop(0,'rgba('+color+',0.68)');
+  gradient.addColorStop(.4,'rgba('+color+',0.45)');
+  gradient.addColorStop(1,'rgba('+color+',0)');
+  context.fillStyle=gradient;context.fillRect(x-65,y-65,130,130);
+ });
+}
+map.on('move zoom resize',drawHeat);
+window.clearPosition=function(){if(marker)map.removeLayer(marker);if(accuracy)map.removeLayer(accuracy);marker=null;accuracy=null;};
+window.setPosition=function(lat,lon,meters,recenter){
+ if(!positioned){tiles.addTo(map);positioned=true;}
+ if(!marker){
+  accuracy=L.circle([lat,lon],{radius:meters,color:'#4165ff',weight:1,fillOpacity:.1}).addTo(map);
+  marker=L.circleMarker([lat,lon],{radius:8,weight:3,color:'#fff',fillColor:'#4165ff',fillOpacity:1}).addTo(map);
+ }else{marker.setLatLng([lat,lon]);accuracy.setLatLng([lat,lon]).setRadius(meters);}
+ if(recenter)map.setView([lat,lon],16);
+};
+window.setReadings=function(points,enabled,min,max){
+ readings=points;heatEnabled=enabled;minimum=min;maximum=max;drawHeat();
+};
+window.setBottom=function(height){document.documentElement.style.setProperty('--bottom',height+'px');map.invalidateSize();};
+</script></body></html>

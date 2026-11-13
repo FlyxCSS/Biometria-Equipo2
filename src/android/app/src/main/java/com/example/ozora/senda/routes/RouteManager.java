@@ -112,6 +112,23 @@ public final class RouteManager extends SQLiteOpenHelper {
                         String.valueOf(limite), String.valueOf(desplazamiento)});
     }
 
+    /** Lecturas de la cuenta actual, agrupadas por posición y dentro del periodo UTC. */
+    public Cursor puntosCalor(Worker worker, String since, String until) {
+        return getReadableDatabase().rawQuery(
+                "SELECT ROUND(l.lat,5),ROUND(l.lon,5),AVG(l.ppb) FROM lectura l JOIN ruta r ON r.id=l.ruta"
+                + " WHERE r.usuario=? AND r.parque=? AND l.fecha>=? AND l.fecha<=?"
+                + " AND l.lat BETWEEN -90 AND 90 AND l.lon BETWEEN -180 AND 180"
+                + " GROUP BY ROUND(l.lat,5),ROUND(l.lon,5) ORDER BY MAX(l.fecha) DESC LIMIT 1500",
+                new String[]{String.valueOf(worker.id),String.valueOf(worker.parkId),since,until});
+    }
+
+    public Cursor ultimaConEnvio(Worker worker) {
+        return getReadableDatabase().rawQuery(
+                "SELECT l.ppb,l.fecha,COALESCE(l.nombre_micro,r.sensor),l.enviado FROM lectura l"
+                + " JOIN ruta r ON r.id=l.ruta WHERE r.usuario=? AND r.parque=? ORDER BY l.fecha DESC,l.id DESC LIMIT 1",
+                new String[]{String.valueOf(worker.id),String.valueOf(worker.parkId)});
+    }
+
     public Cursor historial(Worker worker, String sensor, int limite, int desplazamiento) {
         String identidad = "COALESCE(l.nombre_micro,r.sensor)";
         String sql = "SELECT l.ppb,l.fecha," + identidad + ",r.id FROM lectura l JOIN ruta r ON r.id=l.ruta"

@@ -38,6 +38,7 @@ import com.example.ozora.senda.routes.RutaService;
 import com.example.ozora.senda.statistics.EnvironmentalAssessment;
 import com.example.ozora.senda.statistics.StatisticsCalculator;
 import com.example.ozora.senda.ui.FieldScreen;
+import com.example.ozora.senda.ui.HomeMapController;
 import com.example.ozora.senda.ui.SummaryActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
@@ -57,6 +58,7 @@ public final class      MainActivity extends FieldScreen {
     private static final int PAGE_SIZE = 20;
     private static final int REQUEST_ROUTE_PERMISSIONS = 19;
     private static final int REQUEST_SENSOR = 20;
+    private static final int REQUEST_MAP_LOCATION = 21;
 
     private final Handler reloj = new Handler(Looper.getMainLooper());
     private final DateFormat fecha = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
@@ -72,6 +74,8 @@ public final class      MainActivity extends FieldScreen {
     private long id;
     private String sensorRuta;
     private long ultimoEnvio;
+    private HomeMapController homeMap;
+    private boolean heatEnabled, heatWeek, mapPermissionAsked;
 
     private final Runnable tick = new Runnable() {
         @Override public void run() {
@@ -119,6 +123,11 @@ public final class      MainActivity extends FieldScreen {
             routePage = state.getInt("route_page");
             historyPage = state.getInt("history_page");
         }
+        if (state != null) {
+            heatEnabled = state.getBoolean("heat_enabled");
+            heatWeek = state.getBoolean("heat_week");
+            mapPermissionAsked = state.getBoolean("map_permission_asked");
+        }
         navigation.setSelectedItemId(initial);
         if (tab == 0) mostrar(initial);
     }
@@ -133,6 +142,9 @@ public final class      MainActivity extends FieldScreen {
 
     @Override protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
+        state.putBoolean("heat_enabled", homeMap != null ? homeMap.heatEnabled() : heatEnabled);
+        state.putBoolean("heat_week", homeMap != null ? homeMap.weekSelected() : heatWeek);
+        state.putBoolean("map_permission_asked", mapPermissionAsked);
         state.putInt("section", tab);
         state.putInt("route_page", routePage);
         state.putInt("history_page", historyPage);
@@ -145,6 +157,7 @@ public final class      MainActivity extends FieldScreen {
                 salir(false);
                 return;
             }
+            if (homeMap != null) homeMap.start();
             actualizar();
             if (tab == R.id.tab_rutas || tab == R.id.tab_historial) cargarPagina(false);
             reloj.post(tick);
@@ -153,10 +166,12 @@ public final class      MainActivity extends FieldScreen {
 
     @Override protected void onStop() {
         reloj.removeCallbacks(tick);
+        if (homeMap != null) homeMap.stop();
         super.onStop();
     }
 
     @Override protected void onDestroy() {
+        if (homeMap != null) homeMap.destroy();
         if (rutas != null) rutas.close();
         if (isFinishing() && !activo && session == SessionManager.current()) SessionManager.clear();
         super.onDestroy();
@@ -169,6 +184,17 @@ public final class      MainActivity extends FieldScreen {
         else if (destino == R.id.tab_sensor) layout = R.layout.section_sensor;
         else if (destino == R.id.tab_mas) layout = R.layout.section_mas;
 
+        if (homeMap != null) {
+            heatEnabled = homeMap.heatEnabled();
+            heatWeek = homeMap.weekSelected();
+            homeMap.destroy();
+            homeMap = null;
+        }
+        FrameLayout previous = section;
+        previous.removeAllViews();
+        scroll.setVisibility(destino == R.id.tab_inicio ? View.GONE : View.VISIBLE);
+        findViewById(R.id.home_host).setVisibility(destino == R.id.tab_inicio ? View.VISIBLE : View.GONE);
+        section = findViewById(destino == R.id.tab_inicio ? R.id.home_host : R.id.section_host);
         tab = destino;
         backToHome.setEnabled(destino != R.id.tab_inicio);
         section.removeAllViews();
@@ -177,6 +203,10 @@ public final class      MainActivity extends FieldScreen {
         mensaje("");
 
         if (destino == R.id.tab_inicio) {
+            homeMap = new HomeMapController(this, section, session, heatEnabled, heatWeek);
+            homeMap.start();
+            accion(R.id.home_recenter, this::centrarMapa);
+            if (!permiso(Manifest.permission.ACCESS_FINE_LOCATION) && !mapPermissionAsked) centrarMapa();
             accion(R.id.button_start_route, () -> {
                 if (activo) navigation.setSelectedItemId(R.id.tab_rutas);
                 else preparar();
@@ -227,7 +257,7 @@ public final class      MainActivity extends FieldScreen {
         if (feedback == null) return;
         feedback.setText(texto);
         feedback.setVisibility(texto == null || texto.isEmpty() ? View.GONE : View.VISIBLE);
-        if (texto != null && !texto.isEmpty()) scroll.post(() -> scroll.smoothScrollTo(0, feedback.getBottom()));
+
     }
 
     private void actualizar() {
@@ -239,9 +269,18 @@ public final class      MainActivity extends FieldScreen {
         sensorRuta = activo ? route.sensor : elegido();
 
         if (tab == R.id.tab_inicio || tab == R.id.tab_mas) {
-            textoEn(R.id.text_account, getString(R.string.main_account, session.worker.name, session.worker.parkId));
+            textoEn(R.id.text_account, tab == R.id.tab_inicio
+                    ? getString(R.string.home_hello, session.worker.name.split(" ")[0])
+                    : getString(R.string.main_account, session.worker.name, session.worker.parkId));
         }
-        if (tab == R.id.tab_inicio || tab == R.id.tab_sensor) textoEn(R.id.text_device, estadoSensor());
+        if (tab == R.id.tab_sensor) textoEn(R.id.text_device, estadoSensor());
+        if (tab == R.id.tab_inicio) {
+            textoEn(R.id.home_park, getString(R.string.home_park, session.worker.parkId));
+            boolean receiving = activo && RutaService.actual == id && RutaService.ultimoAnuncio > 0
+                    && SystemClock.elapsedRealtime() - RutaService.ultimoAnuncio < ajustes().getInt("silencio", 20) * 1000L;
+            textoEn(R.id.text_device, getString(receiving ? R.string.home_receiving : R.string.home_not_receiving));
+            if (homeMap != null) homeMap.refresh(false);
+        }
         if (tab == R.id.tab_inicio) {
             textoEn(R.id.text_location, estadoUbicacion());
             textoEn(R.id.text_route_summary, activo ? StatisticsCalculator.resumen(route, System.currentTimeMillis())
@@ -299,7 +338,19 @@ public final class      MainActivity extends FieldScreen {
     private void mostrarUltima(String sensor, boolean conAviso) {
         String lectura = getString(R.string.main_no_readings);
         String aviso = "";
-        if (tab == R.id.tab_rutas) {
+        if (tab == R.id.tab_inicio) {
+            String detail = "Todavía no hay lecturas de ozono.";
+            try (Cursor c = rutas.ultimaConEnvio(session.worker)) {
+                if (c.moveToFirst()) {
+                    int value = c.getInt(0);
+                    lectura = value + " ppb";
+                    detail = fechaLectura(c.getString(1)) + " · " +
+                            (c.getInt(3) == 1 ? "Enviada al servidor" : c.getInt(3) == 2 ? "Envío rechazado" : "Guardada en el móvil");
+                    aviso = EnvironmentalAssessment.aviso(value, ajustes().getInt("umbral", 60));
+                }
+            }
+            textoEn(R.id.home_last_detail, detail);
+        } else if (tab == R.id.tab_rutas) {
             try (Cursor c = rutas.ultima(id)) {
                 if (c.moveToFirst()) lectura = getString(R.string.main_last_reading_value,
                         c.getInt(0), fechaLectura(c.getString(1)), nombreSensor(sensor));
@@ -441,8 +492,20 @@ public final class      MainActivity extends FieldScreen {
         }
         iniciar();
     }
+    private void centrarMapa() {
+        if (!permiso(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            mapPermissionAsked = true;
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_MAP_LOCATION);
+        } else if (homeMap != null) homeMap.recenter();
+    }
+
     @Override public void onRequestPermissionsResult(int req,String[] permisos,int[] resultados) {
         super.onRequestPermissionsResult(req,permisos,resultados);
+        if (req == REQUEST_MAP_LOCATION) {
+            if (homeMap != null) homeMap.start();
+            return;
+        }
         if(req!=REQUEST_ROUTE_PERMISSIONS || SessionManager.current()==null) return;
         for(int r:resultados) if(r!=PackageManager.PERMISSION_GRANTED) { mensaje("Para registrar el recorrido permite la ubicación precisa y, si usas llavero, los dispositivos cercanos en Ajustes."); return; }
         if(resultados.length>0) iniciar();
