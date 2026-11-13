@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class RouteManager extends SQLiteOpenHelper {
-    public RouteManager(Context context) { this(context, com.example.ozora.senda.auth.SessionManager.isDemo() ? "recorridos-demo.db" : "recorridos.db"); }
+    public RouteManager(Context context) { this(context, "recorridos.db"); }
     public RouteManager(Context context,String archivo) { super(context,archivo,null,2); }
     @Override public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE ruta(id INTEGER PRIMARY KEY, usuario INTEGER NOT NULL, parque INTEGER NOT NULL, sensor TEXT, inicio INTEGER NOT NULL, fin INTEGER, metros REAL DEFAULT 0)");

@@ -27,7 +27,7 @@ public final class RouteActivity extends FieldScreen {
         super.onCreate(state);
         SessionManager session=SessionManager.current();
         if(session==null) { finish(); return; }
-        pagina("Mapa del recorrido"); if(session.demo) texto("DEMOSTRACIÓN DEBUG · Datos locales de prueba",16,true);
+        pagina("Mapa del recorrido");
         List<double[]> puntos=new ArrayList<>();
         try(RouteManager manager=new RouteManager(this)) {
             long id = getIntent().getLongExtra(MainActivity.EXTRA_ROUTE_ID, 0);

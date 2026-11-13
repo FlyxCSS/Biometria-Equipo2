@@ -22,10 +22,11 @@ import java.util.concurrent.Executors;
 
 import com.example.ozora.senda.model.Worker;
 import com.example.ozora.senda.network.ApiClient;
-import com.example.ozora.senda.ui.FieldScreen;
+import com.example.ozora.senda.R;
+import android.view.inputmethod.EditorInfo;
 import com.example.ozora.senda.MainActivity;
 
-public final class LoginActivity extends FieldScreen {
+public final class LoginActivity extends AuthScreen {
     private static final ExecutorService RED=Executors.newSingleThreadExecutor();
     private ApiClient api;
     private BiometricHelper bio;
@@ -50,42 +51,51 @@ public final class LoginActivity extends FieldScreen {
     /** Diseño lógico: () -> onDestroy -> vacío.
      * Descripción: Cancela la biometría y descarta el token temporal de primer acceso. */
     @Override protected void onDestroy() { tokenInicial=null; bio.cancelar(); super.onDestroy(); }
-    /** Diseño lógico: () -> acceso -> vacío.
-     * Descripción: Muestra contraseña, biometría y demo según la variante instalada. */
     private void acceso() {
-        pagina("Acceso de campo"); texto("Identifícate con la cuenta de tu parque.",16,false);
-        EditText email=campo("Correo electrónico",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-        EditText pass=campo("Contraseña",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        contenido.addView(email); agregarClave(pass);
-        boton("Iniciar sesión",()->{
-            String correo=email.getText().toString().trim(), clave=pass.getText().toString();
-            if(!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches() || clave.isEmpty()) {
-                mensaje("Introduce un correo válido y tu contraseña."); return;
-            }
-            autenticar(correo,clave,null);
+        mostrarFormulario();
+        findViewById(R.id.auth_submit).setOnClickListener(v -> entrar());
+        password.setOnEditorActionListener((v, action, event) -> {
+            if (action != EditorInfo.IME_ACTION_DONE) return false;
+            entrar();
+            return true;
         });
-        if(bio.activo()) boton("Acceder con biometría",()->{
-            if(ocupado) return;
-            if(!bio.disponible()) { mensaje("Biometría no disponible. Usa tu contraseña."); return; }
-            bio.abrir(new BiometricHelper.Resultado(){
-                public void aceptar(String t){ autenticar(null,null,t); }
-                public void error(String s){ mensaje(s); }
+        findViewById(R.id.auth_forgot).setOnClickListener(v -> {
+            if (!ocupado) startActivity(new Intent(this, RecoveryActivity.class)
+                    .putExtra("correo", email.getText().toString().trim()));
+        });
+        findViewById(R.id.auth_biometric).setOnClickListener(v -> {
+            if (ocupado) return;
+            if (!bio.activo()) { mensaje(getString(R.string.auth_bio_setup)); return; }
+            if (!bio.disponible()) { mensaje("Biometría no disponible. Usa tu contraseña."); return; }
+            bio.abrir(new BiometricHelper.Resultado() {
+                public void aceptar(String token) { autenticar(null, null, token); }
+                public void error(String texto) { mensaje(texto); }
             });
         });
-        if(DemoAccess.available()) {
-            texto("DEMOSTRACIÓN DEBUG · Cuenta y parque ficticios. Sin conexión al backend.",16,true);
-            boton("Entrar en demostración (Debug)",()->{
-                if(ocupado) return;
-                DemoAccess.open(); abrirPanel();
-            });
-        }
-        mensajes();
     }
+
+    private void entrar() {
+        if (ocupado) return;
+        String correo = email.getText().toString().trim();
+        String clave = password.getText().toString();
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+            email.setError(getString(R.string.auth_email_invalid));
+            email.requestFocus();
+            return;
+        }
+        if (clave.isEmpty()) {
+            password.setError("Introduce tu contraseña.");
+            password.requestFocus();
+            return;
+        }
+        autenticar(correo, clave, null);
+    }
+
     /** Diseño lógico: (correo, clave, token biométrico) -> autenticar -> vacío.
      * Descripción: Verifica sesión y deriva al primer cambio antes de guardar el acceso al panel. */
     private void autenticar(String correo,String clave,String guardado) {
         if(ocupado) return;
-        ocupado=true; mensaje("Comprobando la sesión…");
+        ocupado=true; mostrarEspera(true); mensaje(getString(R.string.auth_busy));
         RED.execute(()->{
             try {
                 JSONObject d=guardado==null ? api.pedir("POST","/sesiones",null,new JSONObject().put("correo",correo).put("contrasena",clave))
@@ -96,9 +106,13 @@ public final class LoginActivity extends FieldScreen {
                 long fin=SessionManager.instante(d.getString("expira_en"));
                 if(fin<=System.currentTimeMillis()) throw new ApiClient.Error(401,"Sesión caducada.");
                 int uid=u.getInt("id_usuario"), pid=u.getInt("id_parque"); String n=u.getString("nombre");
+                if (uid <= 0 || pid <= 0 || nuevo.trim().isEmpty())
+                    throw new ApiClient.Error(401, "La respuesta del servidor no contiene una sesión válida.");
                 boolean cambioInicial=u.optBoolean("debe_cambiar_contrasena",false);
                 runOnUiThread(()->{
                     if(isDestroyed() || isFinishing()) return;
+                    mostrarEspera(false);
+                    password.setText("");
                     if(guardado==null) bio.borrar();
                     if(cambioInicial) {
                         bio.borrar();
@@ -111,7 +125,7 @@ public final class LoginActivity extends FieldScreen {
             } catch(Exception e) {
                 runOnUiThread(()->{
                     if(isDestroyed() || isFinishing()) return;
-                    ocupado=false;
+                    ocupado=false; mostrarEspera(false);
                     if(guardado!=null && e instanceof ApiClient.Error && (((ApiClient.Error)e).status==401 || ((ApiClient.Error)e).status==403)) {
                         bio.borrar(); acceso();
                     }

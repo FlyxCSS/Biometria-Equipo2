@@ -4,7 +4,6 @@
     <string name="main_historial">Historial</string>
     <string name="main_sensor">Sensor</string>
     <string name="main_mas">Más</string>
-    <string name="main_demo">DEMOSTRACIÓN DEBUG · Datos locales de prueba</string>
     <string name="main_start">Iniciar recorrido</string>
     <string name="main_finish">Finalizar recorrido</string>
     <string name="main_resume">Reanudar captura</string>
@@ -42,7 +41,6 @@
     <string name="main_route_done">Finalizado</string>
     <string name="main_unknown_sensor">Sin identificador</string>
     <string name="main_page">Página %1$d</string>
-    <string name="main_demo_sync">Las lecturas de demostración permanecen en el móvil.</string>
     <string name="main_sensor_last">Última lectura del llavero</string>
     <string name="main_last_reading_value">%1$d ppb\n%2$s · %3$s</string>
     <string name="main_active_missing">Captura interrumpida. Puedes reanudarla desde Rutas.</string>

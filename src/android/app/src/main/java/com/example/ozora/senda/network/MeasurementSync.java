@@ -26,10 +26,10 @@ public final class MeasurementSync {
     private MeasurementSync() {}
 
     /** Diseño lógico: (contexto) -> sincronizar -> vacío.
-     * Descripción: Reintenta un lote de la cuenta actual; la demo nunca transmite al servidor. */
+     * Descripción: Reintenta un lote de la cuenta actual.. */
     public static void sincronizar(Context contexto) {
         SessionManager sesion = SessionManager.current();
-        if(sesion == null || sesion.demo || sesion.token == null || !EN_CURSO.compareAndSet(false,true)) return;
+        if(sesion == null || sesion.token == null || !EN_CURSO.compareAndSet(false,true)) return;
         Context app = contexto.getApplicationContext();
         RED.execute(() -> enviarPendientes(app,sesion));
     }

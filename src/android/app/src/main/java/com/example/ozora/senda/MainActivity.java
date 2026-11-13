@@ -79,7 +79,7 @@ public final class      MainActivity extends FieldScreen {
                 salir(false);
                 return;
             }
-            if (!session.demo && SystemClock.elapsedRealtime() - ultimoEnvio >= 15000) {
+            if (SystemClock.elapsedRealtime() - ultimoEnvio >= 15000) {
                 ultimoEnvio = SystemClock.elapsedRealtime();
                 MeasurementSync.sincronizar(MainActivity.this);
             }
@@ -102,7 +102,6 @@ public final class      MainActivity extends FieldScreen {
         scroll = findViewById(R.id.main_scroll);
         section = findViewById(R.id.section_host);
         navigation = findViewById(R.id.bottom_navigation);
-        findViewById(R.id.demo_banner).setVisibility(session.demo ? View.VISIBLE : View.GONE);
 
         backToHome = new OnBackPressedCallback(false) {
             @Override public void handleOnBackPressed() {
@@ -200,7 +199,6 @@ public final class      MainActivity extends FieldScreen {
                 MeasurementSync.sincronizar(this);
                 actualizar();
             });
-            visible(R.id.button_retry_sync, !session.demo);
             accion(R.id.button_logout, this::confirmarSalida);
         }
         if (destino == R.id.tab_rutas || destino == R.id.tab_historial) {
@@ -271,8 +269,7 @@ public final class      MainActivity extends FieldScreen {
                 permisos += "\n" + getString(ble ? R.string.main_nearby_ready : R.string.main_nearby_missing);
             }
             textoEn(R.id.text_permissions, permisos);
-            textoEn(R.id.text_sync, session.demo ? getString(R.string.main_demo_sync)
-                    : rutas.estadoEnvios(session.worker) + "\n" + MeasurementSync.estado);
+            textoEn(R.id.text_sync, rutas.estadoEnvios(session.worker) + "\n" + MeasurementSync.estado);
         }
     }
 
@@ -411,12 +408,11 @@ public final class      MainActivity extends FieldScreen {
     }
     private void configurar() {
         List<String> opciones=new ArrayList<>();
-        opciones.add(session.demo?"Biometría no disponible en demostración":bio.activo()?"Desactivar biometría":"Activar biometría");
+        opciones.add(bio.activo()?"Desactivar biometría":"Activar biometría");
         opciones.add("Umbral orientativo de ozono"); opciones.add("Tiempo sin anuncios BLE");
         if(activo && RutaService.actual != id) opciones.add("Reanudar captura");
         new AlertDialog.Builder(this).setTitle("Ajustes de campo").setItems(opciones.toArray(new String[0]),(d,w)->{
             if(w==0) {
-                if(session.demo) { mensaje("La demostración no tiene credenciales ni acceso biométrico."); return; }
                 if(bio.activo()) { bio.borrar(); mensaje("Acceso biométrico desactivado."); }
                 else if(!bio.disponible()) mensaje("Configura una huella o biometría compatible en los ajustes de Android.");
                 else try { bio.activar(session.token); mensaje("Biometría activada para la próxima apertura de la app."); }
@@ -485,8 +481,8 @@ public final class      MainActivity extends FieldScreen {
     }
     private void salir(boolean revocar) {
         String anterior=session.token;
-        finalizar(); if(!session.demo) bio.borrar(); SessionManager.clear();
-        if(revocar && !session.demo) {
+        finalizar(); bio.borrar(); SessionManager.clear();
+        if(revocar) {
             ApiClient api=new ApiClient(this);
             new Thread(()->{
                 try { api.pedir("DELETE","/sesiones/actual",anterior,null); }
