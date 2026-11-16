@@ -80,8 +80,7 @@ public final class HomeMapController implements LocationTracker.Oyente {
             }
         });
         try {
-            String html = asset("home.html").replace("/*LEAFLET_CSS*/", asset("leaflet.css"))
-                    .replace("/*LEAFLET_JS*/", asset("leaflet.js"));
+            String html = mapHtml(activity, "home.html");
             web.loadDataWithBaseURL("https://senda-map.invalid/", html, "text/html", "utf-8", null);
         } catch (IOException error) { status(activity.getString(R.string.home_map_offline)); }
         root.findViewById(R.id.home_heat_toggle).setOnClickListener(v -> {
@@ -98,7 +97,12 @@ public final class HomeMapController implements LocationTracker.Oyente {
         refresh(true);
     }
 
-    private String asset(String file) throws IOException {
+    static String mapHtml(Activity activity, String file) throws IOException {
+        return asset(activity, file).replace("/*LEAFLET_CSS*/", asset(activity, "leaflet.css"))
+                .replace("/*LEAFLET_JS*/", asset(activity, "leaflet.js"));
+    }
+
+    private static String asset(Activity activity, String file) throws IOException {
         try (InputStream stream = activity.getAssets().open("map/" + file);
              ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[8192];
