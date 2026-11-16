@@ -1,0 +1,11 @@
+<resources>
+<string name="routes_subtitle">Rutas del trabajador y sus datos</string>
+<string name="routes_today">Hoy</string><string name="routes_yesterday">Ayer</string>
+<string name="routes_week">Semana</string><string name="routes_seven">7 días</string>
+<string name="routes_week_hint">Semana actual, de lunes a domingo</string>
+<string name="routes_seven_hint">Hoy y los seis días anteriores</string>
+<string name="routes_empty">No hay recorridos iniciados en este periodo.</string>
+<string name="routes_duration">Duración</string><string name="routes_distance">Distancia</string>
+<string name="routes_measurements">Mediciones</string><string name="routes_in_progress">En curso</string>
+<string name="routes_no_gps">Sin GPS</string>
+</resources>

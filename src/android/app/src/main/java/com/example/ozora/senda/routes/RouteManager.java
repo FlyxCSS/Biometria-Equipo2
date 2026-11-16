@@ -73,7 +73,7 @@ public final class RouteManager extends SQLiteOpenHelper {
     }
 
     public Cursor resumen(int usuario,int parque) {
-        return getReadableDatabase().rawQuery("SELECT r.id,inicio,fin,metros,sensor,COUNT(l.id),AVG(ppb),MIN(ppb),MAX(ppb) FROM (SELECT * FROM ruta WHERE usuario=? AND parque=? ORDER BY id DESC LIMIT 1) r LEFT JOIN lectura l ON l.ruta=r.id GROUP BY r.id",
+        return getReadableDatabase().rawQuery("SELECT r.id,inicio,fin,metros,sensor,COUNT(l.id),AVG(ppb),MIN(ppb),MAX(ppb) FROM (SELECT * FROM ruta WHERE usuario=? AND parque=? ORDER BY (fin IS NULL) DESC,id DESC LIMIT 1) r LEFT JOIN lectura l ON l.ruta=r.id GROUP BY r.id",
                 new String[]{String.valueOf(usuario),String.valueOf(parque)});
     }
     public Cursor ultima(long ruta) {
@@ -120,6 +120,37 @@ public final class RouteManager extends SQLiteOpenHelper {
                 + " AND l.lat BETWEEN -90 AND 90 AND l.lon BETWEEN -180 AND 180"
                 + " GROUP BY ROUND(l.lat,5),ROUND(l.lon,5) ORDER BY MAX(l.fecha) DESC LIMIT 1500",
                 new String[]{String.valueOf(worker.id),String.valueOf(worker.parkId),since,until});
+    }
+
+    public Cursor listarPeriodo(Worker worker, long since, long until, int limit, int offset) {
+        return getReadableDatabase().rawQuery(
+                "SELECT r.id,r.inicio,r.fin,r.metros,(SELECT COUNT(*) FROM lectura l WHERE l.ruta=r.id)"
+                + " FROM ruta r WHERE r.usuario=? AND r.parque=? AND r.inicio>=? AND r.inicio<?"
+                + " ORDER BY (r.fin IS NULL) DESC,r.inicio DESC,r.id DESC LIMIT ? OFFSET ?",
+                new String[]{String.valueOf(worker.id),String.valueOf(worker.parkId),String.valueOf(since),
+                    String.valueOf(until),String.valueOf(limit),String.valueOf(offset)});
+    }
+
+    /** Muestreo acotado de puntos reales para la miniatura, conservando inicio y final. */
+    public List<RoutePoint> vistaPrevia(Worker worker,long routeId) {
+        List<RoutePoint> points=new ArrayList<>();
+        try(Cursor cursor=getReadableDatabase().rawQuery(
+                "SELECT p.lat,p.lon,p.segmento FROM punto p JOIN ruta r ON r.id=p.ruta"
+                + " WHERE r.id=? AND r.usuario=? AND r.parque=? ORDER BY p.id",
+                new String[]{String.valueOf(routeId),String.valueOf(worker.id),String.valueOf(worker.parkId)})) {
+            int count=cursor.getCount();
+            if(count==0) return points;
+            int step=Math.max(1,(int)Math.ceil((count-1)/149.0));
+            for(int index=0;index<count;index+=step) {
+                cursor.moveToPosition(index);
+                points.add(new RoutePoint(cursor.getDouble(0),cursor.getDouble(1),cursor.getLong(2)));
+            }
+            if((count-1)%step!=0) {
+                cursor.moveToLast();
+                points.add(new RoutePoint(cursor.getDouble(0),cursor.getDouble(1),cursor.getLong(2)));
+            }
+        }
+        return points;
     }
 
     public Cursor ultimaConEnvio(Worker worker) {

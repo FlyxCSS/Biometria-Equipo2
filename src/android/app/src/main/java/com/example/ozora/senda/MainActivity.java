@@ -34,6 +34,9 @@ import com.example.ozora.senda.network.MeasurementSync;
 import com.example.ozora.senda.qr.QrScannerActivity;
 import com.example.ozora.senda.routes.RouteActivity;
 import com.example.ozora.senda.routes.RouteManager;
+import com.example.ozora.senda.routes.RoutePeriod;
+import com.example.ozora.senda.ui.RouteCardView;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.example.ozora.senda.routes.RutaService;
 import com.example.ozora.senda.statistics.EnvironmentalAssessment;
 import com.example.ozora.senda.statistics.StatisticsCalculator;
@@ -70,6 +73,9 @@ public final class      MainActivity extends FieldScreen {
     private BottomNavigationView navigation;
     private OnBackPressedCallback backToHome;
     private int tab, routePage, historyPage;
+    private RoutePeriod routePeriod=RoutePeriod.TODAY;
+    private final java.util.Map<Long,RouteCardView> routeCards=new java.util.HashMap<>();
+    private long routeRangeStart,routeRangeEnd,lastPreviewUpdate;
     private boolean activo;
     private long id;
     private String sensorRuta;
@@ -121,6 +127,7 @@ public final class      MainActivity extends FieldScreen {
         if (state != null) {
             initial = state.getInt("section", initial);
             routePage = state.getInt("route_page");
+            routePeriod=RoutePeriod.values()[Math.max(0,Math.min(3,state.getInt("route_period")))];
             historyPage = state.getInt("history_page");
         }
         if (state != null) {
@@ -147,6 +154,7 @@ public final class      MainActivity extends FieldScreen {
         state.putBoolean("map_permission_asked", mapPermissionAsked);
         state.putInt("section", tab);
         state.putInt("route_page", routePage);
+        state.putInt("route_period",routePeriod.ordinal());
         state.putInt("history_page", historyPage);
     }
 
@@ -195,6 +203,8 @@ public final class      MainActivity extends FieldScreen {
         scroll.setVisibility(destino == R.id.tab_inicio ? View.GONE : View.VISIBLE);
         findViewById(R.id.home_host).setVisibility(destino == R.id.tab_inicio ? View.VISIBLE : View.GONE);
         section = findViewById(destino == R.id.tab_inicio ? R.id.home_host : R.id.section_host);
+        routeCards.clear();
+        findViewById(R.id.routes_primary_action).setVisibility(destino==R.id.tab_rutas?View.VISIBLE:View.GONE);
         tab = destino;
         backToHome.setEnabled(destino != R.id.tab_inicio);
         section.removeAllViews();
@@ -212,7 +222,21 @@ public final class      MainActivity extends FieldScreen {
                 else preparar();
             });
         } else if (destino == R.id.tab_rutas) {
-            accion(R.id.button_start_route, () -> { if (activo) confirmarFin(); else preparar(); });
+            findViewById(R.id.routes_primary_action).setOnClickListener(v -> { if (activo) confirmarFin(); else preparar(); });
+            int[] periodIds={R.id.routes_today,R.id.routes_yesterday,R.id.routes_week,R.id.routes_seven};
+            MaterialButtonToggleGroup periods=section.findViewById(R.id.routes_period);
+            periods.check(periodIds[routePeriod.ordinal()]);
+            periods.addOnButtonCheckedListener((group,buttonId,checked) -> {
+                if(!checked) return;
+                for(int index=0;index<periodIds.length;index++) {
+                    if(periodIds[index]==buttonId) {
+                        routePeriod=RoutePeriod.values()[index];
+                        routePage=0;
+                        cargarPagina(false);
+                        break;
+                    }
+                }
+            });
             accion(R.id.button_resume_route, this::preparar);
             accion(R.id.button_route_map, () -> abrirRuta(RouteActivity.class, id));
             accion(R.id.button_route_summary, () -> abrirRuta(SummaryActivity.class, id));
@@ -288,15 +312,27 @@ public final class      MainActivity extends FieldScreen {
             textoEn(R.id.button_start_route, getString(activo ? R.string.main_open_active : R.string.main_start));
             mostrarUltima(null, true);
         } else if (tab == R.id.tab_rutas) {
-            textoEn(R.id.text_route_summary, activo ? StatisticsCalculator.resumen(route, System.currentTimeMillis())
-                    + "\n" + estadoSensor() : getString(R.string.main_no_route));
-            textoEn(R.id.button_start_route, getString(activo ? R.string.main_finish : R.string.main_start));
+            textoEn(R.id.text_route_summary, estadoSensor());
+            ((TextView)findViewById(R.id.routes_primary_action)).setText(activo ? R.string.main_finish : R.string.main_start);
+            visible(R.id.routes_active_controls,activo);
+            RouteCardView currentCard=routeCards.get(id);
+            if(currentCard!=null && activo) {
+                currentCard.update(route,System.currentTimeMillis());
+                if(SystemClock.elapsedRealtime()-lastPreviewUpdate>=10000) {
+                    currentCard.setPoints(rutas.vistaPrevia(session.worker,id));
+                    lastPreviewUpdate=SystemClock.elapsedRealtime();
+                }
+            }
             visible(R.id.button_resume_route, activo && RutaService.actual != id);
             visible(R.id.button_route_map, activo);
             visible(R.id.button_route_summary, activo);
             visible(R.id.text_last_o3, activo);
             if (activo) mostrarUltima(sensorRuta, false);
-            if (anterior != id || antesActivo != activo) cargarPagina(false);
+            long[] range=routePeriod.bounds(System.currentTimeMillis(),java.util.TimeZone.getDefault());
+            if(range[0]!=routeRangeStart || range[1]!=routeRangeEnd) {
+                routePage=0;
+                cargarPagina(false);
+            } else if(anterior!=id || antesActivo!=activo) cargarPagina(false);
         } else if (tab == R.id.tab_sensor) {
             section.findViewById(R.id.button_select_sensor).setEnabled(!activo);
             if (sensorRuta == null) textoEn(R.id.text_last_o3, getString(R.string.main_no_readings));
@@ -393,32 +429,46 @@ public final class      MainActivity extends FieldScreen {
     private void cargarPagina(boolean desplazar) {
         boolean esRuta = tab == R.id.tab_rutas;
         int pagina = esRuta ? routePage : historyPage;
+        if(esRuta) {
+            long[] range=routePeriod.bounds(System.currentTimeMillis(),java.util.TimeZone.getDefault());
+            routeRangeStart=range[0]; routeRangeEnd=range[1];
+            routeCards.clear();
+        }
         LinearLayout lista = section.findViewById(esRuta ? R.id.list_routes : R.id.list_history);
         lista.removeAllViews();
         int filas = 0;
-        try (Cursor c = esRuta ? rutas.listar(session.worker, PAGE_SIZE + 1, pagina * PAGE_SIZE)
+        boolean haySiguiente;
+        try (Cursor c = esRuta ? rutas.listarPeriodo(session.worker,routeRangeStart,routeRangeEnd,PAGE_SIZE+1,pagina*PAGE_SIZE)
                 : rutas.historial(session.worker, null, PAGE_SIZE + 1, pagina * PAGE_SIZE)) {
             while (filas < PAGE_SIZE && c.moveToNext()) {
                 if (esRuta) agregarRuta(lista, c);
                 else agregarLectura(lista, c);
                 filas++;
             }
-            section.findViewById(R.id.button_next).setEnabled(c.moveToNext());
+            haySiguiente=c.moveToNext();
+            section.findViewById(R.id.button_next).setEnabled(haySiguiente);
         }
         visible(R.id.text_list_empty, filas == 0 && pagina == 0);
+        if(esRuta) {
+            visible(R.id.routes_pages,haySiguiente||pagina>0);
+            visible(R.id.page_number,haySiguiente||pagina>0);
+            lastPreviewUpdate=SystemClock.elapsedRealtime();
+        }
         section.findViewById(R.id.button_previous).setEnabled(pagina > 0);
         textoEn(R.id.page_number, getString(R.string.main_page, pagina + 1));
         if (desplazar) scroll.scrollTo(0, 0);
     }
 
     private void agregarRuta(LinearLayout lista, Cursor ruta) {
-        long routeId = ruta.getLong(0);
-        String estado = getString(ruta.isNull(2) ? R.string.main_route_active : R.string.main_route_done);
-        MaterialButton fila = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        fila.setText(getString(R.string.main_route_row, fecha.format(new Date(ruta.getLong(1))), estado));
-        fila.setMinHeight(dp(48));
-        fila.setOnClickListener(v -> abrirRuta(SummaryActivity.class, routeId));
-        lista.addView(fila, new LinearLayout.LayoutParams(-1, -2));
+        long routeId=ruta.getLong(0);
+        RouteCardView card=new RouteCardView(this);
+        card.bind(routeId,ruta.getLong(1),ruta.isNull(2)?null:ruta.getLong(2),ruta.getDouble(3),
+                ruta.getInt(4),rutas.vistaPrevia(session.worker,routeId));
+        card.setOnClickListener(v -> abrirRuta(SummaryActivity.class,routeId));
+        LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(-1,-2);
+        params.topMargin=dp(12); params.bottomMargin=dp(4);
+        lista.addView(card,params);
+        routeCards.put(routeId,card);
     }
 
     private void agregarLectura(LinearLayout lista, Cursor lectura) {
@@ -514,6 +564,7 @@ public final class      MainActivity extends FieldScreen {
         if(System.currentTimeMillis()>=session.expiresAt) { salir(false); return; }
         actualizar();
         if(activo && RutaService.actual == id) return;
+        boolean nuevoRecorrido=!activo;
         if(!activo) {
             sensorRuta=elegido();
             try { id=rutas.iniciar(session.worker.id,session.worker.parkId,sensorRuta); }
@@ -523,6 +574,14 @@ public final class      MainActivity extends FieldScreen {
                 .putExtra("vence",session.expiresAt).putExtra("reanudar",activo);
         try {
             if(Build.VERSION.SDK_INT>=26) startForegroundService(i); else startService(i);
+            if(nuevoRecorrido) {
+                routePeriod=RoutePeriod.TODAY;
+                routePage=0;
+                if(tab==R.id.tab_rutas) {
+                    ((MaterialButtonToggleGroup)section.findViewById(R.id.routes_period)).check(R.id.routes_today);
+                    cargarPagina(false);
+                }
+            }
             navigation.setSelectedItemId(R.id.tab_rutas);
         } catch(RuntimeException e) { mensaje("Android no pudo iniciar la captura. Revisa los permisos y reanúdala desde Rutas."); }
         actualizar();
