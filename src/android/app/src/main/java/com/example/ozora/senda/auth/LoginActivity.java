@@ -120,7 +120,10 @@ public final class LoginActivity extends AuthScreen {
                         primerAcceso(correo);
                         return;
                     }
-                    SessionManager.open(new Worker(uid,pid,n),fin,nuevo); ocupado=false; abrirPanel();
+                    SessionManager.open(new Worker(uid,pid,n),fin,nuevo);
+                    if (correo != null) getSharedPreferences("campo-" + uid + "-" + pid, MODE_PRIVATE)
+                            .edit().putString("account_email", correo).apply();
+                    ocupado=false; abrirPanel();
                 });
             } catch(Exception e) {
                 runOnUiThread(()->{

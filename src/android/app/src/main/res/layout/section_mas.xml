@@ -1,16 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-    <TextView style="@style/SendaSectionTitle" android:text="@string/main_mas" />
-    <TextView android:id="@+id/text_account" style="@style/SendaSectionText" />
-    <TextView android:id="@+id/text_permissions" style="@style/SendaSectionText" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_permissions" style="@style/SendaSectionButton" android:text="@string/main_permissions" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_settings" style="@style/SendaSectionButton" android:text="@string/main_settings" />
-    <TextView style="@style/SendaSectionLabel" android:text="@string/main_sync" />
-    <TextView android:id="@+id/text_sync" style="@style/SendaSectionText" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_retry_sync" style="@style/SendaSectionButton" android:text="@string/main_retry" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_logout" style="@style/SendaSectionButton" android:text="@string/main_logout" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="12dp">
+<TextView style="@style/AccountTitle" android:text="@string/account_title"/>
+<TextView style="@style/AccountSubtitle" android:text="@string/account_subtitle"/>
+<View style="@style/AccountDivider"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingBottom="16dp">
+<com.google.android.material.imageview.ShapeableImageView android:id="@+id/account_avatar" android:layout_width="64dp" android:layout_height="64dp" android:layout_marginEnd="18dp" android:src="@drawable/account_avatar" android:scaleType="centerCrop" android:importantForAccessibility="no" app:shapeAppearanceOverlay="@style/AccountAvatarShape"/>
+<LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+<TextView android:id="@+id/text_account" style="@style/SendaSectionLabel" android:textSize="20sp"/>
+<TextView android:id="@+id/account_email" style="@style/SendaSectionText" android:textSize="14sp"/>
+</LinearLayout></LinearLayout>
+<View style="@style/AccountDivider"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_profile" style="@style/AccountRow" android:text="@string/account_profile" app:icon="@drawable/account_chevron" app:iconGravity="end" app:iconTint="#1D4032"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_security" style="@style/AccountRow" android:text="@string/account_security" app:icon="@drawable/account_chevron" app:iconGravity="end" app:iconTint="#1D4032"/>
+<View style="@style/AccountDivider"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_biometric" style="@style/AccountRow" android:text="@string/account_biometric" app:icon="@drawable/account_chevron" app:iconGravity="end" app:iconTint="#1D4032"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_notifications" style="@style/AccountRow" android:text="@string/account_notifications" app:icon="@drawable/account_chevron" app:iconGravity="end" app:iconTint="#1D4032"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_permissions" style="@style/AccountRow" android:text="@string/account_location" app:icon="@drawable/account_chevron" app:iconGravity="end" app:iconTint="#1D4032"/>
+<TextView android:id="@+id/text_permissions" style="@style/SendaSectionText" android:textSize="13sp"/>
+<View style="@style/AccountDivider"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_help" style="@style/AccountRow" android:text="@string/account_help" app:icon="@drawable/account_chevron" app:iconGravity="end" app:iconTint="#1D4032"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_settings" style="@style/AccountRow" android:text="@string/main_settings"/>
+<LinearLayout style="@style/AccountCard">
+<TextView style="@style/SendaSectionLabel" android:text="@string/main_sync"/>
+<TextView android:id="@+id/text_sync" style="@style/SendaSectionText" android:textSize="13sp"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_retry_sync" style="@style/SendaSectionButton" android:text="@string/main_retry"/>
+</LinearLayout>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_logout" style="@style/AuthButton" android:layout_marginTop="12dp" android:text="@string/main_logout"/>
 </LinearLayout>

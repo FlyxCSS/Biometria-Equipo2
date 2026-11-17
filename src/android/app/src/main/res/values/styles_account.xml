@@ -1,0 +1,35 @@
+<resources>
+    <style name="AccountTitle" parent="SendaSectionTitle">
+        <item name="android:textSize">30sp</item><item name="android:textColor">#111612</item>
+        <item name="android:paddingTop">20dp</item><item name="android:paddingBottom">6dp</item>
+    </style>
+    <style name="AccountSubtitle" parent="SendaSectionText">
+        <item name="android:textSize">16sp</item><item name="android:paddingBottom">18dp</item>
+    </style>
+    <style name="AccountCard">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">12dp</item><item name="android:padding">18dp</item>
+        <item name="android:background">@drawable/account_card</item><item name="android:elevation">3dp</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+    <style name="AccountRow" parent="Widget.Material3.Button.TextButton">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">60dp</item><item name="android:layout_marginBottom">10dp</item>
+        <item name="android:textAllCaps">false</item><item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item><item name="android:textColor">#1D4032</item>
+        <item name="android:gravity">start|center_vertical</item><item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">18dp</item><item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item><item name="backgroundTint">#FFFFFF</item>
+        <item name="cornerRadius">20dp</item><item name="android:elevation">3dp</item>
+        <item name="android:insetTop">0dp</item><item name="android:insetBottom">0dp</item>
+    </style>
+    <style name="AccountDivider">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">1dp</item>
+        <item name="android:background">#DCD6C5</item><item name="android:layout_marginTop">10dp</item>
+        <item name="android:layout_marginBottom">18dp</item>
+    </style>
+    <style name="AccountAvatarShape"><item name="cornerFamily">rounded</item><item name="cornerSize">50%</item></style>
+<style name="AccountDetail" parent="SendaSectionText">
+<item name="android:layout_marginBottom">12dp</item><item name="android:padding">18dp</item>
+<item name="android:background">@drawable/account_card</item><item name="android:elevation">3dp</item>
+</style><style name="AccountInput" parent="AuthEdit"><item name="android:background">@drawable/account_input</item></style></resources>

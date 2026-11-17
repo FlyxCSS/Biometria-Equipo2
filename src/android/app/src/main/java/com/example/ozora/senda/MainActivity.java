@@ -36,6 +36,10 @@ import com.example.ozora.senda.routes.RouteActivity;
 import com.example.ozora.senda.routes.RouteManager;
 import com.example.ozora.senda.routes.RoutePeriod;
 import com.example.ozora.senda.ui.RouteCardView;
+import com.example.ozora.senda.ui.KeyringScreen;
+import com.example.ozora.senda.ui.KeyringStatus;
+import com.example.ozora.senda.ui.AccountActivity;
+import androidx.core.app.NotificationManagerCompat;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.example.ozora.senda.routes.RutaService;
 import com.example.ozora.senda.statistics.EnvironmentalAssessment;
@@ -252,8 +256,16 @@ public final class      MainActivity extends FieldScreen {
         } else if (destino == R.id.tab_historial) {
             accion(R.id.button_refresh_history, () -> { historyPage = 0; cargarPagina(true); });
         } else if (destino == R.id.tab_sensor) {
-            accion(R.id.button_select_sensor, this::seleccionar);
+            accion(R.id.button_select_sensor, this::gestionarLlavero);
         } else if (destino == R.id.tab_mas) {
+            accion(R.id.button_profile, () -> startActivity(new Intent(this, AccountActivity.class)));
+            accion(R.id.button_security, () -> {
+                if (activo) mensaje("Finaliza el recorrido antes de cambiar la contraseña.");
+                else startActivity(new Intent(this, AccountActivity.class).putExtra("security", true));
+            });
+            accion(R.id.button_biometric, this::configurarBiometria);
+            accion(R.id.button_notifications, this::abrirNotificaciones);
+            accion(R.id.button_help, this::mostrarAyuda);
             accion(R.id.button_settings, this::configurar);
             accion(R.id.button_permissions, () -> startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     Uri.fromParts("package", getPackageName(), null))));
@@ -303,10 +315,10 @@ public final class      MainActivity extends FieldScreen {
 
         if (tab == R.id.tab_inicio || tab == R.id.tab_mas) {
             textoEn(R.id.text_account, tab == R.id.tab_inicio
-                    ? getString(R.string.home_hello, session.worker.name.split(" ")[0])
-                    : getString(R.string.main_account, session.worker.name, session.worker.parkId));
+                    ? getString(R.string.home_hello, ajustes().getString("profile_name", session.worker.name).split(" ")[0])
+                    : ajustes().getString("profile_name", session.worker.name));
         }
-        if (tab == R.id.tab_sensor) textoEn(R.id.text_device, estadoSensor());
+
         if (tab == R.id.tab_inicio) {
             textoEn(R.id.home_park, getString(R.string.home_park, session.worker.parkId));
             boolean receiving = activo && RutaService.actual == id && RutaService.ultimoAnuncio > 0
@@ -342,9 +354,9 @@ public final class      MainActivity extends FieldScreen {
                 cargarPagina(false);
             } else if(anterior!=id || antesActivo!=activo) cargarPagina(false);
         } else if (tab == R.id.tab_sensor) {
-            section.findViewById(R.id.button_select_sensor).setEnabled(!activo);
-            if (sensorRuta == null) textoEn(R.id.text_last_o3, getString(R.string.main_no_readings));
-            else mostrarUltima(sensorRuta, false);
+            boolean receiving = KeyringStatus.receiving(activo, id, RutaService.actual,
+                    RutaService.ultimoAnuncio, SystemClock.elapsedRealtime(), ajustes().getInt("silencio", 20));
+            new KeyringScreen(section).refresh(session, rutas, ajustes(), sensorRuta, activo, receiving, estadoSensor());
         } else if (tab == R.id.tab_mas) {
             String permisos = estadoUbicacion();
             if (Build.VERSION.SDK_INT >= 31) {
@@ -352,6 +364,21 @@ public final class      MainActivity extends FieldScreen {
                 permisos += "\n" + getString(ble ? R.string.main_nearby_ready : R.string.main_nearby_missing);
             }
             textoEn(R.id.text_permissions, permisos);
+            textoEn(R.id.account_email, ajustes().getString("account_email", getString(R.string.home_park, session.worker.parkId)));
+            textoEn(R.id.button_biometric, getString(R.string.account_biometric) + (bio.activo() ? " · Activada" : " · Desactivada"));
+            boolean notifications = NotificationManagerCompat.from(this).areNotificationsEnabled();
+            textoEn(R.id.button_notifications, getString(notifications ? R.string.account_enabled
+                    : R.string.account_disabled, getString(R.string.account_notifications)));
+            textoEn(R.id.button_permissions, getString(permiso(Manifest.permission.ACCESS_FINE_LOCATION)
+                    ? R.string.account_location_ready : R.string.account_location_missing));
+            android.widget.ImageView avatar = section.findViewById(R.id.account_avatar);
+            String photo = ajustes().getString("profile_photo", null);
+            if (!android.text.TextUtils.equals((String)avatar.getTag(), photo)) {
+                avatar.setImageResource(R.drawable.account_avatar);
+                if (photo != null) try { avatar.setImageURI(Uri.parse(photo)); }
+                catch (RuntimeException ignored) { avatar.setImageResource(R.drawable.account_avatar); }
+                avatar.setTag(photo);
+            }
             textoEn(R.id.text_sync, rutas.estadoEnvios(session.worker) + "\n" + MeasurementSync.estado);
         }
     }
@@ -512,7 +539,54 @@ public final class      MainActivity extends FieldScreen {
     @Override protected void onActivityResult(int req,int result,Intent data) {
         super.onActivityResult(req,result,data);
         if(req==REQUEST_SENSOR && result==RESULT_OK && data!=null && !activo && SessionManager.current()!=null) {
-            ajustes().edit().putString("sensor",data.getStringExtra("sensor")).apply();
+            String sensor = data.getStringExtra("sensor");
+            SharedPreferences.Editor editor = ajustes().edit().putString("sensor", sensor);
+            if (!android.text.TextUtils.equals(sensor, elegido())) {
+                if (sensor == null) editor.remove("sensor_linked_at");
+                else editor.putLong("sensor_linked_at", System.currentTimeMillis());
+            }
+            editor.apply();
+            actualizar();
+        }
+    }
+    private void gestionarLlavero() {
+        if (activo) { mensaje(getString(R.string.keyring_active_hint)); return; }
+        if (elegido() == null) { seleccionar(); return; }
+        new AlertDialog.Builder(this).setTitle(R.string.keyring_unlink)
+                .setMessage("Se quitará la selección de este móvil. Se conservarán las mediciones y la asignación del parque.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Desvincular", (d, w) -> {
+                    if (activo || SessionManager.current() != session) return;
+                    ajustes().edit().remove("sensor").remove("sensor_linked_at").apply();
+                    actualizar();
+                }).show();
+    }
+    private void abrirNotificaciones() {
+        if (Build.VERSION.SDK_INT >= 33 && !permiso(Manifest.permission.POST_NOTIFICATIONS)) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 22);
+            return;
+        }
+        Intent intent = Build.VERSION.SDK_INT >= 26
+                ? new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName())
+                : new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null));
+        startActivity(intent);
+    }
+    private void mostrarAyuda() {
+        new AlertDialog.Builder(this).setTitle(R.string.account_help)
+                .setMessage("Llavero: escanea su QR y comienza un recorrido para recibir lecturas por Bluetooth. La batería y el firmware no están disponibles con el protocolo actual.\n\nUbicación: permite la ubicación precisa y los dispositivos cercanos para registrar el recorrido.\n\nPerfil: la foto, el nombre visible y el teléfono se guardan solo en este móvil. Para cambiar el correo o el parque, contacta con tu responsable.\n\nEnvíos: si falla la conexión, las lecturas se conservan en el móvil. Puedes reintentarlas desde Ajustes.")
+                .setPositiveButton("Entendido", null).show();
+    }
+    private void configurarBiometria() {
+        if (bio.activo()) {
+            new AlertDialog.Builder(this).setTitle("Desactivar biometría")
+                    .setMessage("Podrás seguir accediendo con tu contraseña.")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Desactivar", (d, w) -> { bio.borrar(); actualizar(); }).show();
+        } else if (!bio.disponible()) {
+            mensaje("Configura una huella o biometría compatible en los ajustes de Android.");
+        } else {
+            try { bio.activar(session.token); mensaje("Biometría activada para la próxima apertura de la app."); }
+            catch (Exception e) { mensaje("Android no pudo proteger la credencial biométrica."); }
             actualizar();
         }
     }
@@ -561,6 +635,12 @@ public final class      MainActivity extends FieldScreen {
 
     @Override public void onRequestPermissionsResult(int req,String[] permisos,int[] resultados) {
         super.onRequestPermissionsResult(req,permisos,resultados);
+        if (req == 22) {
+            actualizar();
+            if (!permiso(Manifest.permission.POST_NOTIFICATIONS))
+                mensaje("Puedes activar las notificaciones desde los ajustes de Android.");
+            return;
+        }
         if (req == REQUEST_MAP_LOCATION) {
             if (homeMap != null) homeMap.start();
             return;
