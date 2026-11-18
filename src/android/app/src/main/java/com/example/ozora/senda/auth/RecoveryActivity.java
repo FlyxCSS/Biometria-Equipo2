@@ -1,92 +1,104 @@
 package com.example.ozora.senda.auth;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ImageView;
+import android.widget.EditText;
 import android.widget.TextView;
+import androidx.lifecycle.ViewModelProvider;
 import com.example.ozora.senda.R;
-import com.example.ozora.senda.network.ApiClient;
-import org.json.JSONObject;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.example.ozora.senda.ui.FieldScreen;
+import java.nio.charset.StandardCharsets;
 
-/** Solicita al backend el enlace que se entrega mediante el correo configurado por el equipo. */
-public final class RecoveryActivity extends AuthScreen {
-    private static final ExecutorService RED = Executors.newSingleThreadExecutor();
-    private boolean ocupado;
-    private boolean enviada;
-
+/** Solicitud y confirmación de recuperación mediante el enlace real del backend. */
+public final class RecoveryActivity extends FieldScreen {
+    private RecoveryViewModel model;
+    private EditText email, token, next, repeat;
+    private RecoveryViewModel.Step step = RecoveryViewModel.Step.EMAIL;
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        mostrarFormulario();
-        ((TextView) findViewById(R.id.auth_title)).setText(R.string.auth_recovery_title);
-        ((ImageView) findViewById(R.id.auth_emblem)).setImageResource(R.drawable.auth_mail);
-        findViewById(R.id.auth_brand).setVisibility(View.GONE);
-        findViewById(R.id.auth_description).setVisibility(View.VISIBLE);
-        findViewById(R.id.auth_password_group).setVisibility(View.GONE);
-        findViewById(R.id.auth_forgot).setVisibility(View.GONE);
-        findViewById(R.id.auth_biometric_group).setVisibility(View.GONE);
-        findViewById(R.id.auth_back).setVisibility(View.VISIBLE);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        setContentView(R.layout.activity_recovery);
+        protegerBarras(findViewById(R.id.auth_scroll));
+        email = findViewById(R.id.auth_email);
+        token = findViewById(R.id.recovery_token);
+        next = findViewById(R.id.recovery_password);
+        repeat = findViewById(R.id.recovery_repeat);
+        if (state == null) email.setText(getIntent().getStringExtra("correo"));
+        model = new ViewModelProvider(this).get(RecoveryViewModel.class);
         findViewById(R.id.auth_back).setOnClickListener(v -> finish());
-        ((TextView) findViewById(R.id.auth_submit)).setText(R.string.auth_send);
-        email.setText(getIntent().getStringExtra("correo"));
-        email.setImeOptions(EditorInfo.IME_ACTION_SEND);
+        findViewById(R.id.auth_submit).setOnClickListener(v -> submit());
+        findViewById(R.id.recovery_existing_link).setOnClickListener(v -> {
+            clearSecrets();
+            if (step == RecoveryViewModel.Step.EMAIL) model.showLink(); else model.showEmail();
+        });
         email.setOnEditorActionListener((v, action, event) -> {
             if (action != EditorInfo.IME_ACTION_SEND) return false;
-            solicitar();
-            return true;
+            submit(); return true;
         });
-        findViewById(R.id.auth_submit).setOnClickListener(v -> solicitar());
-        enviada = state != null && state.getBoolean("enviada");
-        if (enviada) confirmarSolicitud();
+        repeat.setOnEditorActionListener((v, action, event) -> {
+            if (action != EditorInfo.IME_ACTION_DONE) return false;
+            submit(); return true;
+        });
+        model.observe().observe(this, this::render);
     }
-
-    private void solicitar() {
-        if (ocupado || enviada) return;
-        String correo = email.getText().toString().trim();
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
-            email.setError(getString(R.string.auth_email_invalid));
-            email.requestFocus();
-            return;
+    private void render(RecoveryViewModel.State state) {
+        step = state.step;
+        boolean sent = step == RecoveryViewModel.Step.LINK;
+        boolean done = step == RecoveryViewModel.Step.DONE;
+        findViewById(R.id.recovery_email_group).setVisibility(step == RecoveryViewModel.Step.EMAIL ? View.VISIBLE : View.GONE);
+        findViewById(R.id.recovery_link_group).setVisibility(sent ? View.VISIBLE : View.GONE);
+        ((TextView)findViewById(R.id.recovery_question)).setText(done ? R.string.recovery_done
+                : sent ? R.string.recovery_link_question : R.string.recovery_question);
+        ((TextView)findViewById(R.id.recovery_description)).setText(done ? R.string.recovery_done_description
+                : sent ? R.string.recovery_link_description : R.string.recovery_description);
+        ((TextView)findViewById(R.id.auth_submit)).setText(done ? R.string.auth_login
+                : sent ? R.string.recovery_confirm : R.string.auth_send);
+        ((TextView)findViewById(R.id.recovery_existing_link)).setText(sent
+                ? R.string.recovery_other_email : R.string.recovery_link_label);
+        findViewById(R.id.recovery_existing_link).setVisibility(done ? View.GONE : View.VISIBLE);
+        findViewById(R.id.auth_progress).setVisibility(state.busy ? View.VISIBLE : View.GONE);
+        for (int id : new int[]{R.id.auth_submit, R.id.recovery_existing_link, R.id.auth_email,
+                R.id.recovery_token, R.id.recovery_password, R.id.recovery_repeat}) findViewById(id).setEnabled(!state.busy);
+        TextView feedback = findViewById(R.id.auth_feedback);
+        feedback.setText(state.message);
+        feedback.setVisibility(state.message.isEmpty() ? View.GONE : View.VISIBLE);
+        if (done) {
+            clearSecrets();
+            new BiometricHelper(this).borrar();
+            SessionManager.clear();
         }
-        ocupado = true;
-        mostrarEspera(true);
-        mensaje(getString(R.string.auth_sending));
-        ApiClient api = new ApiClient(this);
-        RED.execute(() -> {
-            try {
-                api.pedir("POST", "/recuperaciones", null, new JSONObject().put("correo", correo));
-                runOnUiThread(() -> {
-                    if (isFinishing() || isDestroyed()) return;
-                    ocupado = false;
-                    enviada = true;
-                    confirmarSolicitud();
-                });
-            } catch (Exception error) {
-                runOnUiThread(() -> {
-                    if (isFinishing() || isDestroyed()) return;
-                    ocupado = false;
-                    mostrarEspera(false);
-                    mensaje(error instanceof ApiClient.Error ? error.getMessage()
-                            : getString(R.string.auth_recovery_error));
-                });
+    }
+    private void submit() {
+        if (model.state.getValue().busy) return;
+        if (step == RecoveryViewModel.Step.DONE) {
+            startActivity(new Intent(this, LoginActivity.class)
+                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    .putExtra("mensaje", getString(R.string.recovery_done_description)));
+            finish(); return;
+        }
+        if (step == RecoveryViewModel.Step.EMAIL) {
+            String value = email.getText().toString().trim();
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(value).matches()) {
+                email.setError(getString(R.string.auth_email_invalid)); email.requestFocus(); return;
             }
-        });
+            model.request(value); return;
+        }
+        String value = RecoveryToken.extract(token.getText().toString());
+        if (value == null) {
+            token.setError(getString(R.string.recovery_link_invalid)); token.requestFocus(); return;
+        }
+        String password = next.getText().toString();
+        int length = password.getBytes(StandardCharsets.UTF_8).length;
+        if (length < 12 || length > 72 || password.indexOf(0) >= 0) {
+            next.setError(getString(R.string.recovery_password_invalid)); next.requestFocus(); return;
+        }
+        if (!password.equals(repeat.getText().toString())) {
+            repeat.setError(getString(R.string.recovery_mismatch)); repeat.requestFocus(); return;
+        }
+        model.reset(value, password);
     }
-
-    private void confirmarSolicitud() {
-        mostrarEspera(false);
-        mensaje(getString(R.string.auth_recovery_received));
-        ((TextView) findViewById(R.id.auth_feedback)).setTextColor(0xff1d4032);
-        email.setEnabled(false);
-        TextView volver = findViewById(R.id.auth_submit);
-        volver.setText(R.string.auth_back);
-        volver.setOnClickListener(v -> finish());
-    }
-
-    @Override protected void onSaveInstanceState(Bundle state) {
-        state.putBoolean("enviada", enviada);
-        super.onSaveInstanceState(state);
-    }
+    private void clearSecrets() { token.setText(""); next.setText(""); repeat.setText(""); }
 }

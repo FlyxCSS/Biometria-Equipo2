@@ -1,0 +1,36 @@
+<resources>
+<string name="flow_back">‹ Volver</string>
+<string name="bio_title">Autenticación biométrica</string>
+<string name="bio_question">¿Activar acceso biométrico?</string>
+<string name="bio_description">Usa la seguridad integrada de Android para entrar más rápido.</string>
+<string name="bio_enable">Activar biometría</string><string name="bio_skip">Ahora no</string>
+<string name="bio_enabled">Acceso biométrico activado</string><string name="bio_disable">Desactivar biometría</string>
+<string name="bio_success">Podrás acceder con tu huella o biometría compatible mientras la sesión siga vigente.</string>
+<string name="bio_unavailable">Configura primero una huella o biometría compatible en los ajustes de Android. También puedes continuar usando tu contraseña.</string>
+<string name="bio_android_settings">Configurar en Android</string>
+<string name="bio_failure">Android no pudo proteger la credencial. Puedes continuar con tu contraseña e intentarlo más tarde.</string>
+<string name="recovery_heading">Cambiar contraseña</string>
+<string name="recovery_question">¿Quieres cambiar la contraseña?</string>
+<string name="recovery_description">Introduce tu correo electrónico para recibir el enlace de recuperación.</string>
+<string name="recovery_link_question">Introduce el enlace recibido en tu correo.</string>
+<string name="recovery_link_description">Pega el enlace completo del correo y elige una nueva contraseña. El enlace caduca a los 30 minutos y solo puede usarse una vez.</string>
+<string name="recovery_link_label">Enlace o token de recuperación</string>
+<string name="recovery_link_hint">Pega aquí el enlace recibido</string>
+<string name="recovery_link_invalid">Pega el enlace de recuperación completo o su token de 64 caracteres.</string>
+<string name="recovery_password">Nueva contraseña</string><string name="recovery_repeat">Repetir contraseña</string>
+<string name="recovery_password_invalid">Usa entre 12 y 72 bytes UTF-8, sin caracteres nulos.</string>
+<string name="recovery_mismatch">Las contraseñas no coinciden.</string>
+<string name="recovery_confirm">Confirmar nueva contraseña</string><string name="recovery_other_email">Solicitar otro enlace</string>
+<string name="recovery_done">Contraseña actualizada</string>
+<string name="recovery_done_description">Ya puedes iniciar sesión con tu nueva contraseña.</string>
+<string name="recovery_reset_error">No se pudo confirmar el cambio. Revisa la conexión. Si ya se guardó, intenta acceder con tu nueva contraseña.</string>
+<string name="qr_title">Vincular llavero</string><string name="qr_subtitle">Escanea el código QR del dispositivo</string>
+<string name="qr_focus">Enfoca el código del llavero</string>
+<string name="qr_camera">Abrir cámara</string><string name="qr_camera_note">La cámara se abrirá en el lector seguro de Google.</string>
+<string name="qr_manual">Introducir código manualmente</string><string name="qr_gps">Continuar solo con GPS</string>
+<string name="qr_code_label">Código del llavero</string><string name="qr_code_hint">Ej. S-001</string>
+<string name="qr_invalid">Código inválido. Usa S- seguido de 3 a 6 dígitos.</string>
+<string name="qr_selected">Seleccionar llavero</string><string name="qr_opening">Abriendo cámara…</string>
+<string name="qr_cancelled">Lectura cancelada. Puedes reintentarlo o introducir el código manualmente.</string>
+<string name="qr_failure">No se pudo abrir el lector. Revisa Google Play Services y la conexión, o introduce el código manualmente.</string>
+</resources>
