@@ -16,18 +16,41 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public abstract class FieldScreen extends AppCompatActivity {
-    @Override protected void onResume() {
-        super.onResume();
-        if (!(this instanceof com.example.ozora.senda.auth.AuthScreen)
-                && com.example.ozora.senda.auth.SessionManager.requiereAcceso()) {
-            startActivity(new android.content.Intent(this, com.example.ozora.senda.auth.LoginActivity.class)
-                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK));
-            finish();
-        }
-    }
     private static final int BOSQUE=0xff234d39, TEXTO=0xff20372b;
     protected LinearLayout contenido;
     private TextView error;
+    private com.google.android.material.snackbar.Snackbar aviso;
+
+    /** Un único aviso temporal por pantalla, sin acumular mensajes al pulsar repetidamente. */
+    protected void aviso(String texto, boolean correcto) {
+        if (texto == null || texto.isEmpty() || isFinishing() || isDestroyed()
+                || (aviso != null && aviso.isShownOrQueued())) return;
+        aviso = com.google.android.material.snackbar.Snackbar.make(
+                findViewById(android.R.id.content), texto, 3000);
+        View nav = findViewById(com.example.ozora.senda.R.id.bottom_navigation);
+        if (nav != null && nav.isShown()) aviso.setAnchorView(nav);
+        GradientDrawable fondo = new GradientDrawable();
+        fondo.setColor(correcto ? 0xffe5f3e7 : 0xffffebee);
+        fondo.setStroke(dp(1), correcto ? 0xff549466 : 0xffbf6673);
+        fondo.setCornerRadius(dp(16));
+        View view = aviso.getView();
+        view.setBackgroundTintList(null);
+        view.setBackground(fondo);
+        TextView textoAviso = view.findViewById(com.google.android.material.R.id.snackbar_text);
+        textoAviso.setMaxLines(5);
+        aviso.setTextColor(correcto ? 0xff174b29 : 0xff7a2032);
+        aviso.setAnimationMode(com.google.android.material.snackbar.Snackbar.ANIMATION_MODE_SLIDE);
+        aviso.show();
+    }
+
+    protected void cerrarAviso() {
+        if (aviso != null) { aviso.dismiss(); aviso = null; }
+    }
+
+    @Override protected void onStop() {
+        cerrarAviso();
+        super.onStop();
+    }
     protected int dp(int n) { return Math.round(n*getResources().getDisplayMetrics().density); }
     /** Una sola aplicación de insets por ventana, también para recortes laterales e IME. */
     protected void protegerBarras(View root) {

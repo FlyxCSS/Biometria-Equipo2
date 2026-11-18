@@ -42,9 +42,13 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         Notification.Builder n=Build.VERSION.SDK_INT>=26 ? new Notification.Builder(this,"campo") : new Notification.Builder(this);
         Intent home=new Intent(this,MainActivity.class).putExtra(MainActivity.EXTRA_SHOW_ROUTES, true)
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent verRecorrido = PendingIntent.getActivity(this, 0, home,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         try { startForeground(31,n.setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle("SENDA · Recorrido en curso")
             .setContentText("Abre la app para ver o finalizar el recorrido.").setOngoing(true)
-                        .setContentIntent(PendingIntent.getActivity(this,0,home,PendingIntent.FLAG_IMMUTABLE)).build());
+            .setContentIntent(verRecorrido)
+            .addAction(new Notification.Action.Builder(android.R.drawable.ic_menu_mylocation,
+                    "Ver recorrido", verRecorrido).build()).build());
         } catch(SecurityException ex) {
             estado="Captura interrumpida. Concede ubicación precisa y reanuda desde la app.";
             stopSelf(); return START_NOT_STICKY;

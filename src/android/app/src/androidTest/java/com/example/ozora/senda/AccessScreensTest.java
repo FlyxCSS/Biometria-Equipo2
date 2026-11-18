@@ -3,7 +3,7 @@ package com.example.ozora.senda;
 import android.graphics.Bitmap;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
-import com.example.ozora.senda.auth.LoginActivity;
+import com.example.ozora.senda.auth.Login;
 import com.example.ozora.senda.auth.SessionManager;
 import org.junit.Test;
 import java.io.File;
@@ -19,12 +19,11 @@ import static androidx.test.espresso.matcher.ViewMatchers.*;
 import static org.junit.Assert.*;
 
 public class AccessScreensTest {
-    @Test public void loginNoAbreElPanelSoloPorConservarSesionEnMemoria() {
+    @Test public void loginReutilizaLaSesionVigente() {
         SessionManager.open(new com.example.ozora.senda.model.Worker(1, 1, "Trabajador"),
                 Long.MAX_VALUE, "token-de-prueba");
-        try (ActivityScenario<LoginActivity> activity = ActivityScenario.launch(LoginActivity.class)) {
-            onView(withId(R.id.auth_title)).check(matches(withText(R.string.auth_title)));
-            onView(withId(R.id.auth_biometric)).check(matches(withText(R.string.auth_biometric)));
+        try (ActivityScenario<Login> activity = ActivityScenario.launch(Login.class)) {
+            onView(withId(R.id.bottom_navigation)).check(matches(isDisplayed()));
         } finally { SessionManager.clear(); }
     }
     private void captura(String nombre) throws Exception {
@@ -39,7 +38,7 @@ public class AccessScreensTest {
 
     @Test public void accesoYRecuperacionValidanSinCrearSesion() throws Exception {
         SessionManager.clear();
-        try (ActivityScenario<LoginActivity> activity = ActivityScenario.launch(LoginActivity.class)) {
+        try (ActivityScenario<Login> activity = ActivityScenario.launch(Login.class)) {
             activity.onActivity(screen -> ((android.widget.ScrollView) screen.findViewById(R.id.auth_scroll)).setSmoothScrollingEnabled(false));
             onView(withId(R.id.auth_title)).check(matches(withText(R.string.auth_title)));
             captura("login.png");

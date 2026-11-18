@@ -31,18 +31,27 @@ CREATE TABLE PARQUES (
 CREATE TABLE ROLES (
     id_rol TINYINT UNSIGNED PRIMARY KEY,
     codigo VARCHAR(20) NOT NULL UNIQUE,
-    nombre VARCHAR(60) NOT NULL
+    nombre VARCHAR(60) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB;
 
 -- Identificadores estables: 3 y 4 exigen un parque en la restricción de USUARIOS.
 INSERT INTO ROLES (id_rol, codigo, nombre) VALUES
     (1, 'proveedor', 'Proveedor'), (2, 'organizacion', 'Organización'),
     (3, 'jefe_parque', 'Jefe de parque'), (4, 'trabajador', 'Trabajador');
+UPDATE ROLES SET descripcion = CASE codigo
+    WHEN 'proveedor' THEN 'Administración del servicio y organizaciones clientes'
+    WHEN 'organizacion' THEN 'Gestión de parques y responsables de la organización'
+    WHEN 'jefe_parque' THEN 'Supervisión del parque y gestión de trabajadores'
+    WHEN 'trabajador' THEN 'Captura de mediciones y recorridos de campo'
+    ELSE descripcion END;
+
 
 CREATE TABLE USUARIOS (
     id_usuario INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
+    foto_perfil MEDIUMTEXT NULL,
     password_hash VARCHAR(255), -- NULL solo en cuentas antiguas que aún no han establecido su contraseña.
     debe_cambiar_contrasena BOOLEAN NOT NULL DEFAULT FALSE,
     id_rol TINYINT UNSIGNED NOT NULL,

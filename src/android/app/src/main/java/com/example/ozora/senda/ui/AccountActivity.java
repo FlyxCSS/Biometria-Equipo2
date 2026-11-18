@@ -13,13 +13,13 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import com.example.ozora.senda.R;
 import com.example.ozora.senda.auth.BiometricHelper;
-import com.example.ozora.senda.auth.LoginActivity;
+import com.example.ozora.senda.auth.Login;
 import com.example.ozora.senda.auth.SessionManager;
 import com.example.ozora.senda.network.ApiClient;
 import com.example.ozora.senda.network.LogicaFake;
 import java.nio.charset.StandardCharsets;
 
-/** El perfil visual es local; la contraseña se cambia exclusivamente en el servidor. */
+/** La foto se sincroniza con la cuenta; nombre visible y teléfono se conservan localmente. */
 public final class AccountActivity extends FieldScreen {
     private SessionManager session;
     private SharedPreferences prefs;
@@ -27,14 +27,45 @@ public final class AccountActivity extends FieldScreen {
     private boolean busy;
     private final ActivityResultLauncher<String[]> picker = registerForActivityResult(
             new ActivityResultContracts.OpenDocument(), uri -> {
-                if (uri == null || session == null) return;
-                try {
-                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    photo = uri.toString();
-                    showPhoto();
-                } catch (SecurityException e) {
-                    ((TextView)findViewById(R.id.profile_feedback)).setText("No se pudo abrir la foto. Selecciona otra imagen.");
-                }
+                if (uri == null || session == null || busy) return;
+                busy = true;
+                findViewById(R.id.profile_save).setEnabled(false);
+                new Thread(() -> {
+                    try {
+                        android.graphics.BitmapFactory.Options bounds = new android.graphics.BitmapFactory.Options();
+                        bounds.inJustDecodeBounds = true;
+                        try (java.io.InputStream input = getContentResolver().openInputStream(uri)) {
+                            android.graphics.BitmapFactory.decodeStream(input, null, bounds);
+                        }
+                        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw new java.io.IOException();
+                        android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+                        options.inSampleSize = 1;
+                        while (Math.max(bounds.outWidth, bounds.outHeight) / options.inSampleSize > 512) {
+                            options.inSampleSize = Math.max(1, options.inSampleSize) * 2;
+                        }
+                        android.graphics.Bitmap bitmap;
+                        try (java.io.InputStream input = getContentResolver().openInputStream(uri)) {
+                            bitmap = android.graphics.BitmapFactory.decodeStream(input, null, options);
+                        }
+                        if (bitmap == null) throw new java.io.IOException();
+                        java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+                        bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, output);
+                        bitmap.recycle();
+                        if (output.size() > 100000) throw new java.io.IOException();
+                        String encoded = "data:image/jpeg;base64," + android.util.Base64.encodeToString(
+                                output.toByteArray(), android.util.Base64.NO_WRAP);
+                        runOnUiThread(() -> { if (!isDestroyed() && SessionManager.current() == session) {
+                            photo = encoded; showPhoto(); busy = false;
+                            findViewById(R.id.profile_save).setEnabled(true);
+                        } });
+                    } catch (Exception error) {
+                        runOnUiThread(() -> { if (!isDestroyed()) {
+                            busy = false; findViewById(R.id.profile_save).setEnabled(true);
+                            ((TextView)findViewById(R.id.profile_feedback))
+                                .setText("No se pudo preparar la foto. Selecciona otra imagen.");
+                        } });
+                    }
+                }, "senda-foto").start();
             });
     public static SharedPreferences preferences(android.content.Context context, SessionManager session) {
         return context.getSharedPreferences("campo-" + session.worker.id + "-" + session.worker.parkId,
@@ -56,8 +87,25 @@ public final class AccountActivity extends FieldScreen {
         ((TextView)findViewById(R.id.profile_park)).setText(getString(R.string.home_park, session.worker.parkId));
         photo = state != null ? state.getString("photo") : prefs.getString("profile_photo", null);
         showPhoto();
-        findViewById(R.id.profile_change_photo).setOnClickListener(v -> picker.launch(new String[]{"image/*"}));
-        findViewById(R.id.profile_save).setOnClickListener(v -> save());
+        findViewById(R.id.profile_change_photo).setOnClickListener(v -> {
+            if (!busy) picker.launch(new String[]{"image/*"});
+        });
+        findViewById(R.id.profile_remove_photo).setOnClickListener(v -> {
+            if (busy) return;
+            new android.app.AlertDialog.Builder(this)
+                    .setMessage("¿Estás seguro de que quieres eliminar la foto de perfil?")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Eliminar", (dialog, which) -> {
+                        if (!busy && SessionManager.current() == session) { photo = null; showPhoto(); }
+                    }).show();
+        });
+        findViewById(R.id.profile_save).setOnClickListener(v -> {
+            if (busy) return;
+            new android.app.AlertDialog.Builder(this)
+                    .setMessage("¿Estás seguro de que quieres guardar los cambios?")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Guardar", (dialog, which) -> save()).show();
+        });
     }
     @Override protected void onStart() {
         super.onStart();
@@ -69,11 +117,22 @@ public final class AccountActivity extends FieldScreen {
     }
     private void showPhoto() {
         ImageView view = findViewById(R.id.profile_photo);
+        mostrarFoto(view, photo);
+        TextView eliminar = findViewById(R.id.profile_remove_photo);
+        boolean tieneFoto = photo != null && !photo.isEmpty();
+        eliminar.setEnabled(tieneFoto);
+        eliminar.setTextColor(tieneFoto ? 0xff7a2032 : 0xff9a9e9a);
+    }
+
+    public static void mostrarFoto(ImageView view, String foto) {
         view.setImageResource(R.drawable.account_avatar);
-        if (photo != null) {
-            try { view.setImageURI(Uri.parse(photo)); if (view.getDrawable() == null) view.setImageResource(R.drawable.account_avatar); }
-            catch (RuntimeException e) { view.setImageResource(R.drawable.account_avatar); photo = null; }
-        }
+        if (foto == null) return;
+        try {
+            if (foto.startsWith("data:image/jpeg;base64,")) {
+                byte[] bytes = android.util.Base64.decode(foto.substring(23), android.util.Base64.NO_WRAP);
+                view.setImageBitmap(android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+            } else view.setImageURI(Uri.parse(foto));
+        } catch (RuntimeException ignored) { view.setImageResource(R.drawable.account_avatar); }
     }
     private void save() {
         if (SessionManager.current() != session) { finish(); return; }
@@ -86,10 +145,38 @@ public final class AccountActivity extends FieldScreen {
                 || number.replaceAll("[^0-9]", "").length() < 6)) {
             phone.setError("Introduce un teléfono válido o deja el campo vacío."); phone.requestFocus(); return;
         }
-        prefs.edit().putString("profile_name", value).putString("profile_phone", number)
-                .putString("profile_photo", photo).apply();
-        ((TextView)findViewById(R.id.profile_feedback)).setText(R.string.account_saved);
+        if (busy) return;
+        prefs.edit().putString("profile_name", value).putString("profile_phone", number).apply();
+        if (android.text.TextUtils.equals(photo, prefs.getString("profile_photo", null))) {
+            finish();
+            return;
+        }
+        busy = true;
+        findViewById(R.id.profile_save).setEnabled(false);
+        final String seleccionada = photo;
+        new Thread(() -> {
+            try {
+                if (seleccionada != null && !seleccionada.startsWith("data:image/jpeg;base64,"))
+                    throw new java.io.IOException("Vuelve a seleccionar la foto para guardarla en tu cuenta.");
+                new LogicaFake(this).actualizarFotoPerfil(session.token, seleccionada);
+                runOnUiThread(() -> {
+                    if (isDestroyed() || SessionManager.current() != session) return;
+                    prefs.edit().putString("profile_name", value).putString("profile_phone", number)
+                            .putString("profile_photo", seleccionada).apply();
+                    busy = false; findViewById(R.id.profile_save).setEnabled(true);
+                    finish();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (isDestroyed()) return;
+                    busy = false; findViewById(R.id.profile_save).setEnabled(true);
+                    ((TextView)findViewById(R.id.profile_feedback)).setText(error instanceof ApiClient.Error
+                            ? error.getMessage() : "No se pudo guardar el perfil. Selecciona la foto y comprueba la conexión.");
+                });
+            }
+        }, "senda-perfil").start();
     }
+
     private void security() {
         pagina(getString(R.string.account_security));
         boton("‹ Volver a Ajustes", this::finish);
@@ -131,7 +218,7 @@ public final class AccountActivity extends FieldScreen {
                     new BiometricHelper(this).borrar();
                     SessionManager.clear();
                     current.setText(""); next.setText(""); confirm.setText("");
-                    startActivity(new Intent(this, LoginActivity.class)
+                    startActivity(new Intent(this, Login.class)
                             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)
                             .putExtra("mensaje", "Contraseña actualizada. Inicia sesión con tu nueva contraseña."));
                     finish();

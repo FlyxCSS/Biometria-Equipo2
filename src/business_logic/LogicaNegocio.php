@@ -33,7 +33,10 @@ final class LogicaNegocio
     {
         return ['id_usuario' => (int)$usuario['id_usuario'], 'nombre' => $usuario['nombre'],
             'rol' => $usuario['rol'], 'id_parque' => $usuario['id_parque'] === null ? null : (int)$usuario['id_parque'],
-            'debe_cambiar_contrasena' => (bool)($usuario['debe_cambiar_contrasena'] ?? false)];
+            'debe_cambiar_contrasena' => (bool)($usuario['debe_cambiar_contrasena'] ?? false),
+            'foto_perfil' => $usuario['foto_perfil'] ?? null,
+            'llavero' => ($this->consulta('SELECT identificador_ble FROM LLAVEROS WHERE id_usuario=? AND estado=1',
+                [$usuario['id_usuario']])->fetchColumn() ?: null)];
     }
 
     /** Diseño lógico: (operación, IP, correo) -> limitar -> vacío o error 429.
@@ -84,9 +87,10 @@ final class LogicaNegocio
             $expira = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->modify("+$horas hours");
             $this->consulta('INSERT INTO SESIONES (token_hash, id_usuario, expira_en) VALUES (?, ?, ?)',
                 [hash('sha256', $token), $usuario['id_usuario'], $expira->format('Y-m-d H:i:s.v')]);
+            $publico = $this->usuarioPublico($usuario);
             $this->db->commit();
             return ['token' => $token, 'expira_en' => $expira->format('Y-m-d\TH:i:s.v\Z'),
-                'usuario' => $this->usuarioPublico($usuario)];
+                'usuario' => $publico];
         } catch (Throwable $error) {
             $this->db->rollBack();
             throw $error;
@@ -134,6 +138,65 @@ final class LogicaNegocio
         if ($usuario['rol'] !== $rol) {
             throw new ErrorApi(403, 'SIN_PERMISO', 'No tienes permiso para esta operación.');
         }
+    }
+
+    /** Foto JPEG normalizada por Android, validada y guardada en la cuenta autenticada. */
+    public function actualizarFotoPerfil(array $usuario, array $datos): array
+    {
+        exigirCampos($datos, ['foto_perfil']);
+        $foto = $datos['foto_perfil'];
+        if ($foto !== null) {
+            if (!is_string($foto) || !str_starts_with($foto, 'data:image/jpeg;base64,'))
+                throw new ErrorApi(422, 'FOTO_INVALIDA', 'Selecciona una fotografía JPEG válida.');
+            $binario = base64_decode(substr($foto, 23), true);
+            $imagen = $binario === false ? false : @getimagesizefromstring($binario);
+            if (!$imagen || strlen($binario) > 100000 || $imagen[2] !== IMAGETYPE_JPEG
+                || $imagen[0] > 512 || $imagen[1] > 512)
+                throw new ErrorApi(422, 'FOTO_INVALIDA', 'La fotografía supera el tamaño permitido.');
+        }
+        $this->consulta('UPDATE USUARIOS SET foto_perfil=? WHERE id_usuario=?', [$foto, $usuario['id_usuario']]);
+        return ['foto_perfil' => $foto];
+    }
+
+    /** Serializa la asignación por trabajador y llavero para evitar dobles vinculaciones. */
+    public function vincularLlavero(array $usuario, array $datos): array
+    {
+        $this->exigirRol($usuario, 'trabajador');
+        exigirCampos($datos, ['nombre_micro']);
+        if (!is_string($datos['nombre_micro']) || !preg_match('/^S-[0-9]{3,6}$/D', $datos['nombre_micro']))
+            throw new ErrorApi(422, 'LLAVERO_INVALIDO', 'El código del llavero no es válido.');
+        $this->db->beginTransaction();
+        try {
+            $this->consulta('SELECT id_usuario FROM USUARIOS WHERE id_usuario=? FOR UPDATE', [$usuario['id_usuario']]);
+            $actual = $this->consulta('SELECT identificador_ble FROM LLAVEROS WHERE id_usuario=? FOR UPDATE',
+                [$usuario['id_usuario']])->fetchColumn();
+            if ($actual && $actual !== $datos['nombre_micro'])
+                throw new ErrorApi(409, 'YA_TIENE_LLAVERO', 'Desvincula tu llavero actual antes de vincular otro.');
+            $llavero = $this->consulta('SELECT * FROM LLAVEROS WHERE identificador_ble=? FOR UPDATE',
+                [$datos['nombre_micro']])->fetch();
+            if (!$llavero || !(bool)$llavero['estado']
+                || (int)$llavero['id_parque'] !== (int)$usuario['id_parque']
+                || (int)$llavero['id_organizacion'] !== (int)$usuario['id_organizacion'])
+                throw new ErrorApi(404, 'LLAVERO_NO_DISPONIBLE', 'El llavero no existe o no está disponible en tu parque.');
+            if ($llavero['id_usuario'] !== null && (int)$llavero['id_usuario'] !== (int)$usuario['id_usuario'])
+                throw new ErrorApi(409, 'LLAVERO_OCUPADO', 'Este llavero ya está vinculado a otra persona.');
+            $this->consulta('UPDATE LLAVEROS SET id_usuario=? WHERE id_llavero=?',
+                [$usuario['id_usuario'], $llavero['id_llavero']]);
+            $this->db->commit();
+            return ['llavero' => $llavero['identificador_ble']];
+        } catch (Throwable $error) { $this->db->rollBack(); throw $error; }
+    }
+
+    public function desvincularLlavero(array $usuario): array
+    {
+        $this->exigirRol($usuario, 'trabajador');
+        $this->db->beginTransaction();
+        try {
+            $this->consulta('SELECT id_usuario FROM USUARIOS WHERE id_usuario=? FOR UPDATE', [$usuario['id_usuario']]);
+            $this->consulta('UPDATE LLAVEROS SET id_usuario=NULL WHERE id_usuario=?', [$usuario['id_usuario']]);
+            $this->db->commit();
+            return ['llavero' => null];
+        } catch (Throwable $error) { $this->db->rollBack(); throw $error; }
     }
 
     /** Diseño lógico: (usuario, lectura) -> guardarMedicion -> identidad y duplicada.

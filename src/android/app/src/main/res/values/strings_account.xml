@@ -1,10 +1,10 @@
 <resources>
 <string name="keyring_title">Mi llavero</string><string name="keyring_subtitle">Sensor de tu recorrido</string>
-<string name="keyring_none">NO VINCULADO</string><string name="keyring_receiving">RECIBIENDO</string><string name="keyring_silent">SIN SEÑAL</string>
+<string name="keyring_none">NO VINCULADO</string><string name="keyring_receiving">RECIBIENDO</string><string name="keyring_silent">VINCULADO</string>
 <string name="keyring_scan">Escanear QR llavero</string><string name="keyring_unlink">Desvincular llavero</string>
-<string name="keyring_hint">Escanea el QR de tu llavero para seleccionarlo en este móvil.</string>
+<string name="keyring_hint">Escanea el QR para comprobar y vincular el llavero con tu cuenta.</string>
 <string name="keyring_active_hint">Finaliza el recorrido para cambiar o desvincular el llavero.</string>
-<string name="keyring_local_hint">La selección en este móvil no cambia la asignación del parque.</string>
+<string name="keyring_local_hint">La vinculación se comprueba con el servidor. Al desvincularlo quedará libre para otro trabajador del parque.</string>
 <string name="keyring_battery">Batería</string><string name="keyring_battery_unknown">No disponible</string>
 <string name="keyring_firmware">Firmware · No disponible</string>
 <string name="keyring_link_unknown">Fecha de vinculación · No disponible</string>
@@ -21,7 +21,7 @@
 <string name="account_enabled">%1$s · Activadas</string><string name="account_disabled">%1$s · Desactivadas</string>
 <string name="account_location_ready">Ubicación precisa · Permitida</string><string name="account_location_missing">Ubicación precisa · Pendiente</string>
 <string name="account_profile_subtitle">Información personal del trabajador</string>
-<string name="account_local_note">El nombre, el teléfono y la foto se guardan solo en este dispositivo. El correo de acceso y el parque los gestiona el responsable del parque.</string>
+<string name="account_local_note">La foto se guarda en tu cuenta del servidor. El nombre visible y el teléfono se guardan en este dispositivo. El correo de acceso y el parque los gestiona el responsable del parque.</string>
 <string name="account_name">Nombre</string><string name="account_email">Correo electrónico</string>
 <string name="account_phone">Número de teléfono</string><string name="account_park">Parque asignado</string>
 <string name="account_photo">Cambiar foto del perfil</string><string name="account_update">Actualizar</string>

@@ -90,7 +90,7 @@ public final class SummaryActivity extends RouteScreen {
             return;
         }
 
-        addWithTopMargin(content, label(getString(R.string.home_park, session.worker.parkId), 16, false), 8);
+        addWithTopMargin(content, label(getString(R.string.home_park, session.worker.parkId), 20, true), 8);
         FrameLayout mapCard = new FrameLayout(this);
         card(mapCard);
         LinearLayout.LayoutParams mapSize = new LinearLayout.LayoutParams(-1, dp(310));

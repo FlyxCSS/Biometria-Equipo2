@@ -26,7 +26,7 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 
 import com.example.ozora.senda.auth.BiometricHelper;
-import com.example.ozora.senda.auth.LoginActivity;
+import com.example.ozora.senda.auth.Login;
 import com.example.ozora.senda.auth.SessionManager;
 import com.example.ozora.senda.model.Route;
 import com.example.ozora.senda.network.LogicaFake;
@@ -67,6 +67,8 @@ public final class      MainActivity extends FieldScreen {
     private static final int REQUEST_ROUTE_PERMISSIONS = 19;
     private static final int REQUEST_SENSOR = 20;
     private static final int REQUEST_MAP_LOCATION = 21;
+    private static final int REQUEST_ROUTE_NOTIFICATION = 23;
+    private boolean notificationPermissionAsked;
 
     private final Handler reloj = new Handler(Looper.getMainLooper());
     private final DateFormat fecha = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
@@ -86,7 +88,9 @@ public final class      MainActivity extends FieldScreen {
     private String sensorRuta;
     private long ultimoEnvio;
     private HomeMapController homeMap;
-    private boolean heatEnabled, heatWeek, mapPermissionAsked;
+    private boolean heatEnabled = true, heatWeek, mapPermissionAsked;
+    private boolean operacionLlavero;
+    private static final java.util.concurrent.ExecutorService REMOTO = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     private final Runnable tick = new Runnable() {
         @Override public void run() {
@@ -124,6 +128,7 @@ public final class      MainActivity extends FieldScreen {
             }
         };
         getOnBackPressedDispatcher().addCallback(this, backToHome);
+        navigation.setOnItemReselectedListener(item -> { });
         navigation.setOnItemSelectedListener(item -> {
             mostrar(item.getItemId());
             return true;
@@ -137,9 +142,10 @@ public final class      MainActivity extends FieldScreen {
             historyPage = state.getInt("history_page");
         }
         if (state != null) {
-            heatEnabled = state.getBoolean("heat_enabled");
+            heatEnabled = state.getBoolean("heat_enabled", true);
             heatWeek = state.getBoolean("heat_week");
             mapPermissionAsked = state.getBoolean("map_permission_asked");
+            notificationPermissionAsked = state.getBoolean("notification_permission_asked");
         }
         navigation.setSelectedItemId(initial);
         if (tab == 0) mostrar(initial);
@@ -165,6 +171,7 @@ public final class      MainActivity extends FieldScreen {
         state.putBoolean("heat_enabled", homeMap != null ? homeMap.heatEnabled() : heatEnabled);
         state.putBoolean("heat_week", homeMap != null ? homeMap.weekSelected() : heatWeek);
         state.putBoolean("map_permission_asked", mapPermissionAsked);
+        state.putBoolean("notification_permission_asked", notificationPermissionAsked);
         state.putInt("section", tab);
         state.putInt("route_page", routePage);
         state.putInt("route_period",routePeriod.ordinal());
@@ -180,6 +187,7 @@ public final class      MainActivity extends FieldScreen {
             }
             if (homeMap != null) homeMap.start();
             actualizar();
+            actualizarRemoto();
             if (tab == R.id.tab_rutas || tab == R.id.tab_historial) cargarPagina(false);
             reloj.post(tick);
         }
@@ -195,7 +203,6 @@ public final class      MainActivity extends FieldScreen {
         if (bio != null) bio.cancelar();
         if (homeMap != null) homeMap.destroy();
         if (rutas != null) rutas.close();
-        if (isFinishing() && !activo && session == SessionManager.current()) SessionManager.clear();
         super.onDestroy();
     }
 
@@ -376,8 +383,7 @@ public final class      MainActivity extends FieldScreen {
             String photo = ajustes().getString("profile_photo", null);
             if (!android.text.TextUtils.equals((String)avatar.getTag(), photo)) {
                 avatar.setImageResource(R.drawable.account_avatar);
-                if (photo != null) try { avatar.setImageURI(Uri.parse(photo)); }
-                catch (RuntimeException ignored) { avatar.setImageResource(R.drawable.account_avatar); }
+                AccountActivity.mostrarFoto(avatar, photo);
                 avatar.setTag(photo);
             }
             textoEn(R.id.text_sync, rutas.estadoEnvios(session.worker) + "\n" + MeasurementSync.estado);
@@ -529,7 +535,7 @@ public final class      MainActivity extends FieldScreen {
     }
 
     private void acceso(String mensaje) {
-        startActivity(new Intent(this,LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK).putExtra("mensaje",mensaje));
+        startActivity(new Intent(this,Login.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK).putExtra("mensaje",mensaje));
         finish();
     }
     private SharedPreferences ajustes() { return getSharedPreferences("campo-"+session.worker.id+"-"+session.worker.parkId,MODE_PRIVATE); }
@@ -540,28 +546,77 @@ public final class      MainActivity extends FieldScreen {
     @Override protected void onActivityResult(int req,int result,Intent data) {
         super.onActivityResult(req,result,data);
         if(req==REQUEST_SENSOR && result==RESULT_OK && data!=null && !activo && SessionManager.current()!=null) {
-            String sensor = data.getStringExtra("sensor");
-            SharedPreferences.Editor editor = ajustes().edit().putString("sensor", sensor);
-            if (!android.text.TextUtils.equals(sensor, elegido())) {
-                if (sensor == null) editor.remove("sensor_linked_at");
-                else editor.putLong("sensor_linked_at", System.currentTimeMillis());
-            }
-            editor.apply();
-            actualizar();
+            cambiarLlavero(data.getStringExtra("sensor"));
         }
     }
     private void gestionarLlavero() {
-        if (activo) { mensaje(getString(R.string.keyring_active_hint)); return; }
+        if (activo || operacionLlavero) { mensaje(getString(R.string.keyring_active_hint)); return; }
         if (elegido() == null) { seleccionar(); return; }
         new AlertDialog.Builder(this).setTitle(R.string.keyring_unlink)
-                .setMessage("Se quitará la selección de este móvil. Se conservarán las mediciones y la asignación del parque.")
+                .setMessage("El llavero quedará libre para otro trabajador de tu parque. Se conservarán las mediciones.")
                 .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Desvincular", (d, w) -> {
-                    if (activo || SessionManager.current() != session) return;
-                    ajustes().edit().remove("sensor").remove("sensor_linked_at").apply();
-                    actualizar();
-                }).show();
+                .setPositiveButton("Desvincular", (d, w) -> cambiarLlavero(null)).show();
     }
+
+    private void cambiarLlavero(String sensor) {
+        actualizar();
+        if (activo || operacionLlavero || SessionManager.current() != session) return;
+        operacionLlavero = true;
+        mensaje("Comprobando el llavero en el servidor…");
+        REMOTO.execute(() -> {
+            try {
+                LogicaFake logica = new LogicaFake(this);
+                org.json.JSONObject resultado = sensor == null ? logica.desvincularLlavero(session.token)
+                        : logica.vincularLlavero(session.token, sensor);
+                runOnUiThread(() -> {
+                    if (isDestroyed() || SessionManager.current() != session) return;
+                    guardarLlavero(resultado.isNull("llavero") ? null : resultado.optString("llavero", null));
+                    mensaje("");
+                    aviso(sensor == null ? "Llavero desvinculado correctamente." : "Llavero vinculado correctamente.", true);
+                    operacionLlavero = false;
+                    actualizar();
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    if (isDestroyed() || SessionManager.current() != session) return;
+                    operacionLlavero = false;
+                    mensaje("");
+                    aviso(error instanceof com.example.ozora.senda.network.ApiClient.Error ? error.getMessage()
+                            : "No se pudo confirmar la vinculación. Comprueba la conexión y vuelve a intentarlo.", false);
+                });
+            }
+        });
+    }
+
+    private void guardarLlavero(String sensor) {
+        SharedPreferences.Editor editor = ajustes().edit().putString("sensor", sensor);
+        if (!android.text.TextUtils.equals(sensor, elegido())) {
+            if (sensor == null) editor.remove("sensor_linked_at");
+            else editor.putLong("sensor_linked_at", System.currentTimeMillis());
+        }
+        editor.apply();
+    }
+
+    private void actualizarRemoto() {
+        REMOTO.execute(() -> {
+            try {
+                org.json.JSONObject usuario = new LogicaFake(this).consultarSesion(session.token).getJSONObject("usuario");
+                runOnUiThread(() -> {
+                    if (isDestroyed() || SessionManager.current() != session) return;
+                    if (usuario.has("llavero")) guardarLlavero(usuario.isNull("llavero") ? null : usuario.optString("llavero", null));
+                    if (usuario.has("foto_perfil")) ajustes().edit()
+                            .putString("profile_photo", usuario.isNull("foto_perfil") ? null : usuario.optString("foto_perfil")).apply();
+                    actualizar();
+                });
+            } catch (Exception error) {
+                if (error instanceof com.example.ozora.senda.network.ApiClient.Error
+                        && ((com.example.ozora.senda.network.ApiClient.Error)error).status == 401) {
+                    runOnUiThread(() -> { if (!isDestroyed() && SessionManager.current() == session) salir(false); });
+                }
+            }
+        });
+    }
+
     private void abrirNotificaciones() {
         if (Build.VERSION.SDK_INT >= 33 && !permiso(Manifest.permission.POST_NOTIFICATIONS)) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 22);
@@ -574,7 +629,7 @@ public final class      MainActivity extends FieldScreen {
     }
     private void mostrarAyuda() {
         new AlertDialog.Builder(this).setTitle(R.string.account_help)
-                .setMessage("Llavero: escanea su QR y comienza un recorrido para recibir lecturas por Bluetooth. La batería y el firmware no están disponibles con el protocolo actual.\n\nUbicación: permite la ubicación precisa y los dispositivos cercanos para registrar el recorrido.\n\nPerfil: la foto, el nombre visible y el teléfono se guardan solo en este móvil. Para cambiar el correo o el parque, contacta con tu responsable.\n\nEnvíos: si falla la conexión, las lecturas se conservan en el móvil. Puedes reintentarlas desde Ajustes.")
+                .setMessage("Llavero: escanea su QR y comienza un recorrido para recibir lecturas por Bluetooth. La batería y el firmware no están disponibles con el protocolo actual.\n\nUbicación: permite la ubicación precisa y los dispositivos cercanos para registrar el recorrido.\n\nPerfil: la foto se guarda en tu cuenta del servidor; el nombre visible y el teléfono se guardan en este móvil. Para cambiar el correo o el parque, contacta con tu responsable.\n\nEnvíos: si falla la conexión, las lecturas se conservan en el móvil. Puedes reintentarlas desde Ajustes.")
                 .setPositiveButton("Entendido", null).show();
     }
     private void configurarBiometria() {
@@ -610,6 +665,12 @@ public final class      MainActivity extends FieldScreen {
         for(String p:permisos) if(checkSelfPermission(p)!=PackageManager.PERMISSION_GRANTED) {
             requestPermissions(permisos.toArray(new String[0]),REQUEST_ROUTE_PERMISSIONS); return;
         }
+        if (Build.VERSION.SDK_INT >= 33 && !permiso(Manifest.permission.POST_NOTIFICATIONS)
+                && !notificationPermissionAsked) {
+            notificationPermissionAsked = true;
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_ROUTE_NOTIFICATION);
+            return;
+        }
         iniciar();
     }
     private void centrarMapa() {
@@ -622,6 +683,10 @@ public final class      MainActivity extends FieldScreen {
 
     @Override public void onRequestPermissionsResult(int req,String[] permisos,int[] resultados) {
         super.onRequestPermissionsResult(req,permisos,resultados);
+        if (req == REQUEST_ROUTE_NOTIFICATION) {
+            if (SessionManager.current() == session) iniciar();
+            return;
+        }
         if (req == 22) {
             actualizar();
             if (!permiso(Manifest.permission.POST_NOTIFICATIONS))
@@ -634,7 +699,7 @@ public final class      MainActivity extends FieldScreen {
         }
         if(req!=REQUEST_ROUTE_PERMISSIONS || SessionManager.current()==null) return;
         for(int r:resultados) if(r!=PackageManager.PERMISSION_GRANTED) { mensaje("Para registrar el recorrido permite la ubicación precisa y, si usas llavero, los dispositivos cercanos en Ajustes."); return; }
-        if(resultados.length>0) iniciar();
+        if(resultados.length>0) preparar();
     }
     private void iniciar() {
         if(System.currentTimeMillis()>=session.expiresAt) { salir(false); return; }
@@ -680,8 +745,11 @@ public final class      MainActivity extends FieldScreen {
     }
     private void salir(boolean revocar) {
         String anterior=session.token;
-        finalizar(); bio.borrar(); SessionManager.clear();
-        if(revocar) {
+        finalizar();
+        // La huella necesita su credencial cifrada vigente tras salir; no se prorroga su caducidad.
+        boolean conservarBiometria = bio.activo();
+        SessionManager.clear();
+        if(revocar && !conservarBiometria) {
             LogicaFake logica=new LogicaFake(this);
             new Thread(()->{
                 try { logica.cerrarSesion(anterior); }

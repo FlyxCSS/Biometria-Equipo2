@@ -1,5 +1,7 @@
 # Android · Biometría, QR y recuperación
 
+> Actualización del 18/11/2026: la sesión persistente, la vinculación en el servidor y la foto de cuenta se describen en [el informe actual](android-sesion-perfil-vinculacion.md). Los resultados de emulador de este documento son históricos; no se ha iniciado ningún emulador en esta revisión.
+
 Referencias: las cuatro pantallas de PBIO PROYECTO (7).zip.
 
 - Activación biométrica: pantalla con fondo ilustrado, huella y consentimiento

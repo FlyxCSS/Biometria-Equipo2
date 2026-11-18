@@ -23,14 +23,14 @@ function responderJson(int $estado, array $contenido): never
 
 /** Diseño lógico: () -> leerJson -> objeto como array.
  * Descripción: Exige JSON pequeño y válido; no acepta listas como cuerpo de una operación. */
-function leerJson(): array
+function leerJson(int $maximo = 16384): array
 {
     $tipo = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
     if ($tipo !== 'application/json') {
         throw new ErrorApi(415, 'CONTENIDO_NO_ADMITIDO', 'Envía application/json.');
     }
-    $cuerpo = file_get_contents('php://input', false, null, 0, 16385);
-    if ($cuerpo === false || strlen($cuerpo) > 16384) {
+    $cuerpo = file_get_contents('php://input', false, null, 0, $maximo + 1);
+    if ($cuerpo === false || strlen($cuerpo) > $maximo) {
         throw new ErrorApi(413, 'PETICION_DEMASIADO_GRANDE', 'La petición supera el tamaño permitido.');
     }
     try {
@@ -56,6 +56,8 @@ function atenderApi(): never
             '/api/v1/sesiones/actual' => ['GET', 'DELETE'],
             '/api/v1/usuarios/actual/contrasena' => ['POST'],
             '/api/v1/mediciones' => ['POST'],
+            '/api/v1/usuarios/actual/foto' => ['POST'],
+            '/api/v1/llaveros/actual' => ['POST', 'DELETE'],
             '/api/v1/trabajadores' => ['POST'],
             '/api/v1/recuperaciones' => ['POST'],
             '/api/v1/recuperaciones/confirmacion' => ['POST'],
@@ -79,7 +81,7 @@ function atenderApi(): never
         }
         $db = conectar($config);
         $logica = new LogicaNegocio($db, $config);
-        $datos = $metodo === 'POST' ? leerJson() : [];
+        $datos = $metodo === 'POST' ? leerJson($ruta === '/api/v1/usuarios/actual/foto' ? 150000 : 16384) : [];
         $estado = 200;
         if ($ruta === '/api/v1/solicitudes') {
             $correo = validarCorreo($datos['correo'] ?? null);
@@ -114,6 +116,11 @@ function atenderApi(): never
             } elseif ($ruta === '/api/v1/usuarios/actual/contrasena') {
                 $logica->limitar($ruta, $_SERVER['REMOTE_ADDR'] ?? 'desconocida', (string)$usuario['id_usuario']);
                 $resultado = $logica->cambiarContrasena($usuario, $datos);
+            } elseif ($ruta === '/api/v1/usuarios/actual/foto') {
+                $resultado = $logica->actualizarFotoPerfil($usuario, $datos);
+            } elseif ($ruta === '/api/v1/llaveros/actual') {
+                $resultado = $metodo === 'POST' ? $logica->vincularLlavero($usuario, $datos)
+                    : $logica->desvincularLlavero($usuario);
             } elseif ($ruta === '/api/v1/mediciones') {
                 $resultado = $logica->guardarMedicion($usuario, $datos);
                 $estado = $resultado['duplicada'] ? 200 : 201;

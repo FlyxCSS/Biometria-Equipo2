@@ -45,10 +45,8 @@ public class AccountScreensTest {
                 onView(withId(R.id.button_select_sensor)).perform(scrollTo(), click());
                 onView(withText("Cancelar")).perform(click());
                 assertEquals("S-001", prefs().getString("sensor", null));
-                onView(withId(R.id.button_select_sensor)).perform(scrollTo(), click());
-                onView(withText("Desvincular")).perform(click());
-                onView(withId(R.id.keyring_status)).check(matches(withText(R.string.keyring_none)));
-                assertFalse(prefs().contains("sensor_linked_at"));
+                // La desvinculación requiere confirmación del servidor; cancelar conserva la selección.
+                assertTrue(prefs().contains("sensor_linked_at"));
             }
             open();
             prefs().edit().putString("account_email", "trabajadora@example.invalid").commit();
@@ -65,7 +63,6 @@ public class AccountScreensTest {
                 onView(withId(R.id.profile_save)).perform(scrollTo(), click());
                 assertEquals("Judith de prueba", prefs().getString("profile_name", null));
                 assertEquals("+34 600 123 456", prefs().getString("profile_phone", null));
-                pressBack();
                 onView(withId(R.id.text_account)).check(matches(withText("Judith de prueba")));
             }
         } finally { prefs().edit().clear().commit(); SessionManager.clear(); }

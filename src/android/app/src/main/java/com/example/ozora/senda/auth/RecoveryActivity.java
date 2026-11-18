@@ -74,7 +74,7 @@ public final class RecoveryActivity extends FieldScreen {
     private void submit() {
         if (model.state.getValue().busy) return;
         if (step == RecoveryViewModel.Step.DONE) {
-            startActivity(new Intent(this, LoginActivity.class)
+            startActivity(new Intent(this, Login.class)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)
                     .putExtra("mensaje", getString(R.string.recovery_done_description)));
             finish(); return;

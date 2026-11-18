@@ -29,6 +29,12 @@ public final class RouteMap {
         this.status = status;
         this.active = active;
         web.setBackgroundColor(0xffd2dfc9);
+        web.setOnTouchListener((view, event) -> {
+            int action = event.getActionMasked();
+            view.getParent().requestDisallowInterceptTouchEvent(
+                    action != android.view.MotionEvent.ACTION_UP && action != android.view.MotionEvent.ACTION_CANCEL);
+            return false; // El WebView conserva los gestos de arrastre y zoom del mapa.
+        });
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setAllowFileAccess(false);
         web.getSettings().setAllowContentAccess(false);

@@ -35,6 +35,20 @@ public final class LogicaFake {
         return transporte.pedir("DELETE", "/sesiones/actual", token, null);
     }
 
+    public JSONObject actualizarFotoPerfil(String token, String foto) throws Exception {
+        return transporte.pedir("POST", "/usuarios/actual/foto", token,
+                new JSONObject().put("foto_perfil", foto == null ? JSONObject.NULL : foto));
+    }
+
+    public JSONObject vincularLlavero(String token, String identificador) throws Exception {
+        return transporte.pedir("POST", "/llaveros/actual", token,
+                new JSONObject().put("nombre_micro", identificador));
+    }
+
+    public JSONObject desvincularLlavero(String token) throws Exception {
+        return transporte.pedir("DELETE", "/llaveros/actual", token, null);
+    }
+
     public JSONObject guardarMedicion(String token, MedicionAmbiental medicion) throws Exception {
         JSONObject respuesta = transporte.pedir("POST", "/mediciones", token,
                 new JSONObject(datosMedicion(medicion)));

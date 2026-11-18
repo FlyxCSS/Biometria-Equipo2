@@ -112,6 +112,22 @@ try {
         case 'instalar': instalarEsquema($db); break;
         case 'demo': crearDemo($db, $config); break;
         case 'actualizar-roles': actualizarRoles($db); break;
+        case 'actualizar-perfil':
+            foreach (['ROLES' => "descripcion VARCHAR(255) NOT NULL DEFAULT ''",
+                      'USUARIOS' => 'foto_perfil MEDIUMTEXT NULL'] as $tabla => $definicion) {
+                $columna = strtok($definicion, ' ');
+                if (!$db->query("SHOW COLUMNS FROM $tabla LIKE '$columna'")->fetch())
+                    $db->exec("ALTER TABLE $tabla ADD COLUMN $definicion");
+            }
+            $db->exec("UPDATE ROLES SET descripcion = CASE codigo
+    WHEN 'proveedor' THEN 'Administración del servicio y organizaciones clientes'
+    WHEN 'organizacion' THEN 'Gestión de parques y responsables de la organización'
+    WHEN 'jefe_parque' THEN 'Supervisión del parque y gestión de trabajadores'
+    WHEN 'trabajador' THEN 'Captura de mediciones y recorridos de campo'
+    ELSE descripcion END;
+");
+            echo "Perfil y descripción de roles preparados.\n";
+            break;
         case 'correo': echo entregarCorreos($db, $config) . " correos entregados.\n"; break;
         case 'actualizar-contacto': actualizarContacto($db); break;
         case 'actualizar-contrasenas': actualizarContrasenas($db); break;
@@ -127,7 +143,7 @@ try {
             $db->exec('DELETE FROM CORREOS_PENDIENTES WHERE enviado_en IS NOT NULL AND enviado_en < UTC_TIMESTAMP(3) - INTERVAL 1 DAY');
             echo "Registros técnicos caducados eliminados.\n";
             break;
-        default: echo "Uso: php src/tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|actualizar-contrasenas|actualizar-roles|solicitudes\n"; exit(1);
+        default: echo "Uso: php src/tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|actualizar-contrasenas|actualizar-roles|actualizar-perfil|solicitudes\n"; exit(1);
     }
 } catch (Throwable $error) {
     fwrite(STDERR, 'Error de administración: ' . $error->getMessage() . "\n");

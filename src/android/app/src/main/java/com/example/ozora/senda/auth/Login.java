@@ -1,5 +1,5 @@
 /*
- * Nombre: LoginActivity.java
+ * Nombre: Login.java
  * Descripción: Acceso de trabajador y cambio obligatorio de contraseña inicial.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
@@ -27,7 +27,7 @@ import com.example.ozora.senda.R;
 import android.view.inputmethod.EditorInfo;
 import com.example.ozora.senda.MainActivity;
 
-public final class LoginActivity extends AuthScreen {
+public final class Login extends AuthScreen {
     private static final ExecutorService RED=Executors.newSingleThreadExecutor();
     private LogicaFake logica;
     private BiometricHelper bio;
@@ -35,11 +35,12 @@ public final class LoginActivity extends AuthScreen {
     private String tokenInicial;
     private long venceInicial;
     /** Diseño lógico: (estado) -> onCreate -> vacío.
-     * Descripción: Muestra siempre el acceso; la biometría debe validar la credencial con el servidor. */
+     * Descripción: Reutiliza la sesión vigente; la biometría valida su credencial con el servidor al acceder de nuevo. */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         logica=new LogicaFake(this);
         bio=new BiometricHelper(this);
+        if (SessionManager.current() != null) { abrirPanel(); return; }
         acceso(); mensaje(getIntent().getStringExtra("mensaje"));
     }
     /** Diseño lógico: () -> abrirPanel -> vacío.
@@ -74,17 +75,24 @@ public final class LoginActivity extends AuthScreen {
         });
     }
 
+    @Override protected void mensaje(String texto) {
+        super.mensaje(null);
+        if (texto != null && !texto.equals(getString(R.string.auth_busy))) aviso(texto, false);
+    }
+
     private void entrar() {
         if (ocupado || bio.enCurso()) return;
         String correo = email.getText().toString().trim();
         String clave = password.getText().toString();
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
             email.setError(getString(R.string.auth_email_invalid));
+            aviso(correo.isEmpty() ? "Introduce tu correo y contraseña." : getString(R.string.auth_email_invalid), false);
             email.requestFocus();
             return;
         }
         if (clave.isEmpty()) {
             password.setError("Introduce tu contraseña.");
+            aviso("Introduce tu contraseña.", false);
             password.requestFocus();
             return;
         }
@@ -120,6 +128,7 @@ public final class LoginActivity extends AuthScreen {
                         primerAcceso(correo);
                         return;
                     }
+                    cerrarAviso();
                     SessionManager.open(new Worker(uid,pid,n),fin,nuevo);
                     if (correo != null) getSharedPreferences("campo-" + uid + "-" + pid, MODE_PRIVATE)
                             .edit().putString("account_email", correo).apply();

@@ -59,15 +59,16 @@ public final class LocationTracker implements LocationListener {
                 return false;
             }
 
-            // La red suele ofrecer una primera ubicación más rápidamente en interiores.
+            // Refrescar también estando quieto: cada lectura BLE exige una posición reciente.
+            // El servicio filtra por separado los puntos que no añaden distancia al recorrido.
             if (red) {
                 gestor.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                        2000L, 2f, this, Looper.getMainLooper());
+                        2000L, 0f, this, Looper.getMainLooper());
                 activo = true;
             }
             if (gps) {
                 gestor.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                        2000L, 2f, this, Looper.getMainLooper());
+                        2000L, 0f, this, Looper.getMainLooper());
                 activo = true;
             }
             return activo;

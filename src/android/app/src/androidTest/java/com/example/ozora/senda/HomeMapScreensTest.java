@@ -27,6 +27,13 @@ public class HomeMapScreensTest {
             onView(withId(R.id.text_account)).check(matches(withText("Hola, Prueba")));
             esperarMapa(screen);
             captura("home-normal.png");
+            onView(withId(R.id.home_legend)).check(matches(isDisplayed()));
+            java.util.concurrent.atomic.AtomicReference<android.view.View> original = new java.util.concurrent.atomic.AtomicReference<>();
+            screen.onActivity(a -> original.set(a.findViewById(R.id.home_map)));
+            onView(withId(R.id.tab_inicio)).perform(click());
+            screen.onActivity(a -> assertSame(original.get(), a.findViewById(R.id.home_map)));
+            onView(withId(R.id.home_heat_toggle)).perform(click());
+            onView(withId(R.id.home_legend)).check(matches(withEffectiveVisibility(Visibility.GONE)));
             onView(withId(R.id.home_heat_toggle)).perform(click());
             onView(withId(R.id.home_legend)).check(matches(isDisplayed()));
             onView(withId(R.id.home_week)).perform(click());

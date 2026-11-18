@@ -143,6 +143,20 @@ public class LogicaFakeTest {
         assertTrue(logica.guardarMedicion("token-test", m).getBoolean("duplicada"));
     }
 
+    @Test public void perfilYLlaveroUsanCuentaAutenticada() throws Exception {
+        logica.actualizarFotoPerfil("token-test", "data:image/jpeg;base64,imagen");
+        comprobar("POST", "/usuarios/actual/foto", "token-test");
+        assertEquals("data:image/jpeg;base64,imagen", new JSONObject(cuerpo).getString("foto_perfil"));
+        logica.actualizarFotoPerfil("token-test", null);
+        assertTrue(new JSONObject(cuerpo).isNull("foto_perfil"));
+        logica.vincularLlavero("token-test", "S-001");
+        comprobar("POST", "/llaveros/actual", "token-test");
+        assertEquals("S-001", new JSONObject(cuerpo).getString("nombre_micro"));
+        logica.desvincularLlavero("token-test");
+        comprobar("DELETE", "/llaveros/actual", "token-test");
+        assertEquals("", cuerpo);
+    }
+
     private void comprobar(String esperado, String destino, String token) {
         assertEquals(esperado, metodo);
         assertEquals("/api/v1" + destino, ruta);

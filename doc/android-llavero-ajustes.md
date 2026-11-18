@@ -1,5 +1,7 @@
 # Android · Mi llavero, Ajustes y perfil
 
+> Actualización del 18/11/2026: la sesión persistente, la vinculación en el servidor y la foto de cuenta se describen en [el informe actual](android-sesion-perfil-vinculacion.md). Los resultados de emulador de este documento son históricos; no se ha iniciado ningún emulador en esta revisión.
+
 Integración de las cuatro referencias del archivo PBIO PROYECTO (6).zip.
 Se implementan pantallas nativas Android, con tarjetas blancas, verde bosque,
 ilustración vectorial del llavero y la navegación existente de cinco secciones.

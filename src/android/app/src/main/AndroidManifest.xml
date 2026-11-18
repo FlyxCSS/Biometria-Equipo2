@@ -62,7 +62,7 @@
 
         <!-- PANTALLA INICIAL: PERSONA 2 -->
         <activity
-            android:name=".auth.LoginActivity"
+            android:name=".auth.Login"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
 
