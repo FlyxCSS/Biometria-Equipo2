@@ -41,7 +41,7 @@ public class ApiContractTest {
         assertNotNull(api.pedir("GET","/sesiones/actual",inicial,null).getJSONObject("usuario"));
         String fecha=DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSS'Z'")
                 .withZone(java.time.ZoneOffset.UTC).format(Instant.now().truncatedTo(ChronoUnit.MILLIS));
-        JSONObject medicion=new JSONObject(MeasurementPayload.datos(new MedicionAmbiental(f.getString("ble"),123,
+        JSONObject medicion=new JSONObject(LogicaFake.datosMedicion(new MedicionAmbiental(f.getString("ble"),123,
                 39.1234567890123,-0.1234567890123,5,fecha,8)));
         try { api.pedir("POST","/mediciones",inicial,medicion); fail("No debe operar sin cambiar la clave inicial"); }
         catch(ApiClient.Error e) { assertEquals(403,e.status); }

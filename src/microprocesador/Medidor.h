@@ -4,7 +4,7 @@
 // Fichero: Medidor.h
 // Descripción: Obtención de las mediciones ambientales.
 // Fecha: 2026-11-02
-// Autor: ---
+// Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: adaptación del medidor para trabajar con O3.
 // Copyright: material académico y modificaciones del autor.
@@ -20,7 +20,7 @@ private:
 
   // Valor ficticio utilizado durante el Sprint 0.
   // Se expresa directamente en ppb.
-  const uint16_t VALOR_O3_PRUEBA_PPB = 44;
+  const uint16_t VALOR_O3_PRUEBA_PPB = 33;
 
 
 public:

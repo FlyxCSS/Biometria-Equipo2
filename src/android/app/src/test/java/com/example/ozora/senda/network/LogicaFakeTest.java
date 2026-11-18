@@ -127,6 +127,22 @@ public class LogicaFakeTest {
         }
     }
 
+    @Test public void requiereConfirmacionExplicitaAntesDeDarPorGuardadaUnaLectura() throws Exception {
+        MedicionAmbiental m = new MedicionAmbiental("S-001", 2, 39, -0.1, 5,
+                "2026-11-18T10:00:00.000Z", 8);
+        for (String datos : new String[]{"{}", "{\"guardada\":false}", "{\"guardada\":\"true\"}"}) {
+            respuesta = "{\"ok\":true,\"data\":" + datos + "}";
+            try {
+                logica.guardarMedicion("token-test", m);
+                fail("Debe conservarse pendiente si falta la confirmación de guardado");
+            } catch (IOException esperado) {
+                assertTrue(esperado.getMessage().contains("no ha confirmado"));
+            }
+        }
+        respuesta = "{\"ok\":true,\"data\":{\"guardada\":true,\"duplicada\":true}}";
+        assertTrue(logica.guardarMedicion("token-test", m).getBoolean("duplicada"));
+    }
+
     private void comprobar(String esperado, String destino, String token) {
         assertEquals(esperado, metodo);
         assertEquals("/api/v1" + destino, ruta);

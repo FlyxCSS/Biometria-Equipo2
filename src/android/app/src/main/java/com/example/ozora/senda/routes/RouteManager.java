@@ -16,7 +16,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
 import android.os.SystemClock;
 import com.example.ozora.senda.model.*;
-import com.example.ozora.senda.network.MeasurementRepository;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +68,9 @@ public final class RouteManager extends SQLiteOpenHelper {
     }
     
     public void lectura(long id, MedicionAmbiental m) {
-        MeasurementRepository.registrar(getWritableDatabase(), id, m);
+        getWritableDatabase().execSQL(
+                "INSERT INTO lectura(ruta,ppb,fecha,lat,lon,contador,nombre_micro,enviado) VALUES (?,?,?,?,?,?,?,0)",
+                new Object[]{id, m.valorPpb, m.fechaIso8601, m.latitud, m.longitud, m.contador, m.idLlavero});
     }
 
     public Cursor resumen(int usuario,int parque) {
@@ -77,7 +78,9 @@ public final class RouteManager extends SQLiteOpenHelper {
                 new String[]{String.valueOf(usuario),String.valueOf(parque)});
     }
     public Cursor ultima(long ruta) {
-        return MeasurementRepository.ultima(getReadableDatabase(),ruta);
+        return getReadableDatabase().rawQuery(
+                "SELECT ppb,fecha FROM lectura WHERE ruta=? ORDER BY id DESC LIMIT 1",
+                new String[]{String.valueOf(ruta)});
     }
     /** Diseño lógico: (trabajador) -> estadoEnvios -> resumen de su cola.
      * Descripción: Cuenta solo lecturas con identidad del usuario y parque actuales. */

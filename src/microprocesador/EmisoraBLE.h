@@ -4,7 +4,7 @@
 // Fichero: EmisoraBLE.h
 // Descripción: Emisión de anuncios Bluetooth Low Energy.
 // Fecha: 2026-11-02
-// Autor: ---
+// Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: simplificación de la emisora para publicar iBeacon.
 // Copyright: material académico y modificaciones del autor.

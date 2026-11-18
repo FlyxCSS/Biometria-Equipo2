@@ -4,7 +4,7 @@
 // Fichero: PuertoSerie.h
 // Descripción: Salida de información de depuración por Serial.
 // Fecha: 2026-11-02
-// Autor: ---
+// Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: simplificación para la depuración del Sprint 0.
 // Copyright: material académico y modificaciones del autor.

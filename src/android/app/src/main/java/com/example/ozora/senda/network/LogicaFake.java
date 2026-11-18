@@ -3,6 +3,9 @@ package com.example.ozora.senda.network;
 import android.content.Context;
 import com.example.ozora.senda.model.MedicionAmbiental;
 import org.json.JSONObject;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Proxy Android de LogicaNegocio.php. Cada operación construye la petición de
@@ -33,8 +36,12 @@ public final class LogicaFake {
     }
 
     public JSONObject guardarMedicion(String token, MedicionAmbiental medicion) throws Exception {
-        return transporte.pedir("POST", "/mediciones", token,
-                new JSONObject(MeasurementPayload.datos(medicion)));
+        JSONObject respuesta = transporte.pedir("POST", "/mediciones", token,
+                new JSONObject(datosMedicion(medicion)));
+        if (!Boolean.TRUE.equals(respuesta.opt("guardada"))) {
+            throw new IOException("El servidor no ha confirmado el guardado de la medición.");
+        }
+        return respuesta;
     }
 
     public JSONObject cambiarContrasena(String token, JSONObject datos) throws Exception {
@@ -47,5 +54,25 @@ public final class LogicaFake {
 
     public JSONObject restablecerContrasena(JSONObject datos) throws Exception {
         return transporte.pedir("POST", "/recuperaciones/confirmacion", null, datos);
+    }
+
+    /** Diseño lógico: (medición BLE geolocalizada) -> datos -> campos JSON.
+     * Descripción: Conserva ppb, fecha UTC y coordenadas; el servidor comprueba la asignación. */
+    static Map<String,Object> datosMedicion(MedicionAmbiental m) {
+        if (m == null || m.idLlavero == null || m.fechaIso8601 == null
+                || m.valorPpb < 0 || m.valorPpb > 65535
+                || !Double.isFinite(m.latitud) || !Double.isFinite(m.longitud)
+                || Math.abs(m.latitud) > 90 || Math.abs(m.longitud) > 180)
+            throw new IllegalArgumentException("Medición inválida para enviar.");
+        Map<String,Object> datos = new LinkedHashMap<>();
+        datos.put("nombre_micro", m.idLlavero);
+        datos.put("tipo", "O3");
+        datos.put("valor", m.valorPpb);
+        datos.put("unidad", "ppb");
+        datos.put("latitud", m.latitud);
+        datos.put("longitud", m.longitud);
+        datos.put("fecha_hora", m.fechaIso8601);
+        datos.put("simulada", false);
+        return datos;
     }
 }

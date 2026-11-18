@@ -4,7 +4,7 @@
 // Fichero: microprocesador.ino
 // Descripción: Programa principal del nodo sensor BLE.
 // Fecha: 2026-11-02
-// Autor: ---
+// Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: adaptación para publicar mediciones de O3 mediante
 //             iBeacon dentro del Sprint 0.

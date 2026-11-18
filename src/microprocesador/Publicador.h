@@ -4,7 +4,7 @@
 // Fichero: Publicador.h
 // Descripción: Codificación y publicación de mediciones BLE.
 // Fecha: 2026-11-02
-// Autor: ...
+// Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: publicación genérica de mediciones mediante iBeacon
 //             y centralización del nombre del microprocesador.

@@ -71,6 +71,18 @@ La interfaz web usa [LogicaFake.js](src/frontend_business_logic/LogicaFake.js). 
 
 Ambos proxies traducen las operaciones a las rutas de [ServidorRest.php](src/communication/ServidorRest.php), que autentica la petición y delega en la lógica de negocio. Los nombres de las operaciones coinciden con sus métodos PHP. Los parámetros del usuario autenticado los obtiene el servidor a partir del token Bearer. El término «fake» identifica al proxy remoto y sus respuestas proceden de la API real.
 
+La comunicación de Android se organiza en tres archivos dentro de `network/`.
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| `LogicaFake.java` | Expone las operaciones de negocio, prepara el JSON y exige `guardada: true` para confirmar el envío de una lectura. |
+| `ApiClient.java` | Ejecuta HTTP/HTTPS, añade el token, aplica tiempos de espera y devuelve datos o errores. |
+| `MeasurementSync.java` | Envía las lecturas pendientes fuera del hilo de interfaz y conserva los datos para reintentar. |
+
+`RouteManager`, dentro de `routes/`, concentra el almacenamiento SQLite del recorrido y sus lecturas.
+
+El servidor REST verifica método, ruta, tipo de contenido, tamaño y estructura JSON. La lógica de negocio valida los campos de la medición, sus rangos, fecha, unidad, permisos y asignación del llavero antes de guardar mediante una transacción. Las restricciones de MySQL protegen la integridad y los duplicados. La respuesta vuelve por las mismas capas y Android conserva la lectura pendiente hasta recibir la confirmación explícita.
+
 Prueba del proxy web desde la raíz con `node --test src/tests/logica-fake.test.cjs`. Las pruebas Android de `LogicaFakeTest` comprueban método, ruta, cabeceras, JSON y errores mediante un servidor HTTP local.
 
 ## Despliegue

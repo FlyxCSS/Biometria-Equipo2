@@ -4,7 +4,7 @@
 // Fichero: LED.h
 // Descripción: Control del LED utilizado como indicador visual.
 // Fecha: 2026-11-02
-// Autor: ---
+// Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: uso del LED para indicar cada nueva medición.
 // Copyright: material académico y modificaciones del autor.
