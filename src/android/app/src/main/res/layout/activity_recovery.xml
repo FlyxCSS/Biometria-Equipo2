@@ -1,0 +1,30 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/auth_landscape">
+<ScrollView android:id="@+id/auth_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="24dp" android:paddingBottom="28dp">
+<com.google.android.material.button.MaterialButton android:id="@+id/auth_back" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/flow_back" android:textAllCaps="false"/>
+<TextView android:id="@+id/auth_title" style="@style/FlowTitle" android:text="@string/auth_recovery_title"/>
+<ImageView android:layout_width="116dp" android:layout_height="116dp" android:layout_gravity="center_horizontal" android:layout_marginTop="16dp" android:layout_marginBottom="24dp" android:src="@drawable/auth_mail" android:importantForAccessibility="no"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp" android:background="@drawable/auth_card">
+<TextView android:id="@+id/recovery_question" style="@style/FlowHeadline" android:text="@string/recovery_question"/>
+<TextView android:id="@+id/recovery_description" style="@style/FlowDescription" android:text="@string/recovery_description"/>
+<LinearLayout android:id="@+id/recovery_email_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+<TextView style="@style/AuthLabel" android:text="@string/auth_email" android:labelFor="@id/auth_email"/>
+<EditText android:id="@+id/auth_email" style="@style/AuthEdit" android:inputType="textEmailAddress" android:autofillHints="emailAddress" android:hint="@string/auth_email_hint" android:imeOptions="actionSend"/>
+</LinearLayout>
+<LinearLayout android:id="@+id/recovery_link_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+<TextView style="@style/AuthLabel" android:text="@string/recovery_link_label" android:labelFor="@id/recovery_token"/>
+<EditText android:id="@+id/recovery_token" style="@style/AuthEdit" android:inputType="textVisiblePassword|textNoSuggestions" android:hint="@string/recovery_link_hint" android:saveEnabled="false" android:importantForAutofill="no" android:imeOptions="actionNext"/>
+<TextView style="@style/AuthLabel" android:text="@string/recovery_password" android:layout_marginTop="16dp" android:labelFor="@id/recovery_password"/>
+<com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" app:boxBackgroundMode="none" app:hintEnabled="false" app:endIconMode="password_toggle">
+<com.google.android.material.textfield.TextInputEditText android:id="@+id/recovery_password" style="@style/AuthEdit" android:inputType="textPassword" android:saveEnabled="false" android:autofillHints="newPassword" android:imeOptions="actionNext"/>
+</com.google.android.material.textfield.TextInputLayout>
+<TextView style="@style/AuthLabel" android:text="@string/recovery_repeat" android:layout_marginTop="16dp" android:labelFor="@id/recovery_repeat"/>
+<com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" app:boxBackgroundMode="none" app:hintEnabled="false" app:endIconMode="password_toggle">
+<com.google.android.material.textfield.TextInputEditText android:id="@+id/recovery_repeat" style="@style/AuthEdit" android:inputType="textPassword" android:saveEnabled="false" android:autofillHints="newPassword" android:imeOptions="actionDone"/>
+</com.google.android.material.textfield.TextInputLayout>
+</LinearLayout>
+<TextView android:id="@+id/auth_feedback" style="@style/AuthLabel" android:paddingTop="12dp" android:accessibilityLiveRegion="polite" android:visibility="gone"/>
+<ProgressBar android:id="@+id/auth_progress" android:layout_width="28dp" android:layout_height="28dp" android:layout_gravity="center" android:layout_margin="8dp" android:visibility="gone"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/auth_submit" style="@style/AuthButton" android:text="@string/auth_send" android:layout_marginTop="16dp"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/recovery_existing_link" style="@style/FlowSecondary" android:text="@string/recovery_link_label"/>
+</LinearLayout></LinearLayout></ScrollView></FrameLayout>

@@ -1,86 +1,96 @@
 package com.example.ozora.senda.qr;
 
 import android.os.Bundle;
-import android.text.InputType;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-
+import android.widget.TextView;
+import com.example.ozora.senda.R;
+import com.example.ozora.senda.auth.SessionManager;
 import com.example.ozora.senda.ui.FieldScreen;
 import com.google.mlkit.vision.barcode.common.Barcode;
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions;
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning;
 
-/**
- * Selecciona localmente un llavero mediante QR o entrada manual.
- * Validar el identificador no equivale a autorizarlo en el servidor.
- * Integración de la pantalla de Persona 2 con el escáner de Persona 1.
- */
+/** Selección local; el servidor sigue comprobando la asignación del llavero. */
 public final class QrScannerActivity extends FieldScreen {
-    private EditText codigo;
-    private Button escanear;
-
+    private Button scan;
+    private SessionManager session;
+    private boolean manualVisible;
     @Override protected void onStart() {
         super.onStart();
-        if (com.example.ozora.senda.auth.SessionManager.current() == null) finish();
+        if (session == null || SessionManager.current() != session) finish();
     }
-
-    @Override
-    protected void onCreate(Bundle state) {
+    @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        if (com.example.ozora.senda.auth.SessionManager.current() == null) {
-            finish();
-            return;
-        }
-        pagina("Llavero de campo");
-        texto("Escanea la etiqueta o introduce el código del llavero.", 16, false);
-        codigo = campo("Ej. S-001", InputType.TYPE_CLASS_TEXT);
-        String anterior = getIntent().getStringExtra("sensor");
-        if (anterior != null) codigo.setText(anterior);
-        contenido.addView(codigo);
-        escanear = boton("Escanear QR", this::iniciarEscaneo);
-        boton("Seleccionar", () -> seleccionar(codigo.getText().toString()));
-        boton("Solo GPS", () -> devolver(null));
-        mensajes();
+        session = SessionManager.current();
+        if (session == null) { finish(); return; }
+        setContentView(R.layout.activity_link_keyring);
+        protegerBarras(findViewById(R.id.qr_scroll));
+        scan = findViewById(R.id.qr_scan);
+        scan.setOnClickListener(v -> scan());
+        findViewById(R.id.qr_back).setOnClickListener(v -> finish());
+        findViewById(R.id.qr_manual).setOnClickListener(v -> manual());
+        findViewById(R.id.qr_gps).setOnClickListener(v -> result(null));
+        EditText code = findViewById(R.id.qr_code);
+        if (state == null) code.setText(getIntent().getStringExtra("sensor"));
+        code.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { code.setError(null); }
+            @Override public void afterTextChanged(android.text.Editable value) {}
+        });
+        manualVisible = state != null && state.getBoolean("manual");
+        showManual();
+        findViewById(R.id.qr_confirm).setOnClickListener(v -> selectManual());
+        code.setOnEditorActionListener((v, action, event) -> {
+            if (action != android.view.inputmethod.EditorInfo.IME_ACTION_DONE) return false;
+            selectManual(); return true;
+        });
     }
-
-    /** Utiliza Google Play Services Code Scanner sin depender de otra app QR. */
-    private void iniciarEscaneo() {
-        if (escanear == null || !escanear.isEnabled()) return;
-        escanear.setEnabled(false);
-        GmsBarcodeScannerOptions opciones = new GmsBarcodeScannerOptions.Builder()
-                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-                .build();
+    @Override protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putBoolean("manual", manualVisible);
+    }
+    private void manual() { manualVisible = !manualVisible; showManual(); }
+    private void showManual() {
+        findViewById(R.id.qr_manual_group).setVisibility(manualVisible ? View.VISIBLE : View.GONE);
+        findViewById(R.id.qr_camera_panel).setVisibility(manualVisible ? View.GONE : View.VISIBLE);
+        ((TextView)findViewById(R.id.qr_manual)).setText(manualVisible ? R.string.qr_camera : R.string.qr_manual);
+    }
+    private void selectManual() {
+        EditText code = findViewById(R.id.qr_code);
+        String sensor = QrLlaveroParser.extraerIdentificador(code.getText().toString());
+        if (sensor == null) { code.setError(getString(R.string.qr_invalid)); code.requestFocus(); }
+        else result(sensor);
+    }
+    private void scan() {
+        if (!scan.isEnabled()) return;
+        scan.setEnabled(false); message(getString(R.string.qr_opening));
+        GmsBarcodeScannerOptions options = new GmsBarcodeScannerOptions.Builder()
+                .setBarcodeFormats(Barcode.FORMAT_QR_CODE).build();
         try {
-            GmsBarcodeScanner scanner = GmsBarcodeScanning.getClient(this, opciones);
-            scanner.startScan()
+            GmsBarcodeScanning.getClient(this, options).startScan()
                     .addOnSuccessListener(barcode -> {
-                        if (!isFinishing() && !isDestroyed())
-                            seleccionar(barcode.getRawValue());
+                        if (isFinishing() || isDestroyed()) return;
+                        String sensor = QrLlaveroParser.extraerIdentificador(barcode.getRawValue());
+                        if (sensor == null) message(getString(R.string.qr_invalid)); else result(sensor);
                     })
-                    .addOnCanceledListener(() -> {
-                        if (!isFinishing() && !isDestroyed()) mensaje("Lectura cancelada.");
-                    })
-                    .addOnFailureListener(error -> {
-                        if (!isFinishing() && !isDestroyed())
-                            mensaje("No se pudo abrir el lector QR. Comprueba Google Play Services y la conexión. También puedes introducir el código manualmente.");
-                    })
-                    .addOnCompleteListener(tarea -> {
-                        if (!isFinishing() && !isDestroyed()) escanear.setEnabled(true);
+                    .addOnCanceledListener(() -> message(getString(R.string.qr_cancelled)))
+                    .addOnFailureListener(error -> message(getString(R.string.qr_failure)))
+                    .addOnCompleteListener(task -> {
+                        if (!isFinishing() && !isDestroyed()) scan.setEnabled(true);
                     });
         } catch (RuntimeException error) {
-            escanear.setEnabled(true);
-            mensaje("No se pudo iniciar el lector QR. Introduce el código manualmente.");
+            scan.setEnabled(true); message(getString(R.string.qr_failure));
         }
     }
-
-    private void seleccionar(String valor) {
-        String sensor = QrLlaveroParser.extraerIdentificador(valor);
-        if (sensor == null) mensaje("Código inválido. Usa S- seguido de 3 a 6 dígitos.");
-        else devolver(sensor);
+    private void message(String text) {
+        if (isFinishing() || isDestroyed()) return;
+        TextView view = findViewById(R.id.qr_feedback);
+        view.setText(text); view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
     }
-
-    private void devolver(String sensor) {
+    private void result(String sensor) {
+        if (SessionManager.current() != session) { finish(); return; }
         setResult(RESULT_OK, new android.content.Intent().putExtra("sensor", sensor));
         finish();
     }

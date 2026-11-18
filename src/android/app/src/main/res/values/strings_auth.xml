@@ -8,7 +8,7 @@
 <string name="auth_login">Iniciar sesión</string>
 <string name="auth_biometric">Acceder con biometría</string>
 <string name="auth_back">‹ Volver</string>
-<string name="auth_recovery_title">Recuperar contraseña</string>
+<string name="auth_recovery_title">Cambiar contraseña</string>
 <string name="auth_recovery_description">Introduce tu correo electrónico para recibir el enlace de recuperación.</string>
 <string name="auth_send">Enviar enlace</string>
 <string name="auth_recovery_received">Si la cuenta permite recuperar el acceso, recibirás un enlace por correo. Revisa también la carpeta de correo no deseado.</string>

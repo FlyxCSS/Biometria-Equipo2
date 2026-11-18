@@ -123,7 +123,11 @@ public final class LoginActivity extends AuthScreen {
                     SessionManager.open(new Worker(uid,pid,n),fin,nuevo);
                     if (correo != null) getSharedPreferences("campo-" + uid + "-" + pid, MODE_PRIVATE)
                             .edit().putString("account_email", correo).apply();
-                    ocupado=false; abrirPanel();
+                    ocupado=false;
+                    if (guardado == null) {
+                        startActivity(new Intent(this, BiometricSetupActivity.class).putExtra("from_login", true));
+                        finish();
+                    } else abrirPanel();
                 });
             } catch(Exception e) {
                 runOnUiThread(()->{

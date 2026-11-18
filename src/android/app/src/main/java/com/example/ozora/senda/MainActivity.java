@@ -577,18 +577,7 @@ public final class      MainActivity extends FieldScreen {
                 .setPositiveButton("Entendido", null).show();
     }
     private void configurarBiometria() {
-        if (bio.activo()) {
-            new AlertDialog.Builder(this).setTitle("Desactivar biometría")
-                    .setMessage("Podrás seguir accediendo con tu contraseña.")
-                    .setNegativeButton("Cancelar", null)
-                    .setPositiveButton("Desactivar", (d, w) -> { bio.borrar(); actualizar(); }).show();
-        } else if (!bio.disponible()) {
-            mensaje("Configura una huella o biometría compatible en los ajustes de Android.");
-        } else {
-            try { bio.activar(session.token); mensaje("Biometría activada para la próxima apertura de la app."); }
-            catch (Exception e) { mensaje("Android no pudo proteger la credencial biométrica."); }
-            actualizar();
-        }
+        startActivity(new Intent(this, com.example.ozora.senda.auth.BiometricSetupActivity.class));
     }
     private void configurar() {
         List<String> opciones=new ArrayList<>();
@@ -597,10 +586,7 @@ public final class      MainActivity extends FieldScreen {
         if(activo && RutaService.actual != id) opciones.add("Reanudar captura");
         new AlertDialog.Builder(this).setTitle("Ajustes de campo").setItems(opciones.toArray(new String[0]),(d,w)->{
             if(w==0) {
-                if(bio.activo()) { bio.borrar(); mensaje("Acceso biométrico desactivado."); }
-                else if(!bio.disponible()) mensaje("Configura una huella o biometría compatible en los ajustes de Android.");
-                else try { bio.activar(session.token); mensaje("Biometría activada para la próxima apertura de la app."); }
-                    catch(Exception e) { mensaje("Android no pudo proteger la credencial biométrica."); }
+                configurarBiometria();
             } else if(w==1) ajustarNumero("umbral","Aviso orientativo (ppb)",60,65535);
             else if(w==2) ajustarNumero("silencio","Aviso de silencio BLE (segundos)",20,3600);
             else preparar();
