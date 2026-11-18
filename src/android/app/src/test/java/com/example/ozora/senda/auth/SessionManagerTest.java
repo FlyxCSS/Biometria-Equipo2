@@ -27,4 +27,20 @@ public class SessionManagerTest {
         SessionManager.clear();
         assertNull(SessionManager.current());
     }
+    @Test public void bloquearLaInterfazConservaLaSesionDelRecorridoHastaReautenticar() {
+        SessionManager.open(new Worker(1, 1, "Trabajador"), Long.MAX_VALUE, "token");
+        SessionManager anterior = SessionManager.current();
+        SessionManager.bloquearAcceso();
+        assertTrue(SessionManager.requiereAcceso());
+        assertSame(anterior, SessionManager.current());
+        SessionManager.open(new Worker(1, 1, "Trabajador"), Long.MAX_VALUE, "token-validado");
+        assertFalse(SessionManager.requiereAcceso());
+        assertEquals("token-validado", SessionManager.current().token);
+    }
+    @Test public void cerrarSesionEliminaElBloqueoYLaCredencialEnMemoria() {
+        SessionManager.bloquearAcceso();
+        SessionManager.clear();
+        assertFalse(SessionManager.requiereAcceso());
+        assertNull(SessionManager.current());
+    }
 }

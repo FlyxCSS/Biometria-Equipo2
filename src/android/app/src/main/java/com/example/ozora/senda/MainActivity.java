@@ -192,6 +192,7 @@ public final class      MainActivity extends FieldScreen {
     }
 
     @Override protected void onDestroy() {
+        if (bio != null) bio.cancelar();
         if (homeMap != null) homeMap.destroy();
         if (rutas != null) rutas.close();
         if (isFinishing() && !activo && session == SessionManager.current()) SessionManager.clear();
@@ -577,6 +578,7 @@ public final class      MainActivity extends FieldScreen {
                 .setPositiveButton("Entendido", null).show();
     }
     private void configurarBiometria() {
+        if (bio.enCurso()) return;
         if (bio.activo()) {
             new AlertDialog.Builder(this).setTitle("Desactivar biometría")
                     .setMessage("Podrás seguir accediendo con tu contraseña.")
@@ -585,9 +587,7 @@ public final class      MainActivity extends FieldScreen {
         } else if (!bio.disponible()) {
             mensaje("Configura una huella o biometría compatible en los ajustes de Android.");
         } else {
-            try { bio.activar(session.token); mensaje("Biometría activada para la próxima apertura de la app."); }
-            catch (Exception e) { mensaje("Android no pudo proteger la credencial biométrica."); }
-            actualizar();
+            activarBiometria();
         }
     }
     private void configurar() {
@@ -599,12 +599,24 @@ public final class      MainActivity extends FieldScreen {
             if(w==0) {
                 if(bio.activo()) { bio.borrar(); mensaje("Acceso biométrico desactivado."); }
                 else if(!bio.disponible()) mensaje("Configura una huella o biometría compatible en los ajustes de Android.");
-                else try { bio.activar(session.token); mensaje("Biometría activada para la próxima apertura de la app."); }
-                    catch(Exception e) { mensaje("Android no pudo proteger la credencial biométrica."); }
+                else activarBiometria();
             } else if(w==1) ajustarNumero("umbral","Aviso orientativo (ppb)",60,65535);
             else if(w==2) ajustarNumero("silencio","Aviso de silencio BLE (segundos)",20,3600);
             else preparar();
         }).show();
+    }
+    private void activarBiometria() {
+        bio.activar(session.token, new BiometricHelper.Resultado() {
+            public void aceptar(String token) {
+                if (isDestroyed() || isFinishing()) return;
+                if (SessionManager.current() != session) { bio.borrar(); return; }
+                mensaje("Biometría activada para la próxima apertura de la app.");
+                actualizar();
+            }
+            public void error(String texto) {
+                if (!isDestroyed() && !isFinishing()) { mensaje(texto); actualizar(); }
+            }
+        });
     }
     private void ajustarNumero(String key,String titulo,int inicial,int max) {
         EditText e=campo(titulo,InputType.TYPE_CLASS_NUMBER); e.setText(String.valueOf(ajustes().getInt(key,inicial)));

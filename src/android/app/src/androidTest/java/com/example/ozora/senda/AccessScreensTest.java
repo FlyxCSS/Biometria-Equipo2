@@ -19,6 +19,14 @@ import static androidx.test.espresso.matcher.ViewMatchers.*;
 import static org.junit.Assert.*;
 
 public class AccessScreensTest {
+    @Test public void loginNoAbreElPanelSoloPorConservarSesionEnMemoria() {
+        SessionManager.open(new com.example.ozora.senda.model.Worker(1, 1, "Trabajador"),
+                Long.MAX_VALUE, "token-de-prueba");
+        try (ActivityScenario<LoginActivity> activity = ActivityScenario.launch(LoginActivity.class)) {
+            onView(withId(R.id.auth_title)).check(matches(withText(R.string.auth_title)));
+            onView(withId(R.id.auth_biometric)).check(matches(withText(R.string.auth_biometric)));
+        } finally { SessionManager.clear(); }
+    }
     private void captura(String nombre) throws Exception {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         Bitmap bitmap = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();

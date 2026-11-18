@@ -34,13 +34,12 @@ public final class LoginActivity extends AuthScreen {
     private String tokenInicial;
     private long venceInicial;
     /** Diseño lógico: (estado) -> onCreate -> vacío.
-     * Descripción: Prepara acceso o reutiliza exclusivamente una sesión ya admitida. */
+     * Descripción: Muestra siempre el acceso; la biometría debe validar la credencial con el servidor. */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         api=new ApiClient(this);
         bio=new BiometricHelper(this);
-        if(SessionManager.current()!=null) abrirPanel();
-        else { acceso(); mensaje(getIntent().getStringExtra("mensaje")); }
+        acceso(); mensaje(getIntent().getStringExtra("mensaje"));
     }
     /** Diseño lógico: () -> abrirPanel -> vacío.
      * Descripción: Abre el cuaderno tras un login sin cambio pendiente. */
@@ -60,7 +59,7 @@ public final class LoginActivity extends AuthScreen {
             return true;
         });
         findViewById(R.id.auth_forgot).setOnClickListener(v -> {
-            if (!ocupado) startActivity(new Intent(this, RecoveryActivity.class)
+            if (!ocupado && !bio.enCurso()) startActivity(new Intent(this, RecoveryActivity.class)
                     .putExtra("correo", email.getText().toString().trim()));
         });
         findViewById(R.id.auth_biometric).setOnClickListener(v -> {
@@ -75,7 +74,7 @@ public final class LoginActivity extends AuthScreen {
     }
 
     private void entrar() {
-        if (ocupado) return;
+        if (ocupado || bio.enCurso()) return;
         String correo = email.getText().toString().trim();
         String clave = password.getText().toString();
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {

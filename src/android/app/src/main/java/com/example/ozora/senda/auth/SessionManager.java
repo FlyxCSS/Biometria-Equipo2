@@ -16,6 +16,7 @@ import java.util.TimeZone;
 
 public final class SessionManager {
     private static volatile SessionManager current;
+    private static volatile boolean bloqueada;
     public final Worker worker;
     public final long expiresAt;
     public final String token;
@@ -29,11 +30,14 @@ public final class SessionManager {
         if (token == null || token.trim().isEmpty() || worker.id <= 0 || worker.parkId <= 0)
             throw new IllegalArgumentException("La sesión requiere un trabajador y una credencial del servidor.");
         current = new SessionManager(worker, expiresAt, token);
+        bloqueada = false;
     }
     public static SessionManager current() {
         return current != null && System.currentTimeMillis() < current.expiresAt ? current : null;
     }
-    public static void clear() { current = null; }
+    public static void clear() { current = null; bloqueada = false; }
+    public static void bloquearAcceso() { bloqueada = true; }
+    public static boolean requiereAcceso() { return bloqueada; }
     public static long instante(String iso) throws ParseException {
         SimpleDateFormat f=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",Locale.ROOT);
         f.setTimeZone(TimeZone.getTimeZone("UTC")); return f.parse(iso).getTime();

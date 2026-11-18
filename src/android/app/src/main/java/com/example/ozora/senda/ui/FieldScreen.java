@@ -16,6 +16,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public abstract class FieldScreen extends AppCompatActivity {
+    @Override protected void onResume() {
+        super.onResume();
+        if (!(this instanceof com.example.ozora.senda.auth.AuthScreen)
+                && com.example.ozora.senda.auth.SessionManager.requiereAcceso()) {
+            startActivity(new android.content.Intent(this, com.example.ozora.senda.auth.LoginActivity.class)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            finish();
+        }
+    }
     private static final int BOSQUE=0xff234d39, TEXTO=0xff20372b;
     protected LinearLayout contenido;
     private TextView error;

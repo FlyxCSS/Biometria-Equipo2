@@ -51,6 +51,7 @@
         android:required="true" />
 
     <application
+        android:name=".SendaApplication"
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
