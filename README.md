@@ -41,15 +41,19 @@ Los diseños de los componentes se organizarán en [doc/](doc/) siguiendo los m�
 ## Flujo del proyecto
 
 ```text
-Llavero SparkFun → anuncio BLE / iBeacon → Android + GPS
-                                              │
-                                   SQLite y cola de envío
-                                              │
-                                   POST /api/v1/mediciones
-                                              ▼
-                              Comunicación REST → Lógica de negocio → MySQL
-                                              ▲
-                      Panel web → consulta de la última medición del parque
+Llavero BLE → Android + GPS → SQLite y cola de envío
+                                      │
+                         LogicaFake.java.guardarMedicion
+                                      │ POST /api/v1/mediciones
+                                      ▼
+                             ServidorRest.php
+                                      │
+                         LogicaNegocio.guardarMedicion → MySQL
+
+Panel web → LogicaFake.js.ultimaMedicion
+                         │ GET /api/v1/parques/{parque}/mediciones/ultima
+                         ▼
+                ServidorRest.php → LogicaNegocio.ultimaMedicion → MySQL
 ```
 
 1. El trabajador inicia sesión en Android y selecciona el llavero mediante el QR o su código. La selección local identifica el dispositivo cuyos anuncios escuchará la app. El servidor comprueba la asignación del llavero cuando recibe una medición.
@@ -58,6 +62,16 @@ Llavero SparkFun → anuncio BLE / iBeacon → Android + GPS
 4. El trabajador finaliza el recorrido y consulta su resumen en Android. En el panel web, el responsable del parque consulta la última lectura almacenada en el servidor.
 
 El modo de demostración de Android está disponible en Debug y guarda sus recorridos localmente. Los mapas de ejemplo de la portada usan datos ilustrativos. [Contrato REST](doc/contracts/backend-android-v1.md).
+
+## Lógica fake y comunicación REST
+
+Android utiliza [LogicaFake.java](src/android/app/src/main/java/com/example/ozora/senda/network/LogicaFake.java) como proxy de las operaciones de [LogicaNegocio.php](src/business_logic/LogicaNegocio.php). La cola llama a `guardarMedicion` y el proxy delega el transporte HTTP en `ApiClient`. Las pantallas de acceso, recuperación y cuenta llaman a `iniciarSesion`, `consultarSesion`, `cerrarSesion`, `cambiarContrasena`, `solicitarRecuperacion` y `restablecerContrasena`.
+
+La interfaz web usa [LogicaFake.js](src/frontend_business_logic/LogicaFake.js). Su operación `ultimaMedicion` pide la lectura del parque al servidor mediante GET. El controlador web publica este archivo en `/js/LogicaFake.js`, incluido al servir tanto la portada como el acceso.
+
+Ambos proxies traducen las operaciones a las rutas de [ServidorRest.php](src/communication/ServidorRest.php), que autentica la petición y delega en la lógica de negocio. Los nombres de las operaciones coinciden con sus métodos PHP. Los parámetros del usuario autenticado los obtiene el servidor a partir del token Bearer. El término «fake» identifica al proxy remoto y sus respuestas proceden de la API real.
+
+Prueba del proxy web desde la raíz con `node --test src/tests/logica-fake.test.cjs`. Las pruebas Android de `LogicaFakeTest` comprueban método, ruta, cabeceras, JSON y errores mediante un servidor HTTP local.
 
 ## Despliegue
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.example.ozora.senda.R;
 import com.example.ozora.senda.network.ApiClient;
+import com.example.ozora.senda.network.LogicaFake;
 import org.json.JSONObject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,7 +33,7 @@ public final class RecoveryViewModel extends AndroidViewModel {
         state.setValue(new State(Step.EMAIL, true, getApplication().getString(R.string.auth_sending)));
         network.execute(() -> {
             try {
-                new ApiClient(getApplication()).pedir("POST", "/recuperaciones", null,
+                new LogicaFake(getApplication()).solicitarRecuperacion(
                         new JSONObject().put("correo", email));
                 state.postValue(new State(Step.LINK, false,
                         getApplication().getString(R.string.auth_recovery_received)));
@@ -47,7 +48,7 @@ public final class RecoveryViewModel extends AndroidViewModel {
         state.setValue(new State(Step.LINK, true, "Actualizando contraseña…"));
         network.execute(() -> {
             try {
-                new ApiClient(getApplication()).pedir("POST", "/recuperaciones/confirmacion", null,
+                new LogicaFake(getApplication()).restablecerContrasena(
                         new JSONObject().put("token", token).put("contrasena_nueva", password));
                 state.postValue(new State(Step.DONE, false, ""));
             } catch (Exception error) {

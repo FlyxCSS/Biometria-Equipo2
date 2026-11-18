@@ -16,6 +16,7 @@ import com.example.ozora.senda.auth.BiometricHelper;
 import com.example.ozora.senda.auth.LoginActivity;
 import com.example.ozora.senda.auth.SessionManager;
 import com.example.ozora.senda.network.ApiClient;
+import com.example.ozora.senda.network.LogicaFake;
 import java.nio.charset.StandardCharsets;
 
 /** El perfil visual es local; la contraseña se cambia exclusivamente en el servidor. */
@@ -119,10 +120,10 @@ public final class AccountActivity extends FieldScreen {
         Button submit = contenido.findViewWithTag("submit");
         submit.setEnabled(false);
         mensaje("Guardando contraseña…");
-        ApiClient api = new ApiClient(this);
+        LogicaFake logica = new LogicaFake(this);
         new Thread(() -> {
             try {
-                api.pedir("POST", "/usuarios/actual/contrasena", session.token,
+                logica.cambiarContrasena(session.token,
                         new org.json.JSONObject().put("contrasena_actual", old).put("contrasena_nueva", value));
                 runOnUiThread(() -> {
                     if (isDestroyed() || isFinishing()) return;

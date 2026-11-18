@@ -14,7 +14,6 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.ozora.senda.auth.SessionManager;
 import com.example.ozora.senda.model.MedicionAmbiental;
 import com.example.ozora.senda.routes.RouteManager;
-import org.json.JSONObject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,7 +38,7 @@ public final class MeasurementSync {
     private static void enviarPendientes(Context contexto, SessionManager sesion) {
         try(RouteManager rutas = new RouteManager(contexto,"recorridos.db")) {
             SQLiteDatabase db = rutas.getWritableDatabase();
-            ApiClient api = new ApiClient(contexto);
+            LogicaFake logica = new LogicaFake(contexto);
             try(Cursor filas = db.rawQuery("SELECT l.id,l.ppb,l.fecha,l.lat,l.lon,l.nombre_micro FROM lectura l "
                     + "JOIN ruta r ON r.id=l.ruta WHERE r.usuario=? AND r.parque=? AND l.enviado=0 "
                     + "AND l.nombre_micro IS NOT NULL ORDER BY l.id LIMIT 50",
@@ -50,7 +49,7 @@ public final class MeasurementSync {
                     MedicionAmbiental m = new MedicionAmbiental(filas.getString(5),filas.getInt(1),
                             filas.getDouble(3),filas.getDouble(4),0,filas.getString(2),0);
                     try {
-                        api.pedir("POST","/mediciones",sesion.token,new JSONObject(MeasurementPayload.datos(m)));
+                        logica.guardarMedicion(sesion.token,m);
                         db.execSQL("UPDATE lectura SET enviado=1,error_envio=NULL WHERE id=?",new Object[]{id});
                         estado = "Medición confirmada por el servidor.";
                     } catch(ApiClient.Error error) {

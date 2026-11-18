@@ -8,6 +8,7 @@
  */
 'use strict';
 const RUTA_BASE = document.documentElement.dataset.basePath || '';
+const logica = new LogicaFake(RUTA_BASE);
 const formularioContacto = document.getElementById('form-contacto');
 const resultadoContacto = document.getElementById('resultado-contacto');
 
@@ -22,13 +23,8 @@ async function solicitarInformacion(evento) {
     resultadoContacto.classList.remove('error');
     try {
         const datos = Object.fromEntries(new FormData(formularioContacto));
-        const respuesta = await fetch(`${RUTA_BASE}/api/v1/solicitudes`, {
-            method: 'POST', headers: {'Content-Type': 'application/json', Accept: 'application/json'},
-            body: JSON.stringify(datos), credentials: 'omit', signal: AbortSignal.timeout(15000),
-        });
-        const contenido = await respuesta.json();
-        if (!respuesta.ok || contenido.ok !== true) throw new Error(contenido.error?.mensaje || 'No se ha podido registrar la solicitud.');
-        resultadoContacto.textContent = contenido.data.mensaje;
+        const contenido = await logica.registrarSolicitud(datos);
+        resultadoContacto.textContent = contenido.mensaje;
         formularioContacto.reset();
     } catch (error) {
         resultadoContacto.classList.add('error');

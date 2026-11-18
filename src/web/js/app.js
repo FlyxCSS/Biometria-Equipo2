@@ -7,7 +7,7 @@
  * Aportación: Acceso, alta, última lectura y recuperación sin datos simulados de interfaz.
  */
 'use strict';
-const RUTA_BASE = document.documentElement.dataset.basePath || '';
+const logica = new LogicaFake(document.documentElement.dataset.basePath || '');
 let tokenSesion = ''; // Solo en memoria: recargar requiere iniciar sesión otra vez.
 let usuarioActual = null;
 let tokenRecuperacion = '';
@@ -57,36 +57,19 @@ function ocultarContrasenas(contenedor = document) {
     }
 }
 
-/** Diseño lógico: (ruta, método, datos) -> api -> datos de respuesta o error.
- * Descripción: Envía JSON al mismo origen y exige confirmación real del servidor. */
-async function api(ruta, metodo = 'GET', datos = null) {
-    const headers = { Accept: 'application/json' };
-    if (tokenSesion) headers.Authorization = `Bearer ${tokenSesion}`;
-    if (datos !== null) headers['Content-Type'] = 'application/json';
-    let respuesta;
+/** Aplica la caducidad de sesión a las operaciones del proxy. */
+async function conSesion(operacion) {
     try {
-        respuesta = await fetch(`${RUTA_BASE}/api/v1${ruta}`, {
-            method: metodo, headers, body: datos === null ? null : JSON.stringify(datos),
-            cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(15000),
-        });
+        return await operacion();
     } catch (error) {
-        throw new Error('No se ha podido contactar con el servidor. Comprueba la conexión antes de reintentar.');
-    }
-    let contenido;
-    try { contenido = await respuesta.json(); }
-    catch (error) { throw new Error('El servidor no ha devuelto una respuesta válida.'); }
-    if (respuesta.status === 401 && tokenSesion) {
-        tokenSesion = '';
-        usuarioActual = null;
-        mostrar('acceso');
-        elemento('lectura').replaceChildren();
-    }
-    if (!respuesta.ok || contenido.ok !== true) {
-        const error = new Error(contenido.error?.mensaje || 'No se ha podido completar la operación.');
-        error.campos = contenido.error?.campos || {};
+        if (error.status === 401 && tokenSesion) {
+            tokenSesion = '';
+            usuarioActual = null;
+            mostrar('acceso');
+            elemento('lectura').replaceChildren();
+        }
         throw error;
     }
-    return contenido.data;
 }
 
 /** Diseño lógico: (evento, operación) -> ejecutarFormulario -> promesa vacía.
@@ -135,7 +118,7 @@ async function actualizarLectura() {
     boton.disabled = true;
     lectura.replaceChildren(parrafo('Consultando…'));
     try {
-        const datos = await api(`/parques/${usuarioActual.id_parque}/mediciones/ultima`);
+        const datos = await conSesion(() => logica.ultimaMedicion(tokenSesion, usuarioActual.id_parque));
         if (!datos.medicion) {
             lectura.replaceChildren(parrafo('Todavía no hay mediciones en este parque.'));
             return;
@@ -172,7 +155,7 @@ async function actualizarLectura() {
 async function iniciarSesion(evento) {
     await ejecutarFormulario(evento, async function realizarLogin() {
         // Diseño lógico: () -> realizarLogin -> promesa vacía. Descripción: Obtiene y aplica la sesión real.
-        const datos = await api('/sesiones', 'POST', {
+        const datos = await logica.iniciarSesion({
             correo: elemento('correo').value, contrasena: elemento('contrasena').value,
         });
         tokenSesion = datos.token;
@@ -200,8 +183,8 @@ async function registrarTrabajador(evento) {
         const contrasena = elemento('contrasena-trabajador').value;
         const longitud = new TextEncoder().encode(contrasena).length;
         if (longitud < 12 || longitud > 72) throw new Error('La contraseña inicial debe ocupar entre 12 y 72 bytes UTF-8.');
-        const datos = await api('/trabajadores', 'POST', { nombre: elemento('nombre-trabajador').value,
-            correo: elemento('correo-trabajador').value, contrasena_inicial: contrasena });
+        const datos = await conSesion(() => logica.registrarTrabajador(tokenSesion, { nombre: elemento('nombre-trabajador').value,
+            correo: elemento('correo-trabajador').value, contrasena_inicial: contrasena }));
         elemento('form-alta').reset();
         ocultarContrasenas(elemento('form-alta'));
         mensaje(datos.mensaje || 'Cuenta creada. El trabajador debe cambiar la contraseña inicial en su primer acceso.', false, 'aviso-form-alta');
@@ -213,7 +196,7 @@ async function registrarTrabajador(evento) {
 async function solicitarRecuperacion(evento) {
     await ejecutarFormulario(evento, async function realizarSolicitud() {
         // Diseño lógico: () -> realizarSolicitud -> promesa vacía. Descripción: Presenta la respuesta genérica de recuperación.
-        const datos = await api('/recuperaciones', 'POST', { correo: elemento('correo-recuperacion').value });
+        const datos = await logica.solicitarRecuperacion({ correo: elemento('correo-recuperacion').value });
         mensaje(datos.mensaje, false, 'aviso-form-recuperacion');
     });
 }
@@ -227,7 +210,7 @@ async function restablecerContrasena(evento) {
         if (nueva !== elemento('repetir').value) throw new Error('Las contraseñas no coinciden.');
         const longitud = new TextEncoder().encode(nueva).length;
         if (longitud < 12 || longitud > 72) throw new Error('La contraseña debe ocupar entre 12 y 72 bytes UTF-8.');
-        await api('/recuperaciones/confirmacion', 'POST', { token: tokenRecuperacion, contrasena_nueva: nueva });
+        await logica.restablecerContrasena({ token: tokenRecuperacion, contrasena_nueva: nueva });
         tokenRecuperacion = '';
         tokenSesion = '';
         usuarioActual = null;
@@ -246,9 +229,9 @@ async function cambiarContrasenaInicial(evento) {
         if (nueva !== elemento('repetir-inicial').value) throw new Error('Las contraseñas no coinciden.');
         const longitud = new TextEncoder().encode(nueva).length;
         if (longitud < 12 || longitud > 72) throw new Error('La contraseña debe ocupar entre 12 y 72 bytes UTF-8.');
-        await api('/usuarios/actual/contrasena', 'POST', {
+        await conSesion(() => logica.cambiarContrasena(tokenSesion, {
             contrasena_actual: elemento('actual-inicial').value, contrasena_nueva: nueva,
-        });
+        }));
         tokenSesion = '';
         usuarioActual = null;
         elemento('form-cambio-inicial').reset();
@@ -262,7 +245,7 @@ async function cambiarContrasenaInicial(evento) {
 async function cerrarSesion() {
     elemento('salir').disabled = true;
     try {
-        await api('/sesiones/actual', 'DELETE');
+        await conSesion(() => logica.cerrarSesion(tokenSesion));
         tokenSesion = '';
         usuarioActual = null;
         elemento('lectura').replaceChildren();

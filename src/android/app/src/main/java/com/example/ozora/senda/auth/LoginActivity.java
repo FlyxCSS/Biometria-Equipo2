@@ -22,13 +22,14 @@ import java.util.concurrent.Executors;
 
 import com.example.ozora.senda.model.Worker;
 import com.example.ozora.senda.network.ApiClient;
+import com.example.ozora.senda.network.LogicaFake;
 import com.example.ozora.senda.R;
 import android.view.inputmethod.EditorInfo;
 import com.example.ozora.senda.MainActivity;
 
 public final class LoginActivity extends AuthScreen {
     private static final ExecutorService RED=Executors.newSingleThreadExecutor();
-    private ApiClient api;
+    private LogicaFake logica;
     private BiometricHelper bio;
     private boolean ocupado;
     private String tokenInicial;
@@ -37,7 +38,7 @@ public final class LoginActivity extends AuthScreen {
      * Descripción: Muestra siempre el acceso; la biometría debe validar la credencial con el servidor. */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        api=new ApiClient(this);
+        logica=new LogicaFake(this);
         bio=new BiometricHelper(this);
         acceso(); mensaje(getIntent().getStringExtra("mensaje"));
     }
@@ -97,8 +98,8 @@ public final class LoginActivity extends AuthScreen {
         ocupado=true; mostrarEspera(true); mensaje(getString(R.string.auth_busy));
         RED.execute(()->{
             try {
-                JSONObject d=guardado==null ? api.pedir("POST","/sesiones",null,new JSONObject().put("correo",correo).put("contrasena",clave))
-                    : api.pedir("GET","/sesiones/actual",guardado,null);
+                JSONObject d=guardado==null ? logica.iniciarSesion(new JSONObject().put("correo",correo).put("contrasena",clave))
+                    : logica.consultarSesion(guardado);
                 JSONObject u=d.getJSONObject("usuario");
                 if(!"trabajador".equals(u.getString("rol"))) throw new ApiClient.Error(403,"Esta aplicación requiere una cuenta de trabajador.");
                 String nuevo=guardado==null ? d.getString("token") : guardado;
@@ -185,7 +186,7 @@ public final class LoginActivity extends AuthScreen {
             mensaje("Guardando la nueva contraseña…");
             RED.execute(()->{
                 try {
-                    api.pedir("POST","/usuarios/actual/contrasena",token,new JSONObject()
+                    logica.cambiarContrasena(token,new JSONObject()
                             .put("contrasena_actual",anterior).put("contrasena_nueva",valor));
                     runOnUiThread(()->{
                         if(isDestroyed() || isFinishing()) return;
@@ -209,7 +210,7 @@ public final class LoginActivity extends AuthScreen {
             if(ocupado) return;
             String anterior=tokenInicial; tokenInicial=null;
             if(anterior!=null) RED.execute(()->{
-                try { api.pedir("DELETE","/sesiones/actual",anterior,null); }
+                try { logica.cerrarSesion(anterior); }
                 catch(Exception ignorado) { /* El token sigue limitado por su caducidad en PHP. */ }
             });
             acceso();

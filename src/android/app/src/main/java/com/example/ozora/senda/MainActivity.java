@@ -29,7 +29,7 @@ import com.example.ozora.senda.auth.BiometricHelper;
 import com.example.ozora.senda.auth.LoginActivity;
 import com.example.ozora.senda.auth.SessionManager;
 import com.example.ozora.senda.model.Route;
-import com.example.ozora.senda.network.ApiClient;
+import com.example.ozora.senda.network.LogicaFake;
 import com.example.ozora.senda.network.MeasurementSync;
 import com.example.ozora.senda.qr.QrScannerActivity;
 import com.example.ozora.senda.routes.RouteActivity;
@@ -682,9 +682,9 @@ public final class      MainActivity extends FieldScreen {
         String anterior=session.token;
         finalizar(); bio.borrar(); SessionManager.clear();
         if(revocar) {
-            ApiClient api=new ApiClient(this);
+            LogicaFake logica=new LogicaFake(this);
             new Thread(()->{
-                try { api.pedir("DELETE","/sesiones/actual",anterior,null); }
+                try { logica.cerrarSesion(anterior); }
                 catch(Exception e) { runOnUiThread(()->Toast.makeText(getApplicationContext(),
                         "Sesión cerrada en el móvil. Revocación sin confirmar.",Toast.LENGTH_LONG).show()); }
             }).start();

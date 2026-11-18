@@ -20,7 +20,7 @@ if ($ruta !== null && str_starts_with($ruta, '/api/')) {
     atenderApi();
 }
 // Lista explícita: nunca entregar configuración, SQL, herramientas o código PHP.
-$archivos = ['/' => ['index.html', 'text/html'], '/index.html' => ['index.html', 'text/html'],
+$archivos = ['/js/LogicaFake.js' => ['LogicaFake.js', 'text/javascript'], '/' => ['index.html', 'text/html'], '/index.html' => ['index.html', 'text/html'],
     '/index.php' => ['index.html', 'text/html'], '/acceso' => ['acceso.html', 'text/html'],
     '/acceso/' => ['acceso.html', 'text/html'], '/js/app.js' => ['js/app.js', 'text/javascript'],
     '/js/publica.js' => ['js/publica.js', 'text/javascript'], '/css/publica.css' => ['css/publica.css', 'text/css'],
@@ -47,7 +47,9 @@ if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'HEAD'], true)) {
 header('Cache-Control: no-store');
 header('Content-Type: ' . $archivos[$ruta][1] . '; charset=UTF-8');
 if ($_SERVER['REQUEST_METHOD'] !== 'HEAD') {
-    $archivo = __DIR__ . '/' . $archivos[$ruta][0];
+    $archivo = $ruta === '/js/LogicaFake.js'
+        ? dirname(__DIR__) . '/frontend_business_logic/LogicaFake.js'
+        : __DIR__ . '/' . $archivos[$ruta][0];
     $tipo = $archivos[$ruta][1];
     if ($tipo === 'text/html') {
         $html = file_get_contents($archivo);

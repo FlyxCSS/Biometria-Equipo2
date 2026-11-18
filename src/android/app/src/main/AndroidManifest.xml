@@ -54,9 +54,9 @@
         android:name=".SendaApplication"
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_senda"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_senda_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SENDA">
 
