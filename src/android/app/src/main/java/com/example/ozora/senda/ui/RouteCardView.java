@@ -19,8 +19,8 @@ public final class RouteCardView extends MaterialCardView {
     public RouteCardView(Context context) {
         super(context);
         float density=getResources().getDisplayMetrics().density;
-        setRadius(20*density); setCardElevation(3*density);
-        setStrokeColor(0xff98b595);
+        setRadius(20*density); setCardElevation(0);
+        setStrokeColor(0xb3ffffff);
         setClickable(true); setFocusable(true);
         View.inflate(context,R.layout.item_route,this);
     }
@@ -43,8 +43,8 @@ public final class RouteCardView extends MaterialCardView {
     public void update(Route route,long now) { update(route.end,route.meters,route.count,now); }
     private void update(Long end,double meters,int count,long now) {
         boolean active=end==null;
-        setCardBackgroundColor(active?0xffd4dfcd:0xffffffff);
-        setStrokeWidth(active?(int)Math.ceil(getResources().getDisplayMetrics().density):0);
+        setCardBackgroundColor(active?0xcce1ebd9:0xe6ffffff);
+        setStrokeWidth((int)Math.ceil(getResources().getDisplayMetrics().density));
         findViewById(R.id.route_status).setVisibility(active?VISIBLE:GONE);
         long seconds=Math.max(0,(end==null?now:end)-start)/1000;
         String duration=String.format(Locale.getDefault(),"%02d:%02d:%02d",seconds/3600,seconds/60%60,seconds%60);

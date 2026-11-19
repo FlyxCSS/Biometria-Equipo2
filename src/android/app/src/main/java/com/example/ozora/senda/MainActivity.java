@@ -225,7 +225,7 @@ public final class      MainActivity extends FieldScreen {
         FrameLayout previous = section;
         previous.removeAllViews();
         scroll.setVisibility(destino == R.id.tab_inicio ? View.GONE : View.VISIBLE);
-        findViewById(R.id.home_host).setVisibility(destino == R.id.tab_inicio ? View.VISIBLE : View.GONE);
+        findViewById(R.id.home_host).setVisibility(destino == R.id.tab_inicio || destino == R.id.tab_rutas ? View.VISIBLE : View.GONE);
         section = findViewById(destino == R.id.tab_inicio ? R.id.home_host : R.id.section_host);
         routeCards.clear();
         findViewById(R.id.routes_primary_action).setVisibility(destino==R.id.tab_rutas?View.VISIBLE:View.GONE);
@@ -246,6 +246,13 @@ public final class      MainActivity extends FieldScreen {
                 else preparar();
             });
         } else if (destino == R.id.tab_rutas) {
+            FrameLayout backdrop = findViewById(R.id.home_host);
+            backdrop.removeAllViews();
+            getLayoutInflater().inflate(R.layout.section_inicio, backdrop, true);
+            homeMap = new HomeMapController(this, backdrop, session, false, false, true);
+            backdrop.findViewById(R.id.home_top_controls).setVisibility(View.GONE);
+            backdrop.findViewById(R.id.home_bottom_card).setVisibility(View.GONE);
+            homeMap.start();
             findViewById(R.id.routes_primary_action).setOnClickListener(v -> { if (activo) confirmarFin(); else preparar(); });
             int[] periodIds={R.id.routes_today,R.id.routes_yesterday,R.id.routes_week,R.id.routes_seven};
             MaterialButtonToggleGroup periods=section.findViewById(R.id.routes_period);

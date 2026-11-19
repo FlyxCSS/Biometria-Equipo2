@@ -39,6 +39,9 @@ public final class HomeMapController implements LocationTracker.Oyente {
     private long lastRefresh;
 
     public HomeMapController(Activity activity, View root, SessionManager session, boolean enabled, boolean week) {
+        this(activity, root, session, enabled, week, false);
+    }
+    public HomeMapController(Activity activity, View root, SessionManager session, boolean enabled, boolean week, boolean backdrop) {
         this.activity = activity;
         this.root = root;
         this.session = session;
@@ -54,6 +57,7 @@ public final class HomeMapController implements LocationTracker.Oyente {
         web.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) {
                 if (disposed) return;
+                if (backdrop) web.evaluateJavascript("document.querySelector('.leaflet-tile-pane').style.filter='blur(5px) saturate(.75)';map.dragging.disable();map.touchZoom.disable();map.doubleClickZoom.disable();map.scrollWheelZoom.disable();", null);
                 ready = true;
                 render();
                 if (last != null) position(true);
