@@ -121,7 +121,7 @@ public final class AccountActivity extends FieldScreen {
         TextView eliminar = findViewById(R.id.profile_remove_photo);
         boolean tieneFoto = photo != null && !photo.isEmpty();
         eliminar.setEnabled(tieneFoto);
-        eliminar.setTextColor(tieneFoto ? 0xff7a2032 : 0xff9a9e9a);
+        eliminar.setTextColor(tieneFoto ? getColor(R.color.status_error) : 0xff9a9e9a);
     }
 
     public static void mostrarFoto(ImageView view, String foto) {

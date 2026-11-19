@@ -52,6 +52,7 @@ public final class PermissionsActivity extends FieldScreen {
         text(R.id.permissions_status, ready ? "Activadas" : notifications ? "Desactivadas"
                 : granted(Manifest.permission.ACCESS_FINE_LOCATION) ? "Ubicación del móvil apagada"
                 : granted(Manifest.permission.ACCESS_COARSE_LOCATION) ? "Solo ubicación aproximada" : "Permiso pendiente");
+        ((TextView)findViewById(R.id.permissions_status)).setTextColor(getColor(ready ? R.color.status_success : R.color.status_neutral));
         text(R.id.permissions_description, notifications
                 ? ready ? "Android permite las notificaciones de SENDA. Revisa los canales si no recibes algún aviso."
                         : "Los avisos están desactivados. Puedes permitirlos para consultar el estado del recorrido."

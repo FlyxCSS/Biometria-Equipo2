@@ -7,7 +7,7 @@
 <LinearLayout style="@style/AccountCard" android:padding="20dp">
 <com.google.android.material.imageview.ShapeableImageView android:id="@+id/profile_photo" android:layout_width="100dp" android:layout_height="100dp" android:layout_gravity="center_horizontal" android:layout_marginVertical="16dp" android:src="@drawable/account_avatar" android:scaleType="centerCrop" android:contentDescription="@string/account_photo" app:shapeAppearanceOverlay="@style/AccountAvatarShape"/>
 <com.google.android.material.button.MaterialButton android:id="@+id/profile_change_photo" style="@style/SendaSectionButton" android:text="@string/account_photo"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/profile_remove_photo" style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="Eliminar foto" android:textAllCaps="false" android:textColor="#7A2032"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/profile_remove_photo" style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="Eliminar foto" android:textAllCaps="false" android:textColor="@color/status_error"/>
 <TextView style="@style/AuthLabel" android:layout_marginTop="20dp" android:labelFor="@id/profile_name" android:text="@string/account_name"/>
 <EditText android:id="@+id/profile_name" style="@style/AccountInput" android:inputType="textPersonName" android:maxLength="100" android:autofillHints="name"/>
 <TextView style="@style/AuthLabel" android:layout_marginTop="16dp" android:labelFor="@id/profile_email" android:text="@string/account_email"/>

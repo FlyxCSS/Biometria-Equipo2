@@ -31,10 +31,11 @@ public final class KeyringScreen {
         TextView status = root.findViewById(R.id.keyring_status);
         GradientDrawable pill = new GradientDrawable();
         pill.setCornerRadius(48 * context.getResources().getDisplayMetrics().density);
-        pill.setColor(receiving ? 0xffd5dfce : 0xffebe5db);
+        pill.setColor(context.getColor(selected ? R.color.status_connected_surface : R.color.status_neutral_surface));
+        status.setTextColor(context.getColor(selected ? R.color.status_connected : R.color.status_neutral));
         status.setBackground(pill);
         text(R.id.keyring_reception, receiving ? "● Recibiendo" : "● Sin recibir");
-        ((TextView)root.findViewById(R.id.keyring_reception)).setTextColor(receiving ? 0xff315d3c : 0xff954432);
+        ((TextView)root.findViewById(R.id.keyring_reception)).setTextColor(context.getColor(receiving ? R.color.status_connected : R.color.status_neutral));
         root.findViewById(R.id.keyring_details).setVisibility(selected ? View.VISIBLE : View.GONE);
         text(R.id.text_device, context.getString(R.string.keyring_state,
                 active ? state : context.getString(R.string.keyring_wait)));
@@ -55,7 +56,18 @@ public final class KeyringScreen {
                 : context.getString(R.string.keyring_link_date,
                 DateFormat.getDateInstance(DateFormat.LONG).format(new Date(linked))));
         text(R.id.button_select_sensor, context.getString(selected ? R.string.keyring_unlink : R.string.keyring_scan));
-        root.findViewById(R.id.button_select_sensor).setEnabled(!active);
+        com.google.android.material.button.MaterialButton action = root.findViewById(R.id.button_select_sensor);
+        android.content.res.ColorStateList background = new android.content.res.ColorStateList(
+                new int[][]{new int[]{-android.R.attr.state_enabled},new int[]{}},
+                new int[]{0xffe3e5e8, context.getColor(selected ? R.color.status_error_surface : R.color.status_connected)});
+        android.content.res.ColorStateList foreground = new android.content.res.ColorStateList(
+                new int[][]{new int[]{-android.R.attr.state_enabled},new int[]{}},
+                new int[]{context.getColor(R.color.status_neutral), selected ? context.getColor(R.color.status_error) : 0xffffffff});
+        action.setBackgroundTintList(background);
+        action.setTextColor(foreground);
+        action.setStrokeWidth(Math.round(context.getResources().getDisplayMetrics().density));
+        action.setStrokeColor(android.content.res.ColorStateList.valueOf(context.getColor(selected ? R.color.status_error : R.color.status_connected)));
+        action.setEnabled(!active);
         text(R.id.keyring_hint, context.getString(active ? R.string.keyring_active_hint
                 : selected ? R.string.keyring_local_hint : R.string.keyring_hint));
     }

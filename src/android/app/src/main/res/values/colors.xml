@@ -4,4 +4,13 @@
     <color name="white">#FFFFFFFF</color>
     <color name="senda_surface">#F8F6EB</color>
     <color name="senda_text">#20372B</color>
+    <color name="status_success">#16803D</color>
+    <color name="status_success_accent">#22C55E</color>
+    <color name="status_success_surface">#ECFDF3</color>
+    <color name="status_connected">#1565C0</color>
+    <color name="status_connected_surface">#EAF3FF</color>
+    <color name="status_error">#C62828</color>
+    <color name="status_error_surface">#FFF0F0</color>
+    <color name="status_neutral">#667085</color>
+    <color name="status_neutral_surface">#EEF0F3</color>
 </resources>

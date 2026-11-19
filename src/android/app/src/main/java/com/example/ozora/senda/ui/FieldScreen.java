@@ -30,15 +30,15 @@ public abstract class FieldScreen extends AppCompatActivity {
         View nav = findViewById(com.example.ozora.senda.R.id.bottom_navigation);
         if (nav != null && nav.isShown()) aviso.setAnchorView(nav);
         GradientDrawable fondo = new GradientDrawable();
-        fondo.setColor(correcto ? 0xffe5f3e7 : 0xffffebee);
-        fondo.setStroke(dp(1), correcto ? 0xff549466 : 0xffbf6673);
+        fondo.setColor(getColor(correcto ? com.example.ozora.senda.R.color.status_success_surface : com.example.ozora.senda.R.color.status_error_surface));
+        fondo.setStroke(dp(1), getColor(correcto ? com.example.ozora.senda.R.color.status_success_accent : com.example.ozora.senda.R.color.status_error));
         fondo.setCornerRadius(dp(16));
         View view = aviso.getView();
         view.setBackgroundTintList(null);
         view.setBackground(fondo);
         TextView textoAviso = view.findViewById(com.google.android.material.R.id.snackbar_text);
         textoAviso.setMaxLines(5);
-        aviso.setTextColor(correcto ? 0xff174b29 : 0xff7a2032);
+        aviso.setTextColor(getColor(correcto ? com.example.ozora.senda.R.color.status_success : com.example.ozora.senda.R.color.status_error));
         aviso.setAnimationMode(com.google.android.material.snackbar.Snackbar.ANIMATION_MODE_SLIDE);
         aviso.show();
     }
@@ -93,7 +93,7 @@ public abstract class FieldScreen extends AppCompatActivity {
         return e;
     }
     protected void mensajes() {
-        error=texto("",15,false); error.setTextColor(0xff953e22);
+        error=texto("",15,false); error.setTextColor(getColor(com.example.ozora.senda.R.color.status_error));
         error.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
     }
     protected void mensaje(String s) { if(!isDestroyed() && error!=null) error.setText(s); }

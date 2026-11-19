@@ -531,10 +531,12 @@ public final class      MainActivity extends FieldScreen {
     }
 
     private void confirmarSalida() {
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setMessage(activo ? "Al cerrar sesión finalizará el recorrido." : "¿Cerrar la sesión en este dispositivo?")
                 .setNegativeButton("Volver", null)
-                .setPositiveButton(R.string.main_logout, (d, w) -> salir(true)).show();
+                .setPositiveButton(R.string.main_logout, (d, w) -> salir(true)).create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.status_error));
     }
 
     private void acceso(String mensaje) {
@@ -555,10 +557,12 @@ public final class      MainActivity extends FieldScreen {
     private void gestionarLlavero() {
         if (activo || operacionLlavero) { mensaje(getString(R.string.keyring_active_hint)); return; }
         if (elegido() == null) { seleccionar(); return; }
-        new AlertDialog.Builder(this).setTitle(R.string.keyring_unlink)
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(R.string.keyring_unlink)
                 .setMessage("El llavero quedará libre para otro trabajador de tu parque. Se conservarán las mediciones.")
                 .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Desvincular", (d, w) -> cambiarLlavero(null)).show();
+                .setPositiveButton("Desvincular", (d, w) -> cambiarLlavero(null)).create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.status_error));
     }
 
     private void cambiarLlavero(String sensor) {

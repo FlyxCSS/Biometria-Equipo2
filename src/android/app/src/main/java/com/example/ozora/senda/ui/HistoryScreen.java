@@ -140,12 +140,14 @@ public final class HistoryScreen {
         label(card,when,14,false);
         label(card,reading.ppb+" ppb · O₃",27,true);
         label(card,"Llavero "+(reading.sensor==null?"sin identificar":reading.sensor),15,false);
-        label(card,reading.status,14,true);
+        TextView status = label(card,reading.status,14,true);
+        status.setTextColor(activity.getColor(reading.status.contains("Rechazada") ? R.color.status_error
+                : reading.status.contains("servidor") || reading.status.equals("Enviada") ? R.color.status_success : R.color.status_neutral));
         if(reading.error!=null) label(card,reading.error,14,false);
     }
-    private void label(LinearLayout card,String value,int size,boolean bold) {
+    private TextView label(LinearLayout card,String value,int size,boolean bold) {
         TextView text=new TextView(activity); text.setText(value); text.setTextColor(0xff1d4032); text.setTextSize(size);
-        text.setPadding(0,dp(4),0,dp(4)); if(bold) text.setTypeface(Typeface.DEFAULT,Typeface.BOLD); card.addView(text);
+        text.setPadding(0,dp(4),0,dp(4)); if(bold) text.setTypeface(Typeface.DEFAULT,Typeface.BOLD); card.addView(text); return text;
     }
     private static final class Reading {
         final int ppb; final String date,sensor,status,error;

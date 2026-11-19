@@ -2,6 +2,8 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.SENDA" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">#234D39</item>
+        <item name="colorError">@color/status_error</item>
+        <item name="colorErrorContainer">@color/status_error_surface</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:statusBarColor">#F8F6EB</item>
         <!-- Customize your light theme here. -->
