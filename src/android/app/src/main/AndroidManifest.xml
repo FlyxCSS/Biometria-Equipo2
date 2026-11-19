@@ -61,7 +61,7 @@
         android:theme="@style/Theme.SENDA">
 
         <!-- PANTALLA INICIAL: PERSONA 2 -->
-        <activity
+        <activity android:screenOrientation="portrait"
             android:name=".ui.WelcomeActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
@@ -73,25 +73,25 @@
 
         </activity>
 
-        <activity android:name=".auth.Login" android:windowSoftInputMode="adjustResize" android:exported="false" />
-        <activity android:name=".auth.RecoveryActivity" android:windowSoftInputMode="adjustResize" android:exported="false" />
-        <activity android:name=".auth.BiometricSetupActivity" android:exported="false" />
-        <activity android:name=".ui.AccountActivity" android:windowSoftInputMode="adjustResize" android:exported="false" />
-        <activity android:name=".ui.PermissionsActivity" android:exported="false" />
+        <activity android:screenOrientation="portrait" android:name=".auth.Login" android:windowSoftInputMode="adjustResize" android:exported="false" />
+        <activity android:screenOrientation="portrait" android:name=".auth.RecoveryActivity" android:windowSoftInputMode="adjustResize" android:exported="false" />
+        <activity android:screenOrientation="portrait" android:name=".auth.BiometricSetupActivity" android:exported="false" />
+        <activity android:screenOrientation="portrait" android:name=".ui.AccountActivity" android:windowSoftInputMode="adjustResize" android:exported="false" />
+        <activity android:screenOrientation="portrait" android:name=".ui.PermissionsActivity" android:exported="false" />
         <!-- PANTALLAS DE PERSONA 2 -->
-        <activity
+        <activity android:screenOrientation="portrait"
             android:name=".MainActivity"
             android:exported="false" />
 
-        <activity
+        <activity android:screenOrientation="portrait"
             android:name=".routes.RouteActivity"
             android:exported="false" />
 
-        <activity
+        <activity android:screenOrientation="portrait"
             android:name=".ui.SummaryActivity"
             android:exported="false" />
 
-        <activity
+        <activity android:screenOrientation="portrait"
             android:name=".qr.QrScannerActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
@@ -103,18 +103,21 @@
             android:exported="false" />
 
         <!-- PANTALLAS DE DIAGNOSTICO: PERSONA 1 -->
-        <activity
+        <activity android:screenOrientation="portrait"
             android:name=".bluetooth.BleTestActivity"
             android:exported="false" />
 
-        <activity
+        <activity android:screenOrientation="portrait"
             android:name=".qr.QrTestActivity"
             android:exported="false" />
 
-        <activity
+        <activity android:screenOrientation="portrait"
             android:name=".integration.LlaveroFlowTestActivity"
             android:exported="false" />
 
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fotos" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/fotos_paths" />
+        </provider>
     </application>
 
 </manifest>

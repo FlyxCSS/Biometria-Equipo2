@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Solo la foto temporal de perfil hecha con la cámara -->
+    <cache-path name="fotos" path="fotos/"/>
+</paths>
