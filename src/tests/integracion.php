@@ -147,6 +147,35 @@ comprobar((int)sql('SELECT COUNT(*) FROM MEDICIONES WHERE id_llavero = ?', ["LL-
 $mala = $medicion;
 $mala['valor'] = 43;
 pedir('POST', '/mediciones', $mala, $tokens['trabajador'], 409);
+
+// Misma fecha y llavero: O3 y temperatura tienen identidades independientes.
+$temperatura = array_replace($medicion, ['tipo' => 'TEMPERATURA', 'unidad' => 'C',
+    'valor' => 29.39, 'latitud' => 39.4, 'longitud' => -0.3]);
+pedir('POST', '/mediciones', array_replace($temperatura, ['latitud' => null, 'longitud' => null]), $tokens['trabajador'], 422);
+$guardadaTemp = pedir('POST', '/mediciones', $temperatura, $tokens['trabajador'], 201);
+comprobar($guardadaTemp['data']['guardada'] && !$guardadaTemp['data']['duplicada'], 'Temperatura confirmada.');
+$reintentoTemp = pedir('POST', '/mediciones', $temperatura, $tokens['trabajador'], 200);
+comprobar($reintentoTemp['data']['duplicada'], 'Temperatura idempotente.');
+pedir('POST', '/mediciones', array_replace($temperatura, ['valor' => 29.38]), $tokens['trabajador'], 409);
+$filaTemp = sql("SELECT * FROM MEDICIONES WHERE id_llavero=? AND tipo='TEMPERATURA'", ["LL-$sufijo"])->fetch();
+comprobar((float)$filaTemp['valor'] === 29.39 && (float)$filaTemp['latitud'] === 39.4 && (float)$filaTemp['longitud'] === -0.3, 'Grados y coordenadas conservados.');
+pedir('POST', '/mediciones', array_replace($temperatura, ['latitud' => 0, 'longitud' => 0]), $tokens['trabajador'], 409);
+foreach ([-40, -5.25, 0, 50] as $indice => $valor) {
+    $negativa = array_replace($temperatura, ['valor' => $valor,
+        'fecha_hora' => sprintf('2026-01-02T11:00:%02d.000Z', $indice)]);
+    pedir('POST', '/mediciones', $negativa, $tokens['trabajador'], 201);
+    pedir('POST', '/mediciones', $negativa, $tokens['trabajador'], 200);
+}
+try {
+    sql("UPDATE MEDICIONES SET valor=50.01 WHERE id_llavero=? AND tipo='TEMPERATURA'", ["LL-$sufijo"]);
+    throw new RuntimeException('La base aceptó una temperatura fuera de rango.');
+} catch (PDOException $error) {
+    comprobar(in_array($error->errorInfo[1] ?? 0, [3819, 4025], true), 'CHECK protege el rango de temperatura.');
+}
+pedir('POST', '/mediciones', $temperatura, $tokens['otro'], 403);
+pedir('POST', '/mediciones', $temperatura, $tokens['jefe'], 403);
+sql("DELETE FROM MEDICIONES WHERE id_llavero=? AND tipo='TEMPERATURA'", ["LL-$sufijo"]);
+
 $fila = sql('SELECT * FROM MEDICIONES WHERE id_llavero = ?', ["LL-$sufijo"])->fetch();
 comprobar($fila['fecha_hora'] === '2026-01-02 12:00:00.123' && (int)$fila['valor'] === 42, 'Fecha y valor intactos en MySQL.');
 comprobar((float)$fila['latitud'] === $medicion['latitud'] && (float)$fila['longitud'] === $medicion['longitud'], 'Se conserva precisión de coordenadas en los reintentos.');
@@ -226,7 +255,7 @@ try {
     sql('UPDATE USUARIOS SET id_parque = NULL WHERE email = ?', [$correoAlta]);
     throw new RuntimeException('Se aceptó un trabajador sin parque.');
 } catch (PDOException $error) {
-    comprobar(($error->errorInfo[1] ?? 0) === 3819, 'El catálogo conserva la obligación de parque del trabajador.');
+    comprobar(in_array($error->errorInfo[1] ?? 0, [3819, 4025], true), 'El catálogo conserva la obligación de parque del trabajador.');
 }
 $intrusion = $datosAlta;
 $intrusion['id_parque'] = $parques[1];

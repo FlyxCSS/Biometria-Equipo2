@@ -284,6 +284,8 @@ public final class      MainActivity extends FieldScreen {
             history = new com.example.ozora.senda.ui.HistoryScreen(this, section, session);
         } else if (destino == R.id.tab_sensor) {
             accion(R.id.button_select_sensor, this::gestionarLlavero);
+            accion(R.id.button_test_ble, () -> startActivity(new Intent(this,
+                    com.example.ozora.senda.bluetooth.BleTestActivity.class)));
         } else if (destino == R.id.tab_mas) {
             accion(R.id.button_profile, () -> startActivity(new Intent(this, AccountActivity.class)));
             accion(R.id.account_card, () -> startActivity(new Intent(this, AccountActivity.class)));

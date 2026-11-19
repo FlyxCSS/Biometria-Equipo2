@@ -92,13 +92,15 @@ CREATE TABLE MEDICIONES (
     id_parque INT NOT NULL,
     nombre_micro VARCHAR(100) NOT NULL,
     recibida_en DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (fecha_hora, id_llavero),
+    PRIMARY KEY (fecha_hora, id_llavero, tipo),
     KEY ultima_parque (id_parque, fecha_hora, nombre_micro),
     FOREIGN KEY (id_llavero) REFERENCES LLAVEROS(id_llavero),
     FOREIGN KEY (id_usuario) REFERENCES USUARIOS(id_usuario),
     FOREIGN KEY (id_parque) REFERENCES PARQUES(id_parque),
-    CHECK (tipo = 'O3' AND unidad = 'ppb'),
-    CHECK (valor BETWEEN 0 AND 65535 AND valor = FLOOR(valor)),
+    CONSTRAINT medicion_tipo_unidad CHECK ((tipo = 'O3' AND unidad = 'ppb') OR (tipo = 'TEMPERATURA' AND unidad = 'C')),
+    CONSTRAINT medicion_valor CHECK ((tipo = 'O3' AND valor BETWEEN 0 AND 65535 AND valor = FLOOR(valor))
+        OR (tipo = 'TEMPERATURA' AND valor BETWEEN -40 AND 50 AND ABS(valor * 100 - ROUND(valor * 100)) < 0.000001)),
+    CONSTRAINT medicion_posicion CHECK (latitud IS NOT NULL AND longitud IS NOT NULL),
     CHECK (latitud BETWEEN -90 AND 90),
     CHECK (longitud BETWEEN -180 AND 180)
 ) ENGINE=InnoDB;

@@ -13,7 +13,7 @@ return [
     'db_password' => 'CAMBIAR_EN_LOCAL',
     'app_url' => 'http://127.0.0.1:8080',
     'environment' => 'local', // En producción exigir HTTPS y usar transporte mail.
-    'mail_transport' => 'file', // file: buzón local privado; mail: transporte configurado de PHP.
+    'mail_transport' => 'mail', // file: buzón local privado; mail: transporte configurado de PHP.
     'mail_from' => 'senda@example.org',
     'mail_directory' => dirname(__DIR__, 2) . '/var/mail',
     'session_hours' => 24,

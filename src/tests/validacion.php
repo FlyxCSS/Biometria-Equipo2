@@ -63,3 +63,19 @@ foreach ([0, 65535] as $valor) {
 }
 comprobar(validarCorreo(' Julia@example.org ') === 'julia@example.org', 'Correo normalizado.');
 echo "$comprobaciones comprobaciones de validación correctas.\n";
+
+$temperatura = array_replace($lectura, ['tipo' => 'TEMPERATURA', 'unidad' => 'C', 'valor' => 29.39,
+    'latitud' => 39.4, 'longitud' => -0.3]);
+foreach ([29.39, -5.25, -40, 0, 50] as $valor) {
+    $valida = array_replace($temperatura, ['valor' => $valor]);
+    comprobar(validarMedicion($valida)['valor'] === $valor, 'Temperatura sin perder decimales.');
+}
+comprobar(validarMedicion(array_replace($temperatura, ['latitud' => 39.4, 'longitud' => -0.3]))['valor'] === 29.39,
+    'Temperatura con posición también válida.');
+foreach ([['valor', -40.01], ['valor', 50.01], ['valor', 29.391], ['valor', '29.39'],
+    ['valor', true], ['valor', INF], ['valor', NAN], ['unidad', 'ppb'], ['latitud', null], ['longitud', null]] as [$campo, $valor]) {
+    esperarRechazo(array_replace($temperatura, [$campo => $valor]));
+}
+esperarRechazo(array_replace($lectura, ['latitud' => null, 'longitud' => null]));
+esperarRechazo(array_replace($temperatura, ['latitud' => null, 'longitud' => null]));
+echo "Temperatura: validación correcta ($comprobaciones comprobaciones totales).\n";

@@ -22,6 +22,7 @@ public final class PreparadorMediciones {
     public static final long MAX_EDAD_UBICACION_MS = 10_000L;
     public static final float MAX_PRECISION_METROS = 100f;
     private final ControlContadores contadores = new ControlContadores();
+    private final ControlLecturasSinContador sinContador = new ControlLecturasSinContador();
 
     /** Diseño lógico: (String, IBeaconParser.Resultado, Location) -> preparar() -> (Resultado)
      * Descripción: Rechaza otra emisora, tramas no O3, ubicación antigua o imprecisa y duplicados recientes. */
@@ -31,30 +32,42 @@ public final class PreparadorMediciones {
             return Resultado.error("La trama no corresponde al llavero seleccionado.");
         }
         if (!trama.esOzono()) return Resultado.error("La trama no contiene O3.");
-        if (ubicacion == null) return Resultado.error("Esperando la primera ubicación.");
-        long edadMs = SystemClock.elapsedRealtimeNanos() / 1_000_000L
-                - ubicacion.getElapsedRealtimeNanos() / 1_000_000L;
-        if (edadMs < 0 || edadMs > MAX_EDAD_UBICACION_MS)
-            return Resultado.error("Ubicación antigua: esperar otra posición.");
-        if (!ubicacion.hasAccuracy() || (!Float.isFinite(ubicacion.getAccuracy()) || ubicacion.getAccuracy() < 0 || ubicacion.getAccuracy() > MAX_PRECISION_METROS))
-            return Resultado.error("Ubicación imprecisa: esperar mejor señal.");
+        if (trama.obtenerOzonoPpb() == null) return Resultado.error("Lectura O3 no disponible.");
+        String errorGps = errorUbicacion(ubicacion);
+        if (errorGps != null) return Resultado.error(errorGps);
         double lat = ubicacion.getLatitude(), lon = ubicacion.getLongitude();
-        if (!Double.isFinite(lat) || !Double.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180)
-            return Resultado.error("Coordenadas inválidas.");
         long ahora = SystemClock.elapsedRealtime();
-        if (!contadores.aceptar(seleccionado.toUpperCase(Locale.ROOT), trama.contador, ahora))
-            return Resultado.error("Anuncio BLE repetido (contador " + trama.contador + ").");
+        String identidad = seleccionado.toUpperCase(Locale.ROOT);
+        // El backend conserva contador; en el protocolo nuevo es una secuencia LOCAL de recepcion.
+        int contador = trama.contador;
+        if (contador < 0) contador = sinContador.aceptar(identidad, ahora);
+        else if (!contadores.aceptar(identidad, contador, ahora)) contador = -1;
+        if (contador < 0) return Resultado.error("Anuncio BLE repetido.");
         // El instante representa recepción BLE, no la adquisición real del sensor.
         SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT);
         formato.setTimeZone(TimeZone.getTimeZone("UTC"));
         MedicionAmbiental medicion = new MedicionAmbiental(seleccionado, trama.minor, lat, lon,
-                ubicacion.getAccuracy(), formato.format(new Date()), trama.contador);
+                ubicacion.getAccuracy(), formato.format(new Date()), contador);
         return Resultado.ok(medicion);
+    }
+
+    static String errorUbicacion(Location ubicacion) {
+        if (ubicacion == null) return "Esperando la primera ubicación.";
+        long edadMs = SystemClock.elapsedRealtimeNanos() / 1_000_000L
+                - ubicacion.getElapsedRealtimeNanos() / 1_000_000L;
+        if (edadMs < 0 || edadMs > MAX_EDAD_UBICACION_MS)
+            return "Ubicación antigua: esperar otra posición.";
+        if (!ubicacion.hasAccuracy() || (!Float.isFinite(ubicacion.getAccuracy()) || ubicacion.getAccuracy() < 0 || ubicacion.getAccuracy() > MAX_PRECISION_METROS))
+            return "Ubicación imprecisa: esperar mejor señal.";
+        double lat = ubicacion.getLatitude(), lon = ubicacion.getLongitude();
+        if (!Double.isFinite(lat) || !Double.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180)
+            return "Coordenadas inválidas.";
+        return null;
     }
 
     /** Diseño lógico: () -> reiniciar() -> (void)
      * Descripción: Limpia los controles de duplicados al comenzar otra prueba. */
-    public void reiniciar() { contadores.reiniciar(); }
+    public void reiniciar() { contadores.reiniciar(); sinContador.reiniciar(); }
 
     /** Resultado con medición o motivo de descarte. */
     public static final class Resultado {

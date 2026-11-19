@@ -1,6 +1,9 @@
 package com.example.ozora.senda.ui;
 
 import android.content.Context;
+import android.os.SystemClock;
+import com.example.ozora.senda.bluetooth.EstadoLlavero;
+import java.util.Locale;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
@@ -15,7 +18,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 
 /** Presenta solo información real: no simula batería, firmware o recepción. */
 public final class KeyringScreen {
@@ -31,6 +33,28 @@ public final class KeyringScreen {
     public void refresh(SessionManager session, RouteManager routes, SharedPreferences prefs,
                         String sensor, boolean active, boolean receiving, String state) {
         boolean selected = sensor != null;
+        // Telemetría real del llavero (batería y temperatura) cuando ha llegado por BLE.
+        long ahora = SystemClock.elapsedRealtime();
+        Integer bateria = EstadoLlavero.COMPARTIDO.bateria(sensor, ahora);
+        Double temperatura = EstadoLlavero.COMPARTIDO.temperatura(sensor, ahora);
+        text(R.id.keyring_battery_value, bateria == null ? "—" : bateria + "%");
+        root.findViewById(R.id.keyring_battery_value).setContentDescription(bateria == null
+                ? context.getString(R.string.keyring_battery_unknown) : context.getString(R.string.keyring_battery_percent, bateria));
+        View bar = root.findViewById(R.id.keyring_battery_bar);
+        if (bateria == null) bar.setVisibility(View.INVISIBLE);
+        else {
+            bar.setVisibility(View.VISIBLE);
+            bar.setBackgroundTintList(ColorStateList.valueOf(bateria <= 20 ? color(R.color.status_error_strong) : color(R.color.status_success)));
+            View track = (View) bar.getParent();
+            int level = Math.max(0, Math.min(100, bateria));
+            track.post(() -> {
+                android.view.ViewGroup.LayoutParams p = bar.getLayoutParams();
+                p.width = Math.round(track.getWidth() * level / 100f);
+                bar.setLayoutParams(p);
+            });
+        }
+        text(R.id.keyring_temperature_value, temperatura == null ? "No disponible"
+                : String.format(Locale.getDefault(), "%.1f °C", temperatura));
         text(R.id.keyring_id, selected ? sensor : "Sin llavero vinculado");
         TextView id = root.findViewById(R.id.keyring_id);
         id.setTextSize(selected ? 30 : 24);

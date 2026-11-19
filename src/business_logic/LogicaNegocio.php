@@ -215,16 +215,20 @@ final class LogicaNegocio
                 || (int)$llavero['id_organizacion'] !== (int)$usuario['id_organizacion']) {
                 throw new ErrorApi(403, 'LLAVERO_NO_AUTORIZADO', 'El llavero no está autorizado para tu cuenta.');
             }
-            $existente = $this->consulta('SELECT * FROM MEDICIONES WHERE fecha_hora = ? AND id_llavero = ?',
-                [$datos['fecha_sql'], $llavero['id_llavero']])->fetch();
+            $existente = $this->consulta('SELECT * FROM MEDICIONES WHERE fecha_hora = ? AND id_llavero = ? AND tipo = ?',
+                [$datos['fecha_sql'], $llavero['id_llavero'], $datos['tipo']])->fetch();
             if ($existente) {
                 $igual = (int)$existente['id_usuario'] === (int)$usuario['id_usuario']
                     && (int)$existente['id_parque'] === (int)$usuario['id_parque']
                     && $existente['nombre_micro'] === $datos['nombre_micro']
                     && $existente['tipo'] === $datos['tipo'] && $existente['unidad'] === $datos['unidad']
-                    && (int)$existente['valor'] === $datos['valor']
-                    && (float)$existente['latitud'] === (float)$datos['latitud']
-                    && (float)$existente['longitud'] === (float)$datos['longitud']
+                    && (float)$existente['valor'] === (float)$datos['valor']
+                    && (($existente['latitud'] === null && $datos['latitud'] === null)
+                        || ($existente['latitud'] !== null && $datos['latitud'] !== null
+                            && (float)$existente['latitud'] === (float)$datos['latitud']))
+                    && (($existente['longitud'] === null && $datos['longitud'] === null)
+                        || ($existente['longitud'] !== null && $datos['longitud'] !== null
+                            && (float)$existente['longitud'] === (float)$datos['longitud']))
                     && (bool)$existente['simulada'] === $datos['simulada'];
                 if (!$igual) {
                     throw new ErrorApi(409, 'MEDICION_EN_CONFLICTO', 'Existe otra lectura con la misma identidad.');
@@ -235,8 +239,8 @@ final class LogicaNegocio
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     // JSON conserva la precisión del float; la conversión automática a string de PDO puede recortarla.
                     [$datos['fecha_sql'], $llavero['id_llavero'], $datos['tipo'], $datos['valor'],
-                        json_encode((float)$datos['latitud'], JSON_THROW_ON_ERROR),
-                        json_encode((float)$datos['longitud'], JSON_THROW_ON_ERROR), $datos['unidad'], (int)$datos['simulada'], $usuario['id_usuario'],
+                        $datos['latitud'] === null ? null : json_encode((float)$datos['latitud'], JSON_THROW_ON_ERROR),
+                        $datos['longitud'] === null ? null : json_encode((float)$datos['longitud'], JSON_THROW_ON_ERROR), $datos['unidad'], (int)$datos['simulada'], $usuario['id_usuario'],
                         $usuario['id_parque'], $datos['nombre_micro']]);
             }
             $this->db->commit();
@@ -292,7 +296,7 @@ final class LogicaNegocio
         if ($parque !== (int)$usuario['id_parque']) {
             throw new ErrorApi(404, 'PARQUE_NO_DISPONIBLE', 'Parque no disponible.');
         }
-        $fila = $this->consulta('SELECT * FROM MEDICIONES WHERE id_parque = ?
+        $fila = $this->consulta('SELECT * FROM MEDICIONES WHERE id_parque = ? AND tipo = \'O3\'
             ORDER BY fecha_hora DESC, nombre_micro ASC, id_llavero ASC LIMIT 1', [$parque])->fetch();
         $medicion = null;
         if ($fila) {

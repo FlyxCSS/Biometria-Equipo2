@@ -15,14 +15,17 @@ import android.os.Looper;
 import android.os.SystemClock;
 import com.example.ozora.senda.bluetooth.BleScanner;
 import com.example.ozora.senda.bluetooth.IBeaconParser;
+import com.example.ozora.senda.bluetooth.EstadoLlavero;
 import com.example.ozora.senda.location.LocationTracker;
 import com.example.ozora.senda.model.MedicionAmbiental;
+import com.example.ozora.senda.model.MedicionTemperatura;
 import com.example.ozora.senda.qr.QrLlaveroParser;
 
 /** La selección QR NO es autorización. No transmite al servidor. */
 public final class CapturaLlaveroController implements BleScanner.Oyente, LocationTracker.Oyente {
     public interface Oyente {
         default void alRecibirAnuncio() {}
+        default void alPrepararTemperatura(MedicionTemperatura medicion) {}
         /** Diseño lógico: (String) -> alCambiarEstado() -> (void). */
         void alCambiarEstado(String mensaje);
         /** Diseño lógico: (Location) -> alRecibirUbicacion() -> (void). */
@@ -38,6 +41,9 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
     private final Handler principal = new Handler(Looper.getMainLooper());
     private final PreparadorMediciones preparador = new PreparadorMediciones();
     private String llavero;
+    private final PreparadorTemperaturas preparadorTemperaturas = new PreparadorTemperaturas();
+    private IBeaconParser.Resultado temperaturaPendiente;
+    private long instanteTemperaturaPendiente;
     private Location ultima;
     private boolean activo;
     private IBeaconParser.Resultado pendienteUbicacion;
@@ -78,13 +84,24 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
         return true;
     }
     /** Diseño lógico: () -> detener() -> (void). */
-    public void detener() { activo = false; principal.removeCallbacksAndMessages(null); ble.detenerEscaneo(); gps.detener(); ultima = null; pendienteUbicacion = null; instantePendienteMs = 0; }
+    public void detener() { preparadorTemperaturas.reiniciar(); temperaturaPendiente = null; instanteTemperaturaPendiente = 0; activo = false; EstadoLlavero.COMPARTIDO.reiniciar(); principal.removeCallbacksAndMessages(null); ble.detenerEscaneo(); gps.detener(); ultima = null; pendienteUbicacion = null; instantePendienteMs = 0; }
     /** Diseño lógico: (IBeaconParser.Resultado, String) -> alRecibirTrama() -> (void). */
     @Override public void alRecibirTrama(IBeaconParser.Resultado trama, String mac) {
         principal.post(() -> {
             if (!activo || llavero == null || trama == null || trama.nombreBle == null
-                    || !llavero.equalsIgnoreCase(trama.nombreBle) || !trama.esOzono()) return;
+                    || !llavero.equalsIgnoreCase(trama.nombreBle)) return;
             oyente.alRecibirAnuncio();
+            EstadoLlavero.COMPARTIDO.actualizar(trama, SystemClock.elapsedRealtime());
+            // Temperatura y bateria se muestran aun sin una posicion GPS valida.
+            if (trama.esTemperatura() && trama.obtenerTemperaturaC() != null) {
+                if (PreparadorMediciones.errorUbicacion(ultima) == null) publicarTemperatura(trama);
+                else {
+                    temperaturaPendiente = trama;
+                    instanteTemperaturaPendiente = SystemClock.elapsedRealtime();
+                    oyente.alCambiarEstado("Temperatura recibida. Esperando ubicación válida para guardarla y enviarla.");
+                }
+            }
+            if (!trama.esOzono()) return;
             // Se recuerda la trama mientras llega la primera ubicación; no se considera enviada.
             if (ultima == null) {
                 pendienteUbicacion = trama;
@@ -100,6 +117,15 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
             if (!activo) return;
             ultima = ubicacion;
             oyente.alRecibirUbicacion(ubicacion);
+            if (temperaturaPendiente != null) {
+                long edad = SystemClock.elapsedRealtime() - instanteTemperaturaPendiente;
+                if (edad < 0 || edad > MAX_ESPERA_TRAMA_MS) temperaturaPendiente = null;
+                else if (PreparadorMediciones.errorUbicacion(ubicacion) == null) {
+                    IBeaconParser.Resultado pendiente = temperaturaPendiente;
+                    temperaturaPendiente = null;
+                    publicarTemperatura(pendiente);
+                }
+            }
             if (pendienteUbicacion != null) {
                 IBeaconParser.Resultado trama = pendienteUbicacion;
                 long edad = SystemClock.elapsedRealtime() - instantePendienteMs;
@@ -110,6 +136,11 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
     }
     /** Diseño lógico: (IBeaconParser.Resultado) -> publicarSiValida() -> (void).
      * Descripción: Prepara una lectura solo cuando haya posición válida; evita reenviar repetidas. */
+    private void publicarTemperatura(IBeaconParser.Resultado trama) {
+        MedicionTemperatura medicion = preparadorTemperaturas.preparar(llavero, trama, ultima);
+        if (medicion != null) oyente.alPrepararTemperatura(medicion);
+    }
+
     private void publicarSiValida(IBeaconParser.Resultado trama) {
         PreparadorMediciones.Resultado r = preparador.preparar(llavero, trama, ultima);
         if (r.medicion != null) oyente.alPrepararMedicion(r.medicion, trama.rssi);

@@ -34,7 +34,7 @@ public class ColaMedicionesTest {
             }
             try(RouteManager rutas=new RouteManager(contexto,archivo)) {
                 SQLiteDatabase db=rutas.getWritableDatabase();
-                assertEquals(2,db.getVersion());
+                assertEquals(5,db.getVersion());
                 try(Cursor c=db.rawQuery("SELECT ppb,nombre_micro FROM lectura WHERE id=1",null)) {
                     assertTrue(c.moveToFirst()); assertEquals(42,c.getInt(0)); assertTrue(c.isNull(1));
                 }

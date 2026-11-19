@@ -219,7 +219,28 @@ public final class SummaryActivity extends RouteScreen {
         return value;
     }
 
+    private int temperatureCount;
+    private Cursor readings(int limit,int offset) {
+        return temperature ? manager.temperaturasRuta(session.worker,route.id,limit,offset)
+                : manager.lecturasRuta(session.worker,route.id,limit,offset);
+    }
     private void refreshReadings() {
+        if (temperature) {
+            double total=0; int min=Integer.MAX_VALUE,max=Integer.MIN_VALUE; temperatureCount=0;
+            try(Cursor c=readings(-1,0)) {
+                while(c.moveToNext()) { int v=c.getInt(0); total+=v; min=Math.min(min,v); max=Math.max(max,v); temperatureCount++; }
+            }
+            average.setText(temperatureCount==0 ? "—" : value((int)Math.round(total/temperatureCount)));
+            maximum.setText(temperatureCount==0 ? "—" : value(max));
+            minimum.setText(temperatureCount==0 ? "—" : value(min));
+            rows.removeAllViews(); shown=0;
+            all.setVisibility(temperatureCount>PREVIEW ? View.VISIBLE : View.GONE);
+            all.setText(expanded ? R.string.route_show_less : R.string.route_show_all);
+            more.setVisibility(View.GONE);
+            if(temperatureCount==0) addWithTopMargin(rows,label(getString(R.string.route_no_temperature),15,false),8);
+            else appendRows(expanded ? PAGE : PREVIEW);
+            return;
+        }
         boolean empty = temperature || route.count == 0;
         average.setText(empty ? "—" : valueWithUnit(String.valueOf((int) Math.round(route.mean)), "ppb"));
         maximum.setText(empty ? "—" : valueWithUnit(String.valueOf(route.maximum), "ppb"));
@@ -238,7 +259,7 @@ public final class SummaryActivity extends RouteScreen {
     }
 
     private void appendRows(int limit) {
-        try (Cursor readings = manager.lecturasRuta(session.worker, route.id, limit, shown)) {
+        try (Cursor readings = readings(limit, shown)) {
             while (readings.moveToNext()) {
                 View divider = new View(this);
                 divider.setBackgroundColor(0xffece9e2);
@@ -262,13 +283,13 @@ public final class SummaryActivity extends RouteScreen {
                 shown++;
             }
         }
-        more.setVisibility(expanded && shown < route.count ? View.VISIBLE : View.GONE);
+        more.setVisibility(expanded && shown < (temperature ? temperatureCount : route.count) ? View.VISIBLE : View.GONE);
     }
 
     private void refreshMap() {
         JSONArray markers = new JSONArray();
-        if (!temperature) {
-            try (Cursor readings = manager.lecturasRuta(session.worker, route.id, -1, 0)) {
+        {
+            try (Cursor readings = readings(-1, 0)) {
                 while (readings.moveToNext()) {
                     if (readings.isNull(2) || readings.isNull(3)) continue;
                     markers.put(new JSONArray().put((Object) readings.getDouble(2)).put((Object) readings.getDouble(3))
@@ -279,7 +300,7 @@ public final class SummaryActivity extends RouteScreen {
         map.update(manager.puntos(route.id), markers, 0, 0);
     }
 
-    private String value(int ppb) { return getString(R.string.route_ozone_value, ppb); }
+    private String value(int ppb) { return temperature ? String.format(Locale.getDefault(), "%.2f °C", ppb / 100.0) : getString(R.string.route_ozone_value, ppb); }
 
     private String readingTime(String utc) {
         try { return time.format(new Date(SessionManager.instante(utc))); }

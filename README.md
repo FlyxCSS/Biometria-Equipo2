@@ -90,7 +90,7 @@ Prueba del proxy web desde la raíz con `node --test src/tests/logica-fake.test.
 ### Web y backend en Plesk
 
 1. En Plesk, prepara PHP 8.2 o superior con `pdo_mysql` y `mbstring`, HTTPS y una base MySQL o MariaDB con un usuario propio.
-2. Fuera de `httpdocs`, crea `senda_s2_privado/` y sube la carpeta `src/`. Copia `src/config/example.php` a `src/config/local.php` dentro de esa carpeta privada. Configura el DSN, el usuario, la contraseña, `environment=production` y `app_url=https://TU-DOMINIO/senda`.
+2. Fuera de `httpdocs`, crea `senda_s2_privado/` y sube la carpeta `src/`. Copia `src/config/example.php` a `src/config/local.php` dentro de esa carpeta privada. Configura el DSN, el usuario, la contraseña, `environment=production`, `app_url=https://TU-DOMINIO/senda`, `mail_transport=mail` y un `mail_from` autorizado por el alojamiento. El transporte `mail` envía mediante la configuración de correo de PHP; para pruebas locales sin envío real, usa `mail_transport=file`.
 3. Para una base vacía, ejecuta `php src/tools/gestionar.php instalar` desde `senda_s2_privado/`. Si la base ya existe, revisa las migraciones que le correspondan antes de aplicar cambios. [Guía del backend](doc/backend-puesta-en-marcha.md).
 4. Crea `httpdocs/senda/`. Copia allí [plesk-index.php](src/communication/plesk-index.php) con el nombre `index.php` y [el archivo .htaccess](src/web/.htaccess). El controlador sirve los recursos desde la copia privada y la regla de Apache conserva la cabecera `Authorization`.
 5. Abre `https://TU-DOMINIO/senda/` y `https://TU-DOMINIO/senda/acceso`. La base HTTPS de la API para Android es `https://TU-DOMINIO/senda/api/v1`.
