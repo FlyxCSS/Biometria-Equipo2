@@ -29,6 +29,10 @@ public final class QrScannerActivity extends FieldScreen {
         protegerBarras(findViewById(R.id.qr_scroll));
         scan = findViewById(R.id.qr_scan);
         scan.setOnClickListener(v -> scan());
+        findViewById(R.id.qr_frame).setOnClickListener(v -> scan());
+        androidx.core.view.WindowInsetsControllerCompat bars =
+                new androidx.core.view.WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+        bars.setAppearanceLightStatusBars(false);
         findViewById(R.id.qr_back).setOnClickListener(v -> finish());
         findViewById(R.id.qr_manual).setOnClickListener(v -> manual());
         findViewById(R.id.qr_gps).setOnClickListener(v -> result(null));

@@ -1,20 +1,24 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/qr_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/senda_surface">
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="24dp" android:paddingBottom="28dp">
-<com.google.android.material.button.MaterialButton android:id="@+id/qr_back" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/flow_back" android:textAllCaps="false"/>
-<TextView style="@style/FlowTitle" android:text="@string/qr_title"/>
-<TextView style="@style/AccountSubtitle" android:text="@string/qr_subtitle" android:textColor="#536A5B"/>
-<LinearLayout android:id="@+id/qr_camera_panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:padding="24dp" android:background="@drawable/qr_panel">
-<ImageView android:layout_width="168dp" android:layout_height="168dp" android:layout_marginVertical="24dp" android:src="@drawable/qr_frame" android:importantForAccessibility="no"/>
-<TextView style="@style/FlowDescription" android:text="@string/qr_focus" android:textColor="#FFFFFF"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/qr_scan" style="@style/AuthButton" android:text="@string/qr_camera"/>
-<TextView style="@style/SendaSectionText" android:text="@string/qr_camera_note" android:textColor="#E2EBDC" android:gravity="center" android:textSize="13sp" android:paddingTop="12dp"/>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/qr_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@drawable/s_qr_bg">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="16dp" android:paddingBottom="28dp">
+<com.google.android.material.button.MaterialButton android:id="@+id/qr_back" style="@style/SendaBack" android:layout_marginTop="40dp" app:backgroundTint="#40FFFFFF" app:iconTint="#FFFFFF" android:elevation="0dp" android:contentDescription="Volver"/>
+<TextView style="@style/FlowTitle" android:text="@string/qr_title" android:textColor="#FFFFFF" android:textSize="34sp"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/qr_subtitle" android:textSize="16sp" android:textColor="#C9D1C6"/>
+
+<LinearLayout android:id="@+id/qr_camera_panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="56dp">
+<ImageView android:id="@+id/qr_frame" android:layout_width="260dp" android:layout_height="260dp" android:src="@drawable/s_qr_frame" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/qr_camera" android:clickable="true" android:focusable="true"/>
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="28dp" android:background="@drawable/s_pill" android:backgroundTint="#55FFFFFF" android:paddingStart="16dp" android:paddingEnd="18dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:drawableStart="@drawable/ic_s_qr" android:drawableTint="#FFFFFF" android:drawablePadding="8dp" android:gravity="center_vertical" android:text="@string/qr_focus" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/qr_scan" style="@style/OutlineButton" android:layout_width="wrap_content" android:layout_marginTop="20dp" android:minHeight="48dp" android:paddingStart="22dp" android:paddingEnd="22dp" android:textSize="16sp" android:text="@string/qr_camera" android:textColor="#FFFFFF" app:backgroundTint="#22FFFFFF" app:strokeColor="#66FFFFFF" app:icon="@drawable/ic_s_camera" app:iconTint="#FFFFFF"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/qr_camera_note" android:textColor="#AEB8AB" android:gravity="center" android:textSize="13sp" android:paddingTop="12dp"/>
 </LinearLayout>
-<TextView android:id="@+id/qr_feedback" style="@style/SendaSectionText" android:accessibilityLiveRegion="polite" android:paddingTop="12dp" android:visibility="gone"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/qr_manual" style="@style/AuthButton" android:text="@string/qr_manual" android:layout_marginTop="20dp"/>
-<LinearLayout android:id="@+id/qr_manual_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" android:paddingTop="16dp">
+<TextView android:id="@+id/qr_feedback" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:textSize="15sp" android:textColor="#FFFFFF" android:accessibilityLiveRegion="polite" android:paddingTop="16dp" android:visibility="gone"/>
+
+<LinearLayout android:id="@+id/qr_manual_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" android:layout_marginTop="40dp" android:padding="20dp" android:background="@drawable/s_card">
 <TextView style="@style/AuthLabel" android:text="@string/qr_code_label" android:labelFor="@id/qr_code"/>
-<EditText android:id="@+id/qr_code" style="@style/AccountInput" android:inputType="textCapCharacters" android:maxLength="32" android:hint="@string/qr_code_hint" android:imeOptions="actionDone"/>
+<EditText android:id="@+id/qr_code" style="@style/AuthEdit" android:inputType="textCapCharacters" android:maxLength="32" android:hint="@string/qr_code_hint" android:imeOptions="actionDone"/>
 <com.google.android.material.button.MaterialButton android:id="@+id/qr_confirm" style="@style/AuthButton" android:text="@string/qr_selected" android:layout_marginTop="16dp"/>
 </LinearLayout>
-<com.google.android.material.button.MaterialButton android:id="@+id/qr_gps" style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/qr_gps" android:textAllCaps="false" android:layout_marginTop="12dp"/>
+
+<View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="32dp"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/qr_manual" style="@style/AuthButton" android:layout_width="wrap_content" android:paddingStart="18dp" android:paddingEnd="22dp" android:text="@string/qr_manual" android:textColor="@color/senda_ink" app:backgroundTint="#F0F0EE" app:icon="@drawable/ic_s_keyboard" app:iconTint="@color/senda_ink"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/qr_gps" style="@style/LinkButton" android:layout_width="wrap_content" android:layout_marginTop="8dp" android:text="@string/qr_gps" android:textColor="#DDE4D9" android:textStyle="normal" android:textSize="15sp"/>
 </LinearLayout></ScrollView>

@@ -195,7 +195,7 @@ public final class RouteManager extends SQLiteOpenHelper {
 
     public Cursor historial(Worker worker, String sensor, int limite, int desplazamiento) {
         String identidad = "COALESCE(l.nombre_micro,r.sensor)";
-        String sql = "SELECT l.ppb,l.fecha," + identidad + ",r.id FROM lectura l JOIN ruta r ON r.id=l.ruta"
+        String sql = "SELECT l.ppb,l.fecha," + identidad + ",r.id,l.enviado,l.error_envio,l.lat,l.lon FROM lectura l JOIN ruta r ON r.id=l.ruta"
                 + " WHERE r.usuario=? AND r.parque=?" + (sensor == null ? "" : " AND " + identidad + "=?")
                 + " ORDER BY l.fecha DESC,l.id DESC LIMIT ? OFFSET ?";
         String usuario = String.valueOf(worker.id), parque = String.valueOf(worker.parkId);
@@ -203,6 +203,14 @@ public final class RouteManager extends SQLiteOpenHelper {
         return getReadableDatabase().rawQuery(sql, sensor == null
                 ? new String[]{usuario, parque, max, offset}
                 : new String[]{usuario, parque, sensor, max, offset});
+    }
+
+    /** Lecturas locales de la cuenta desde un instante UTC ISO, para el gráfico del historial. */
+    public Cursor lecturasDesde(Worker worker, String since) {
+        return getReadableDatabase().rawQuery(
+                "SELECT l.ppb,l.fecha FROM lectura l JOIN ruta r ON r.id=l.ruta"
+                + " WHERE r.usuario=? AND r.parque=? AND l.fecha>=? ORDER BY l.fecha LIMIT 20000",
+                new String[]{String.valueOf(worker.id), String.valueOf(worker.parkId), since});
     }
 
     public Cursor lecturasRuta(Worker worker, long id, int limite, int desplazamiento) {

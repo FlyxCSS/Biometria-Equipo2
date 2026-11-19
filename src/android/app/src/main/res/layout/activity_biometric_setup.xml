@@ -1,13 +1,17 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/auth_landscape">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/senda_surface">
+<ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/senda_forest" android:scaleType="fitEnd" android:importantForAccessibility="no"/>
 <ScrollView android:id="@+id/bio_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="24dp" android:paddingBottom="28dp">
-<com.google.android.material.button.MaterialButton android:id="@+id/bio_back" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/flow_back" android:textAllCaps="false"/>
-<TextView style="@style/FlowTitle" android:text="@string/bio_title"/>
-<ImageView android:layout_width="176dp" android:layout_height="176dp" android:layout_gravity="center_horizontal" android:layout_marginVertical="20dp" android:src="@drawable/bio_fingerprint" android:importantForAccessibility="no"/>
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp" android:background="@drawable/auth_card">
-<TextView android:id="@+id/bio_question" style="@style/FlowHeadline" android:text="@string/bio_question"/>
-<TextView android:id="@+id/bio_description" style="@style/FlowDescription" android:text="@string/bio_description"/>
-<TextView android:id="@+id/bio_feedback" style="@style/SendaSectionText" android:accessibilityLiveRegion="polite" android:visibility="gone"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/bio_activate" style="@style/AuthButton" android:text="@string/bio_enable"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="16dp" android:paddingBottom="24dp">
+<com.google.android.material.button.MaterialButton android:id="@+id/bio_back" style="@style/SendaBack" android:layout_marginTop="40dp" android:contentDescription="Volver"/>
+<TextView style="@style/FlowTitle" android:text="@string/bio_title" android:visibility="gone"/>
+<FrameLayout android:layout_width="168dp" android:layout_height="168dp" android:layout_gravity="center_horizontal" android:layout_marginTop="44dp" android:background="@drawable/s_halo">
+<ImageView android:layout_width="64dp" android:layout_height="64dp" android:layout_gravity="center" android:src="@drawable/ic_s_fingerprint" android:importantForAccessibility="no"/>
+</FrameLayout>
+<TextView android:id="@+id/bio_question" style="@style/FlowHeadline" android:layout_marginTop="28dp" android:textSize="30sp" android:text="@string/bio_question"/>
+<TextView android:id="@+id/bio_description" style="@style/FlowDescription" android:paddingHorizontal="12dp" android:text="@string/bio_description"/>
+<View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="140dp"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:background="@drawable/s_sheet" android:elevation="2dp">
+<TextView android:id="@+id/bio_feedback" style="@style/SendaSectionText" android:textColor="@color/senda_muted" android:textSize="14sp" android:gravity="center" android:accessibilityLiveRegion="polite" android:visibility="gone"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/bio_activate" style="@style/MintButton" android:text="@string/bio_enable" app:icon="@drawable/ic_s_check_circle"/>
 <com.google.android.material.button.MaterialButton android:id="@+id/bio_skip" style="@style/FlowSecondary" android:text="@string/bio_skip"/>
 </LinearLayout></LinearLayout></ScrollView></FrameLayout>

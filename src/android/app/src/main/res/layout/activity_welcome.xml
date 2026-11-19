@@ -1,0 +1,20 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/welcome_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/senda_surface">
+    <ImageView android:id="@+id/welcome_forest" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:src="@drawable/senda_forest" android:scaleType="fitEnd" android:adjustViewBounds="false"
+        android:importantForAccessibility="no"/>
+    <LinearLayout android:id="@+id/welcome_brand" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:gravity="center_horizontal" android:layout_marginTop="112dp">
+        <ImageView android:id="@+id/welcome_logo" android:layout_width="154dp" android:layout_height="176dp"
+            android:src="@drawable/senda_logo" android:scaleType="fitCenter" android:contentDescription="SENDA"/>
+        <TextView android:id="@+id/welcome_tagline" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="28dp" android:paddingHorizontal="48dp" android:gravity="center"
+            android:text="Monitorización ambiental para parques naturales" android:textSize="17sp"
+            android:lineSpacingExtra="4dp" android:textColor="@color/senda_muted"/>
+    </LinearLayout>
+    <com.google.android.material.button.MaterialButton android:id="@+id/welcome_start" style="@style/AuthButton"
+        android:layout_gravity="bottom" android:layout_marginHorizontal="24dp" android:layout_marginBottom="48dp"
+        android:minHeight="56dp" android:text="Comenzar" android:textColor="@color/senda_ink"
+        app:backgroundTint="#F2F2F0" android:elevation="0dp"/>
+</FrameLayout>

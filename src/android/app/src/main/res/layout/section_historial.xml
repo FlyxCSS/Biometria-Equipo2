@@ -1,17 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+<TextView style="@style/AccountTitle" android:text="Historial"/>
+<TextView style="@style/AccountSubtitle" android:text="Evolución de las mediciones"/>
+<com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/history_magnitude" style="@style/SegmentGroup" app:singleSelection="true" app:selectionRequired="true" app:checkedButton="@id/history_o3">
+<com.google.android.material.button.MaterialButton android:id="@+id/history_o3" style="@style/RoutePeriodButton" android:text="O₃"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/history_temperature" style="@style/RoutePeriodButton" android:text="Temperatura"/>
+</com.google.android.material.button.MaterialButtonToggleGroup>
 
-    <TextView style="@style/SendaSectionTitle" android:text="@string/main_historial" />
-    <TextView style="@style/SendaSectionLabel" android:text="@string/main_recent_readings" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_refresh_history" style="@style/SendaSectionButton" android:text="@string/main_refresh" />
-    <TextView android:id="@+id/text_list_empty" style="@style/SendaSectionText" android:text="@string/main_empty_history" />
-    <LinearLayout android:id="@+id/list_history" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
-    <TextView android:id="@+id/page_number" style="@style/SendaSectionText" />
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-        <com.google.android.material.button.MaterialButton android:id="@+id/button_previous" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:text="@string/main_prev" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/button_next" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:text="@string/main_next" />
-    </LinearLayout>
+<LinearLayout style="@style/AccountCard" android:layout_marginTop="16dp" android:paddingTop="16dp" android:paddingBottom="16dp">
+<com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/history_period" style="@style/SegmentGroup" app:singleSelection="true" app:selectionRequired="true" app:checkedButton="@id/history_day">
+<com.google.android.material.button.MaterialButton android:id="@+id/history_day" style="@style/RoutePeriodButton" android:text="Hoy"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/history_week" style="@style/RoutePeriodButton" android:text="Semana"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/history_month" style="@style/RoutePeriodButton" android:text="Mes"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/history_year" style="@style/RoutePeriodButton" android:text="Año"/>
+</com.google.android.material.button.MaterialButtonToggleGroup>
+<TextView android:id="@+id/history_mean" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:textSize="16sp" android:textColor="@color/senda_muted"/>
+<com.example.ozora.senda.ui.BarChartView android:id="@+id/history_chart" android:layout_width="match_parent" android:layout_height="196dp" android:layout_marginTop="8dp"/>
 </LinearLayout>
+
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginTop="4dp">
+<TextView style="@style/SectionHeader" android:layout_width="0dp" android:layout_weight="1" android:text="MEDICIONES RECIENTES"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_refresh_history" style="@style/HomeMapButton" android:layout_height="40dp" android:paddingHorizontal="12dp" android:text="Actualizar" android:textStyle="bold"/>
+</LinearLayout>
+<com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/history_source" style="@style/SegmentGroup" android:layout_marginBottom="12dp" app:singleSelection="true" app:selectionRequired="true" app:checkedButton="@id/history_phone">
+<com.google.android.material.button.MaterialButton android:id="@+id/history_phone" style="@style/RoutePeriodButton" android:layout_height="38dp" android:textSize="14sp" android:text="Este móvil"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/history_account" style="@style/RoutePeriodButton" android:layout_height="38dp" android:textSize="14sp" android:text="Mi cuenta"/>
+</com.google.android.material.button.MaterialButtonToggleGroup>
+<TextView android:id="@+id/history_hint" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"/>
+<ProgressBar android:id="@+id/history_loading" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="center" android:indeterminateTint="@color/senda_ink" android:visibility="gone" android:contentDescription="Cargando historial"/>
+<TextView android:id="@+id/text_list_empty" style="@style/AccountDetail" android:text="Todavía no hay lecturas. Vincula tu llavero y comienza un recorrido para registrar el aire de tu entorno." android:accessibilityLiveRegion="polite"/>
+<LinearLayout android:id="@+id/list_history" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/s_card" android:elevation="1dp"/>
+<TextView android:id="@+id/page_number" style="@style/SendaSectionText" android:gravity="center" android:textColor="@color/senda_muted" android:layout_marginTop="8dp"/>
+<LinearLayout android:id="@+id/history_pages" android:layout_width="match_parent" android:layout_height="wrap_content">
+<com.google.android.material.button.MaterialButton android:id="@+id/button_previous" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:layout_marginEnd="6dp" android:text="Anterior"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_next" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="6dp" android:text="Siguiente"/>
+</LinearLayout></LinearLayout>

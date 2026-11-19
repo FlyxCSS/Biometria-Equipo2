@@ -68,6 +68,7 @@ public final class      MainActivity extends FieldScreen {
     private static final int REQUEST_SENSOR = 20;
     private static final int REQUEST_MAP_LOCATION = 21;
     private static final int REQUEST_ROUTE_NOTIFICATION = 23;
+    private static final int REQUEST_SETTINGS_LOCATION = 24;
     private boolean notificationPermissionAsked;
 
     private final Handler reloj = new Handler(Looper.getMainLooper());
@@ -88,7 +89,8 @@ public final class      MainActivity extends FieldScreen {
     private String sensorRuta;
     private long ultimoEnvio;
     private HomeMapController homeMap;
-    private boolean heatEnabled = true, heatWeek, mapPermissionAsked;
+    private com.example.ozora.senda.ui.HistoryScreen history;
+    private boolean heatEnabled, heatWeek, mapPermissionAsked;
     private boolean operacionLlavero;
     private static final java.util.concurrent.ExecutorService REMOTO = java.util.concurrent.Executors.newSingleThreadExecutor();
 
@@ -142,7 +144,7 @@ public final class      MainActivity extends FieldScreen {
             historyPage = state.getInt("history_page");
         }
         if (state != null) {
-            heatEnabled = state.getBoolean("heat_enabled", true);
+            heatEnabled = state.getBoolean("heat_enabled", false);
             heatWeek = state.getBoolean("heat_week");
             mapPermissionAsked = state.getBoolean("map_permission_asked");
             notificationPermissionAsked = state.getBoolean("notification_permission_asked");
@@ -188,7 +190,7 @@ public final class      MainActivity extends FieldScreen {
             if (homeMap != null) homeMap.start();
             actualizar();
             actualizarRemoto();
-            if (tab == R.id.tab_rutas || tab == R.id.tab_historial) cargarPagina(false);
+            if (tab == R.id.tab_rutas) cargarPagina(false);
             reloj.post(tick);
         }
     }
@@ -202,11 +204,13 @@ public final class      MainActivity extends FieldScreen {
     @Override protected void onDestroy() {
         if (bio != null) bio.cancelar();
         if (homeMap != null) homeMap.destroy();
+        if (history != null) history.close();
         if (rutas != null) rutas.close();
         super.onDestroy();
     }
 
     private void mostrar(int destino) {
+        if (history != null) { history.close(); history = null; }
         int layout = R.layout.section_inicio;
         if (destino == R.id.tab_rutas) layout = R.layout.section_rutas;
         else if (destino == R.id.tab_historial) layout = R.layout.section_historial;
@@ -222,7 +226,9 @@ public final class      MainActivity extends FieldScreen {
         FrameLayout previous = section;
         previous.removeAllViews();
         scroll.setVisibility(destino == R.id.tab_inicio ? View.GONE : View.VISIBLE);
-        findViewById(R.id.home_host).setVisibility(destino == R.id.tab_inicio ? View.VISIBLE : View.GONE);
+        FrameLayout homeHost = findViewById(R.id.home_host);
+        if (destino != R.id.tab_inicio) homeHost.removeAllViews();
+        homeHost.setVisibility(destino == R.id.tab_inicio ? View.VISIBLE : View.GONE);
         section = findViewById(destino == R.id.tab_inicio ? R.id.home_host : R.id.section_host);
         routeCards.clear();
         findViewById(R.id.routes_primary_action).setVisibility(destino==R.id.tab_rutas?View.VISIBLE:View.GONE);
@@ -230,6 +236,16 @@ public final class      MainActivity extends FieldScreen {
         backToHome.setEnabled(destino != R.id.tab_inicio);
         section.removeAllViews();
         getLayoutInflater().inflate(layout, section, true);
+        // En Rutas, título y filtros quedan fijos arriba; solo se desplaza la lista.
+        FrameLayout fixed = findViewById(R.id.fixed_header);
+        fixed.removeAllViews();
+        View routesHeader = section.findViewById(R.id.routes_header);
+        if (routesHeader != null) {
+            ((android.view.ViewGroup) routesHeader.getParent()).removeView(routesHeader);
+            fixed.addView(routesHeader);
+        }
+        fixed.setVisibility(routesHeader != null ? View.VISIBLE : View.GONE);
+        findViewById(R.id.main_content).setPadding(dp(16), routesHeader != null ? 0 : dp(16), dp(16), dp(8));
         scroll.scrollTo(0, 0);
         mensaje("");
 
@@ -237,6 +253,9 @@ public final class      MainActivity extends FieldScreen {
             homeMap = new HomeMapController(this, section, session, heatEnabled, heatWeek);
             homeMap.start();
             accion(R.id.home_recenter, this::centrarMapa);
+            accion(R.id.home_avatar_button, () -> startActivity(new Intent(this, AccountActivity.class)));
+            ajustarPanelInicio();
+            navigation.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> { if (t != ot) ajustarPanelInicio(); });
             if (!permiso(Manifest.permission.ACCESS_FINE_LOCATION) && !mapPermissionAsked) centrarMapa();
             accion(R.id.button_start_route, () -> {
                 if (activo) abrirRuta(RouteActivity.class, id);
@@ -245,7 +264,7 @@ public final class      MainActivity extends FieldScreen {
         } else if (destino == R.id.tab_rutas) {
             findViewById(R.id.routes_primary_action).setOnClickListener(v -> { if (activo) confirmarFin(); else preparar(); });
             int[] periodIds={R.id.routes_today,R.id.routes_yesterday,R.id.routes_week,R.id.routes_seven};
-            MaterialButtonToggleGroup periods=section.findViewById(R.id.routes_period);
+            MaterialButtonToggleGroup periods=findViewById(R.id.routes_period);
             periods.check(periodIds[routePeriod.ordinal()]);
             periods.addOnButtonCheckedListener((group,buttonId,checked) -> {
                 if(!checked) return;
@@ -262,13 +281,14 @@ public final class      MainActivity extends FieldScreen {
             accion(R.id.button_route_map, () -> abrirRuta(RouteActivity.class, id));
             accion(R.id.button_route_summary, () -> abrirRuta(SummaryActivity.class, id));
         } else if (destino == R.id.tab_historial) {
-            accion(R.id.button_refresh_history, () -> { historyPage = 0; cargarPagina(true); });
+            history = new com.example.ozora.senda.ui.HistoryScreen(this, section, session);
         } else if (destino == R.id.tab_sensor) {
             accion(R.id.button_select_sensor, this::gestionarLlavero);
             accion(R.id.button_test_ble, () -> startActivity(new Intent(this,
                     com.example.ozora.senda.bluetooth.BleTestActivity.class)));
         } else if (destino == R.id.tab_mas) {
             accion(R.id.button_profile, () -> startActivity(new Intent(this, AccountActivity.class)));
+            accion(R.id.account_card, () -> startActivity(new Intent(this, AccountActivity.class)));
             accion(R.id.button_security, () -> {
                 if (activo) mensaje("Finaliza el recorrido antes de cambiar la contraseña.");
                 else startActivity(new Intent(this, AccountActivity.class).putExtra("security", true));
@@ -277,21 +297,33 @@ public final class      MainActivity extends FieldScreen {
             accion(R.id.button_notifications, this::abrirNotificaciones);
             accion(R.id.button_help, this::mostrarAyuda);
             accion(R.id.button_settings, this::configurar);
-            accion(R.id.button_permissions, () -> startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", getPackageName(), null))));
+            accion(R.id.button_permissions, this::cambiarUbicacion);
             accion(R.id.button_retry_sync, () -> {
-                rutas.reintentarEnvios(session.worker);
-                MeasurementSync.sincronizar(this);
+                if (MeasurementSync.reintentar(this)) aviso("Reintentando los envíos pendientes…", true);
+                else aviso("Ya hay un envío en curso.", false);
                 actualizar();
             });
             accion(R.id.button_logout, this::confirmarSalida);
         }
-        if (destino == R.id.tab_rutas || destino == R.id.tab_historial) {
+        if (destino == R.id.tab_rutas) {
             accion(R.id.button_previous, () -> cambiarPagina(-1));
             accion(R.id.button_next, () -> cambiarPagina(1));
             cargarPagina(false);
         }
         actualizar();
+    }
+
+    /** El panel de medidas queda siempre por encima de la barra flotante, mida lo que mida. */
+    private void ajustarPanelInicio() {
+        navigation.post(() -> {
+            if (tab != R.id.tab_inicio) return;
+            View card = findViewById(R.id.home_bottom_card);
+            View host = findViewById(R.id.home_host);
+            if (card == null || navigation.getTop() == 0) return;
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) card.getLayoutParams();
+            int margin = host.getHeight() - navigation.getTop() + dp(12);
+            if (params.bottomMargin != margin) { params.bottomMargin = margin; card.setLayoutParams(params); }
+        });
     }
 
     private void accion(int viewId, Runnable action) {
@@ -333,7 +365,24 @@ public final class      MainActivity extends FieldScreen {
             textoEn(R.id.home_park, getString(R.string.home_park, session.worker.parkId));
             boolean receiving = activo && RutaService.actual == id && RutaService.ultimoAnuncio > 0
                     && SystemClock.elapsedRealtime() - RutaService.ultimoAnuncio < ajustes().getInt("silencio", 20) * 1000L;
-            textoEn(R.id.text_device, getString(receiving ? R.string.home_receiving : R.string.home_not_receiving));
+            textoEn(R.id.home_avatar, iniciales(ajustes().getString("profile_name", session.worker.name), 1));
+            android.widget.ImageView homePhoto = section.findViewById(R.id.home_avatar_photo);
+            String foto = ajustes().getString("profile_photo", null);
+            if (!android.text.TextUtils.equals((String) homePhoto.getTag(), foto)) {
+                AccountActivity.mostrarFoto(homePhoto, foto);
+                homePhoto.setTag(foto);
+            }
+            section.findViewById(R.id.home_avatar).setVisibility(foto != null && !foto.isEmpty() ? View.GONE : View.VISIBLE);
+            textoEn(R.id.text_device, receiving ? "Conectado" : "Sin conexión");
+            TextView connection = section.findViewById(R.id.text_device);
+            int tone = getColor(receiving ? R.color.status_connected : R.color.status_neutral);
+            connection.setTextColor(tone);
+            connection.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_s_dot_ring, 0, 0, 0);
+            connection.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(tone));
+            connection.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                    getColor(receiving ? R.color.status_connected_surface : R.color.status_neutral_surface)));
+            connection.setContentDescription(receiving ? "Llavero conectado por Bluetooth" : "Sin conexión Bluetooth con el llavero");
+            textoEn(R.id.home_clock, new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(new Date()));
             if (homeMap != null) homeMap.refresh(false);
         }
         if (tab == R.id.tab_inicio) {
@@ -344,7 +393,11 @@ public final class      MainActivity extends FieldScreen {
             mostrarUltima(null, true);
         } else if (tab == R.id.tab_rutas) {
             textoEn(R.id.text_route_summary, estadoSensor());
-            ((TextView)findViewById(R.id.routes_primary_action)).setText(activo ? R.string.main_finish : R.string.main_start);
+            MaterialButton primary = findViewById(R.id.routes_primary_action);
+            primary.setText(activo ? R.string.main_finish : R.string.main_start);
+            primary.setIconResource(activo ? R.drawable.ic_s_stop : R.drawable.ic_s_play);
+            primary.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                    getColor(activo ? R.color.status_error_strong : R.color.senda_ink)));
             visible(R.id.routes_active_controls,activo);
             RouteCardView currentCard=routeCards.get(id);
             if(currentCard!=null && activo) {
@@ -375,11 +428,14 @@ public final class      MainActivity extends FieldScreen {
             }
             textoEn(R.id.text_permissions, permisos);
             textoEn(R.id.account_email, ajustes().getString("account_email", getString(R.string.home_park, session.worker.parkId)));
-            textoEn(R.id.button_biometric, getString(R.string.account_biometric) + (bio.activo() ? " · Activada" : " · Desactivada"));
+            textoEn(R.id.biometric_state, bio.activo() ? "Activada" : "Desactivada");
             boolean notifications = NotificationManagerCompat.from(this).areNotificationsEnabled();
-            textoEn(R.id.button_notifications, getString(notifications ? R.string.account_enabled
-                    : R.string.account_disabled, getString(R.string.account_notifications)));
-            textoEn(R.id.button_permissions, getString(permiso(Manifest.permission.ACCESS_FINE_LOCATION)
+            boolean location = permiso(Manifest.permission.ACCESS_FINE_LOCATION);
+            textoEn(R.id.notifications_state, notifications ? "Activadas" : "Desactivadas");
+            textoEn(R.id.location_state, location ? "Ubicación precisa permitida" : "Pendiente de permitir");
+            section.findViewById(R.id.button_notifications).setContentDescription(getString(notifications
+                    ? R.string.account_enabled : R.string.account_disabled, getString(R.string.account_notifications)));
+            section.findViewById(R.id.button_permissions).setContentDescription(getString(location
                     ? R.string.account_location_ready : R.string.account_location_missing));
             android.widget.ImageView avatar = section.findViewById(R.id.account_avatar);
             String photo = ajustes().getString("profile_photo", null);
@@ -388,7 +444,11 @@ public final class      MainActivity extends FieldScreen {
                 AccountActivity.mostrarFoto(avatar, photo);
                 avatar.setTag(photo);
             }
-            textoEn(R.id.text_sync, rutas.estadoEnvios(session.worker) + "\n" + MeasurementSync.estado);
+            boolean hasPhoto = photo != null && !photo.isEmpty();
+            section.findViewById(R.id.account_initials).setVisibility(hasPhoto ? View.GONE : View.VISIBLE);
+            textoEn(R.id.account_initials, iniciales(ajustes().getString("profile_name", session.worker.name), 2));
+            textoEn(R.id.text_sync, rutas.estadoEnvios(session.worker) + "\n" + MeasurementSync.estado(session));
+            section.findViewById(R.id.button_retry_sync).setEnabled(!MeasurementSync.enCurso());
         }
     }
 
@@ -419,17 +479,37 @@ public final class      MainActivity extends FieldScreen {
         String lectura = getString(R.string.main_no_readings);
         String aviso = "";
         if (tab == R.id.tab_inicio) {
-            String detail = "Todavía no hay lecturas de ozono.";
+            String detail = "Todavía no hay lecturas";
+            int value = -1, sent = 0;
             try (Cursor c = rutas.ultimaConEnvio(session.worker)) {
                 if (c.moveToFirst()) {
-                    int value = c.getInt(0);
-                    lectura = value + " ppb";
-                    detail = fechaLectura(c.getString(1)) + " · " +
-                            (c.getInt(3) == 1 ? "Enviada al servidor" : c.getInt(3) == 2 ? "Envío rechazado" : "Guardada en el móvil");
+                    value = c.getInt(0);
+                    sent = c.getInt(3);
+                    detail = sent == 1 ? "Medición enviada" : sent == 2 ? "Envío rechazado" : "Guardada en el móvil";
                     aviso = EnvironmentalAssessment.aviso(value, ajustes().getInt("umbral", 60));
                 }
             }
             textoEn(R.id.home_last_detail, detail);
+            TextView detailView = section.findViewById(R.id.home_last_detail);
+            int detailIcon = value < 0 ? 0 : sent == 1 ? R.drawable.ic_s_check_circle : R.drawable.ic_s_clock;
+            detailView.setCompoundDrawablesRelativeWithIntrinsicBounds(detailIcon, 0, 0, 0);
+            detailView.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(getColor(
+                    sent == 1 ? R.color.status_success : sent == 2 ? R.color.status_error : R.color.senda_muted)));
+            mostrarNivel(value);
+            android.text.SpannableStringBuilder big = new android.text.SpannableStringBuilder(value < 0 ? "—" : String.valueOf(value));
+            if (value >= 0) {
+                int from = big.length();
+                big.append(" ppb");
+                big.setSpan(new android.text.style.RelativeSizeSpan(0.42f), from, big.length(), 0);
+                big.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.NORMAL), from, big.length(), 0);
+                big.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.senda_muted)), from, big.length(), 0);
+            }
+            textoEn(R.id.text_last_o3, big);
+            if (conAviso) {
+                textoEn(R.id.text_o3_warning, aviso);
+                visible(R.id.text_o3_warning, !aviso.isEmpty());
+            }
+            return;
         } else if (tab == R.id.tab_rutas) {
             try (Cursor c = rutas.ultima(id)) {
                 if (c.moveToFirst()) lectura = getString(R.string.main_last_reading_value,
@@ -450,6 +530,39 @@ public final class      MainActivity extends FieldScreen {
             textoEn(R.id.text_o3_warning, aviso);
             visible(R.id.text_o3_warning, !aviso.isEmpty());
         }
+    }
+
+    /** Nivel orientativo respecto al umbral configurado y posición en la barra 0–120 ppb. */
+    private void mostrarNivel(int value) {
+        TextView level = section.findViewById(R.id.home_level);
+        View thumb = section.findViewById(R.id.home_gauge_thumb);
+        View gauge = section.findViewById(R.id.home_gauge);
+        if (value < 0) { level.setVisibility(View.GONE); thumb.setVisibility(View.INVISIBLE); return; }
+        int umbral = ajustes().getInt("umbral", 60);
+        boolean high = value >= umbral * 1.25f, moderate = !high && value >= umbral * 0.75f;
+        textoEn(R.id.home_level, high ? "Alto" : moderate ? "Moderado" : "Bueno");
+        int tone = getColor(high ? R.color.status_error : moderate ? R.color.senda_moderate : R.color.status_success);
+        int surface = getColor(high ? R.color.status_error_surface : moderate ? R.color.senda_moderate_surface : R.color.status_success_surface);
+        int dot = high ? getColor(R.color.status_error_strong) : moderate ? 0xffd99a2b : getColor(R.color.status_success);
+        level.setTextColor(tone);
+        level.setBackgroundTintList(android.content.res.ColorStateList.valueOf(surface));
+        level.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_s_dot_ring, 0, 0, 0);
+        level.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(dot));
+        level.setVisibility(View.VISIBLE);
+        float fraction = Math.max(0f, Math.min(1f, value / 120f));
+        gauge.post(() -> {
+            thumb.setTranslationX((gauge.getWidth() - thumb.getWidth()) * fraction);
+            thumb.setVisibility(View.VISIBLE);
+        });
+    }
+
+    private static String iniciales(String name, int max) {
+        if (name == null) return "";
+        StringBuilder out = new StringBuilder();
+        for (String part : name.trim().split("\\s+")) {
+            if (!part.isEmpty() && out.length() < max) out.appendCodePoint(Character.toUpperCase(part.codePointAt(0)));
+        }
+        return out.toString();
     }
 
     private String fechaLectura(String iso) {
@@ -530,10 +643,12 @@ public final class      MainActivity extends FieldScreen {
     }
 
     private void confirmarSalida() {
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setMessage(activo ? "Al cerrar sesión finalizará el recorrido." : "¿Cerrar la sesión en este dispositivo?")
                 .setNegativeButton("Volver", null)
-                .setPositiveButton(R.string.main_logout, (d, w) -> salir(true)).show();
+                .setPositiveButton(R.string.main_logout, (d, w) -> salir(true)).create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.status_error));
     }
 
     private void acceso(String mensaje) {
@@ -554,10 +669,12 @@ public final class      MainActivity extends FieldScreen {
     private void gestionarLlavero() {
         if (activo || operacionLlavero) { mensaje(getString(R.string.keyring_active_hint)); return; }
         if (elegido() == null) { seleccionar(); return; }
-        new AlertDialog.Builder(this).setTitle(R.string.keyring_unlink)
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(R.string.keyring_unlink)
                 .setMessage("El llavero quedará libre para otro trabajador de tu parque. Se conservarán las mediciones.")
                 .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Desvincular", (d, w) -> cambiarLlavero(null)).show();
+                .setPositiveButton("Desvincular", (d, w) -> cambiarLlavero(null)).create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.status_error));
     }
 
     private void cambiarLlavero(String sensor) {
@@ -619,16 +736,42 @@ public final class      MainActivity extends FieldScreen {
         });
     }
 
+    /** Activa pidiendo el permiso aquí mismo; Android solo permite quitarlo desde sus ajustes. */
     private void abrirNotificaciones() {
-        if (Build.VERSION.SDK_INT >= 33 && !permiso(Manifest.permission.POST_NOTIFICATIONS)) {
+        boolean enabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
+        if (!enabled && Build.VERSION.SDK_INT >= 33 && !permiso(Manifest.permission.POST_NOTIFICATIONS)
+                && (!ajustes().getBoolean("notif_asked", false) || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS))) {
+            ajustes().edit().putBoolean("notif_asked", true).apply();
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 22);
             return;
         }
-        Intent intent = Build.VERSION.SDK_INT >= 26
-                ? new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName())
-                : new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null));
-        startActivity(intent);
+        Intent settings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+        if (enabled) aviso("Para desactivarlas, apágalas en los ajustes de Android.", true);
+        try { startActivity(settings); }
+        catch (android.content.ActivityNotFoundException e) { abrirAjustesApp(); }
     }
+
+    private void cambiarUbicacion() {
+        if (!permiso(Manifest.permission.ACCESS_FINE_LOCATION)
+                && (!ajustes().getBoolean("location_asked", false)
+                || shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION))) {
+            ajustes().edit().putBoolean("location_asked", true).apply();
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_SETTINGS_LOCATION);
+            return;
+        }
+        if (permiso(Manifest.permission.ACCESS_FINE_LOCATION))
+            aviso(activo ? "Finaliza el recorrido antes de quitar la ubicación." : "Para quitarla, cambia el permiso de Ubicación en Android.", !activo);
+        if (!activo || !permiso(Manifest.permission.ACCESS_FINE_LOCATION)) abrirAjustesApp();
+    }
+
+    private void abrirAjustesApp() {
+        try {
+            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null)));
+        } catch (android.content.ActivityNotFoundException ignored) { }
+    }
+
     private void mostrarAyuda() {
         new AlertDialog.Builder(this).setTitle(R.string.account_help)
                 .setMessage("Llavero: escanea su QR y comienza un recorrido para recibir lecturas por Bluetooth. La batería y el firmware no están disponibles con el protocolo actual.\n\nUbicación: permite la ubicación precisa y los dispositivos cercanos para registrar el recorrido.\n\nPerfil: la foto se guarda en tu cuenta del servidor; el nombre visible y el teléfono se guardan en este móvil. Para cambiar el correo o el parque, contacta con tu responsable.\n\nEnvíos: si falla la conexión, las lecturas se conservan en el móvil. Puedes reintentarlas desde Ajustes.")
@@ -699,6 +842,12 @@ public final class      MainActivity extends FieldScreen {
             if (homeMap != null) homeMap.start();
             return;
         }
+        if (req == REQUEST_SETTINGS_LOCATION) {
+            actualizar();
+            aviso(permiso(Manifest.permission.ACCESS_FINE_LOCATION) ? "Ubicación precisa permitida."
+                    : "Sin ubicación precisa no se puede registrar el recorrido.", permiso(Manifest.permission.ACCESS_FINE_LOCATION));
+            return;
+        }
         if(req!=REQUEST_ROUTE_PERMISSIONS || SessionManager.current()==null) return;
         for(int r:resultados) if(r!=PackageManager.PERMISSION_GRANTED) { mensaje("Para registrar el recorrido permite la ubicación precisa y, si usas llavero, los dispositivos cercanos en Ajustes."); return; }
         if(resultados.length>0) preparar();
@@ -721,7 +870,7 @@ public final class      MainActivity extends FieldScreen {
                 routePeriod=RoutePeriod.TODAY;
                 routePage=0;
                 if(tab==R.id.tab_rutas) {
-                    ((MaterialButtonToggleGroup)section.findViewById(R.id.routes_period)).check(R.id.routes_today);
+                    ((MaterialButtonToggleGroup)findViewById(R.id.routes_period)).check(R.id.routes_today);
                     cargarPagina(false);
                 }
             }

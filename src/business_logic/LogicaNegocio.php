@@ -252,6 +252,42 @@ final class LogicaNegocio
         }
     }
 
+    /** Historial propio por clave estable: nuevas capturas no desplazan las páginas ya vistas. */
+    public function historialMediciones(array $usuario, mixed $cursor = null): array
+    {
+        $this->exigirRol($usuario, 'trabajador');
+        $parametros = [$usuario['id_usuario'], $usuario['id_parque']];
+        $continuacion = '';
+        if ($cursor !== null) {
+            if (!is_string($cursor) || strlen($cursor) > 1024) {
+                throw new ErrorApi(422, 'CURSOR_INVALIDO', 'Actualiza el historial para comenzar de nuevo.');
+            }
+            $clave = json_decode(base64_decode($cursor, true) ?: '', true);
+            if (!is_array($clave) || count($clave) !== 2 || !isset($clave[0], $clave[1])
+                || !is_string($clave[0]) || !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/D', $clave[0])
+                || !is_string($clave[1]) || strlen($clave[1]) < 1 || strlen($clave[1]) > 100) {
+                throw new ErrorApi(422, 'CURSOR_INVALIDO', 'Actualiza el historial para comenzar de nuevo.');
+            }
+            $continuacion = ' AND (fecha_hora < ? OR (fecha_hora = ? AND id_llavero < ?))';
+            array_push($parametros, $clave[0], $clave[0], $clave[1]);
+        }
+        $filas = $this->consulta('SELECT * FROM MEDICIONES WHERE id_usuario=? AND id_parque=?'
+            . $continuacion . ' ORDER BY fecha_hora DESC, id_llavero DESC LIMIT 21', $parametros)->fetchAll();
+        $siguiente = null;
+        if (count($filas) > 20) {
+            array_pop($filas);
+            $ultima = $filas[count($filas)-1];
+            $siguiente = base64_encode(json_encode([$ultima['fecha_hora'], $ultima['id_llavero']], JSON_THROW_ON_ERROR));
+        }
+        $mediciones = array_map(static fn(array $fila): array => [
+            'nombre_micro' => $fila['nombre_micro'], 'valor' => (int)$fila['valor'],
+            'fecha_hora' => fechaJson($fila['fecha_hora']), 'unidad' => $fila['unidad'],
+            'latitud' => (float)$fila['latitud'], 'longitud' => (float)$fila['longitud'],
+            'simulada' => (bool)$fila['simulada'],
+        ], $filas);
+        return ['mediciones' => $mediciones, 'siguiente' => $siguiente];
+    }
+
     /** Diseño lógico: (jefe, parque) -> ultimaMedicion -> medición o null.
      * Descripción: Consulta por fecha de captura entre todos los llaveros del parque autorizado. */
     public function ultimaMedicion(array $usuario, int $parque): array

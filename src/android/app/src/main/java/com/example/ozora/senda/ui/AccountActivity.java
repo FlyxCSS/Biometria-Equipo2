@@ -121,7 +121,13 @@ public final class AccountActivity extends FieldScreen {
         TextView eliminar = findViewById(R.id.profile_remove_photo);
         boolean tieneFoto = photo != null && !photo.isEmpty();
         eliminar.setEnabled(tieneFoto);
-        eliminar.setTextColor(tieneFoto ? 0xff7a2032 : 0xff9a9e9a);
+        eliminar.setVisibility(tieneFoto ? android.view.View.VISIBLE : android.view.View.GONE);
+        TextView initials = findViewById(R.id.profile_initials);
+        initials.setVisibility(tieneFoto ? android.view.View.GONE : android.view.View.VISIBLE);
+        StringBuilder letters = new StringBuilder();
+        for (String part : prefs.getString("profile_name", session.worker.name).trim().split("\\s+"))
+            if (!part.isEmpty() && letters.length() < 2) letters.appendCodePoint(Character.toUpperCase(part.codePointAt(0)));
+        initials.setText(letters);
     }
 
     public static void mostrarFoto(ImageView view, String foto) {
@@ -178,19 +184,14 @@ public final class AccountActivity extends FieldScreen {
     }
 
     private void security() {
-        pagina(getString(R.string.account_security));
-        boton("‹ Volver a Ajustes", this::finish);
-        texto("Cambia tu contraseña de acceso a SENDA. Al guardarla se cerrarán las sesiones de la cuenta.", 16, false);
-        EditText current = campo("Contraseña actual", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        EditText next = campo("Nueva contraseña", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        EditText confirm = campo("Repetir nueva contraseña", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        current.setId(android.view.View.generateViewId());
-        next.setId(android.view.View.generateViewId());
-        confirm.setId(android.view.View.generateViewId());
-        current.setSaveEnabled(false); next.setSaveEnabled(false); confirm.setSaveEnabled(false);
-        contenido.addView(current); contenido.addView(next); contenido.addView(confirm);
-        Button submit = boton("Actualizar contraseña", () -> changePassword(current, next, confirm));
-        submit.setTag("submit");
+        setContentView(R.layout.activity_security);
+        protegerBarras(findViewById(R.id.security_root));
+        contenido = findViewById(R.id.security_content);
+        findViewById(R.id.security_back).setOnClickListener(v -> finish());
+        EditText current = findViewById(R.id.security_current);
+        EditText next = findViewById(R.id.security_next);
+        EditText confirm = findViewById(R.id.security_confirm);
+        findViewById(R.id.security_submit).setOnClickListener(v -> changePassword(current, next, confirm));
         mensajes();
     }
     private void changePassword(EditText current, EditText next, EditText confirm) {

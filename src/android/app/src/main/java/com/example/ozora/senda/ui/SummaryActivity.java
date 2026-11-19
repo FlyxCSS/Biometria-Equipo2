@@ -63,13 +63,13 @@ public final class SummaryActivity extends RouteScreen {
         content.setPadding(dp(16), dp(12), dp(16), dp(20));
         scroll.addView(content);
 
-        LinearLayout heading = new LinearLayout(this);
-        heading.setGravity(Gravity.CENTER_VERTICAL);
-        heading.addView(backButton(), new LinearLayout.LayoutParams(dp(48), dp(48)));
-        TextView title = label(getString(R.string.route_info), 25, true);
-        title.setPadding(dp(8), 0, 0, 0);
-        heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        content.addView(heading);
+        LinearLayout.LayoutParams backSize = new LinearLayout.LayoutParams(dp(48), dp(48));
+        backSize.topMargin = dp(28);
+        content.addView(backButton(), backSize);
+        TextView title = label(route == null ? getString(R.string.route_info) : "Ruta " + route.id, 34, true);
+        title.setLetterSpacing(-0.02f);
+        title.setPadding(0, dp(10), 0, 0);
+        content.addView(title);
 
         BottomNavigationView nav = (BottomNavigationView) getLayoutInflater()
                 .inflate(R.layout.main_bottom_navigation, root, false);
@@ -90,10 +90,14 @@ public final class SummaryActivity extends RouteScreen {
             return;
         }
 
-        addWithTopMargin(content, label(getString(R.string.home_park, session.worker.parkId), 20, true), 8);
+        TextView subtitle = label(getString(R.string.home_park, session.worker.parkId) + " · "
+                + new SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(new Date(route.start)), 16, false);
+        subtitle.setTextColor(MUTED);
+        addWithTopMargin(content, subtitle, 2);
         FrameLayout mapCard = new FrameLayout(this);
-        card(mapCard);
-        LinearLayout.LayoutParams mapSize = new LinearLayout.LayoutParams(-1, dp(310));
+        mapCard.setBackgroundResource(R.drawable.s_card);
+        mapCard.setClipToOutline(true);
+        LinearLayout.LayoutParams mapSize = new LinearLayout.LayoutParams(-1, dp(196));
         mapSize.topMargin = dp(14);
         content.addView(mapCard, mapSize);
         WebView web = new WebView(this);
@@ -106,16 +110,29 @@ public final class SummaryActivity extends RouteScreen {
         statusSize.topMargin = dp(8);
         mapCard.addView(status, statusSize);
         map = new RouteMap(this, web, status, false);
+        LinearLayout chips = new LinearLayout(this);
+        long seconds = Math.max(0, (route.end == null ? System.currentTimeMillis() : route.end) - route.start) / 1000;
+        chips.addView(chip(String.format(Locale.getDefault(), "%02d:%02d:%02d", seconds / 3600, seconds / 60 % 60, seconds % 60),
+                INK, 0xf2f9faf6, 0));
+        LinearLayout.LayoutParams second = new LinearLayout.LayoutParams(-2, -2);
+        second.setMarginStart(dp(8));
+        chips.addView(chip(String.format(Locale.getDefault(), route.meters >= 10000 ? "%.0f km" : "%.1f km", route.meters / 1000),
+                INK, 0xf2f9faf6, 0), second);
+        FrameLayout.LayoutParams chipsSize = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.START);
+        chipsSize.setMargins(dp(10), 0, 0, dp(10));
+        mapCard.addView(chips, chipsSize);
 
         MaterialButtonToggleGroup filters = new MaterialButtonToggleGroup(this);
         filters.setSingleSelection(true);
         filters.setSelectionRequired(true);
+        filters.setBackgroundResource(R.drawable.s_segment_track);
+        filters.setPadding(dp(4), dp(4), dp(4), dp(4));
         MaterialButton ozone = filter(R.string.route_ozone);
         MaterialButton temp = filter(R.string.route_temperature);
-        filters.addView(ozone, new LinearLayout.LayoutParams(0, dp(48), 1));
-        filters.addView(temp, new LinearLayout.LayoutParams(0, dp(48), 1));
+        filters.addView(ozone, new LinearLayout.LayoutParams(0, dp(44), 1));
+        filters.addView(temp, new LinearLayout.LayoutParams(0, dp(44), 1));
         filters.check(temperature ? temp.getId() : ozone.getId());
-        addWithTopMargin(content, filters, 10);
+        addWithTopMargin(content, filters, 12);
 
         LinearLayout stats = new LinearLayout(this);
         average = stat(stats, R.string.route_average, 0);
@@ -125,11 +142,17 @@ public final class SummaryActivity extends RouteScreen {
 
         LinearLayout readings = column();
         card(readings);
-        readings.setPadding(dp(16), dp(8), dp(16), dp(10));
+        readings.setPadding(dp(16), dp(6), dp(16), dp(6));
         LinearLayout row = new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.addView(label(getString(R.string.route_points), 17, true), new LinearLayout.LayoutParams(0, -2, 1));
+        row.setMinimumHeight(dp(52));
+        row.addView(label(getString(R.string.route_points), 18, true), new LinearLayout.LayoutParams(0, -2, 1));
         all = textButton();
+        all.setIconResource(R.drawable.ic_s_chevron);
+        all.setIconGravity(MaterialButton.ICON_GRAVITY_END);
+        all.setIconTint(ColorStateList.valueOf(INK));
+        all.setIconSize(dp(18));
+        all.setTextSize(16);
         all.setOnClickListener(view -> {
             expanded = !expanded;
             refreshReadings();
@@ -161,9 +184,14 @@ public final class SummaryActivity extends RouteScreen {
         button.setText(title);
         button.setAllCaps(false);
         button.setBackgroundTintList(new ColorStateList(
-                new int[][]{{android.R.attr.state_checked}, {}}, new int[]{GREEN, 0xffffffff}));
+                new int[][]{{android.R.attr.state_checked}, {}}, new int[]{0xffffffff, 0x00ffffff}));
         button.setTextColor(new ColorStateList(
-                new int[][]{{android.R.attr.state_checked}, {}}, new int[]{0xffffffff, INK}));
+                new int[][]{{android.R.attr.state_checked}, {}}, new int[]{INK, MUTED}));
+        button.setStrokeWidth(0);
+        button.setCornerRadius(dp(22));
+        button.setTextSize(16);
+        button.setInsetTop(0);
+        button.setInsetBottom(0);
         return button;
     }
 
@@ -178,9 +206,11 @@ public final class SummaryActivity extends RouteScreen {
     private TextView stat(LinearLayout parent, int title, int margin) {
         LinearLayout block = column();
         card(block);
-        block.setPadding(dp(8), dp(14), dp(8), dp(14));
-        TextView name = label(getString(title), 13, false);
-        TextView value = label("", 18, true);
+        block.setPadding(dp(14), dp(14), dp(10), dp(14));
+        TextView name = label(getString(title), 15, false);
+        name.setTextColor(MUTED);
+        TextView value = label("", 26, true);
+        value.setSingleLine(true);
         block.addView(name);
         block.addView(value);
         LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(0, -2, 1);
@@ -212,9 +242,9 @@ public final class SummaryActivity extends RouteScreen {
             return;
         }
         boolean empty = temperature || route.count == 0;
-        average.setText(empty ? "—" : value((int) Math.round(route.mean)));
-        maximum.setText(empty ? "—" : value(route.maximum));
-        minimum.setText(empty ? "—" : value(route.minimum));
+        average.setText(empty ? "—" : valueWithUnit(String.valueOf((int) Math.round(route.mean)), "ppb"));
+        maximum.setText(empty ? "—" : valueWithUnit(String.valueOf(route.maximum), "ppb"));
+        minimum.setText(empty ? "—" : valueWithUnit(String.valueOf(route.minimum), "ppb"));
         rows.removeAllViews();
         shown = 0;
         all.setVisibility(!temperature && route.count > PREVIEW ? View.VISIBLE : View.GONE);
@@ -232,12 +262,23 @@ public final class SummaryActivity extends RouteScreen {
         try (Cursor readings = readings(limit, shown)) {
             while (readings.moveToNext()) {
                 View divider = new View(this);
-                divider.setBackgroundColor(SAGE);
+                divider.setBackgroundColor(0xffece9e2);
                 rows.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
                 LinearLayout row = new LinearLayout(this);
-                row.setPadding(dp(4), dp(10), dp(4), dp(10));
-                row.addView(label(readingTime(readings.getString(1)), 16, false), new LinearLayout.LayoutParams(0, -2, 1));
-                row.addView(label(value(readings.getInt(0)), 16, true), new LinearLayout.LayoutParams(0, -2, 1));
+                row.setGravity(Gravity.CENTER_VERTICAL);
+                row.setPadding(0, dp(14), 0, dp(14));
+                int ppb = readings.getInt(0);
+                int umbral = getSharedPreferences("campo-" + session.worker.id + "-" + session.worker.parkId, MODE_PRIVATE).getInt("umbral", 60);
+                View dot = new View(this);
+                dot.setBackgroundResource(R.drawable.s_circle_ink);
+                dot.setBackgroundTintList(ColorStateList.valueOf(ppb >= umbral * 1.25f ? 0xffd2493a
+                        : ppb >= umbral ? 0xffe2b54a : 0xff6ba57a));
+                row.addView(dot, new LinearLayout.LayoutParams(dp(10), dp(10)));
+                TextView time = label(readingTime(readings.getString(1)), 18, false);
+                LinearLayout.LayoutParams timeSize = new LinearLayout.LayoutParams(0, -2, 1);
+                timeSize.setMarginStart(dp(18));
+                row.addView(time, timeSize);
+                row.addView(label(valueWithUnit(String.valueOf(ppb), "ppb"), 18, true));
                 rows.addView(row);
                 shown++;
             }

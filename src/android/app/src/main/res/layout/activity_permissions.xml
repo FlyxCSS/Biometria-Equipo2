@@ -1,0 +1,16 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/permissions_root" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/senda_surface">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="22dp" android:orientation="vertical">
+    <com.google.android.material.button.MaterialButton android:id="@+id/permissions_back" style="@style/SendaBack" android:layout_marginTop="24dp" android:contentDescription="Volver a Ajustes"/>
+    <TextView android:id="@+id/permissions_title" style="@style/AccountTitle"/>
+    <TextView android:id="@+id/permissions_subtitle" style="@style/AccountSubtitle"/>
+    <View style="@style/AccountDivider"/>
+    <LinearLayout style="@style/AccountCard">
+        <TextView style="@style/SendaSectionLabel" android:text="ESTADO ACTUAL" android:textSize="12sp" android:letterSpacing="0.12"/>
+        <TextView android:id="@+id/permissions_status" style="@style/SendaSectionTitle" android:accessibilityLiveRegion="polite"/>
+        <TextView android:id="@+id/permissions_description" style="@style/SendaSectionText"/>
+    </LinearLayout>
+    <TextView android:id="@+id/permissions_explanation" style="@style/AccountDetail"/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/permissions_enable" style="@style/AuthButton"/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/permissions_system" style="@style/SendaSectionButton" android:layout_marginTop="12dp" android:text="Abrir ajustes de Android"/>
+    <TextView android:id="@+id/permissions_feedback" style="@style/SendaSectionText" android:layout_marginTop="16dp" android:accessibilityLiveRegion="polite"/>
+</LinearLayout></ScrollView>

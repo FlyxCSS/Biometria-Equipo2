@@ -1,28 +1,30 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
 android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-<TextView style="@style/SendaSectionTitle" android:text="@string/main_rutas" android:textSize="32sp" android:textColor="#111111" android:layout_marginTop="12dp"/>
-<TextView style="@style/HomeText" android:text="@string/routes_subtitle" android:layout_marginTop="4dp" android:layout_marginBottom="20dp"/>
-<com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/routes_period" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/home_card" app:singleSelection="true" app:selectionRequired="true">
+<LinearLayout android:id="@+id/routes_header" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="8dp">
+<TextView style="@style/AccountTitle" android:text="@string/main_rutas"/>
+<TextView style="@style/AccountSubtitle" android:text="@string/routes_subtitle"/>
+<com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/routes_period" style="@style/SegmentGroup" app:singleSelection="true" app:selectionRequired="true">
 <com.google.android.material.button.MaterialButton android:id="@+id/routes_today" style="@style/RoutePeriodButton" android:text="@string/routes_today"/>
 <com.google.android.material.button.MaterialButton android:id="@+id/routes_yesterday" style="@style/RoutePeriodButton" android:text="@string/routes_yesterday"/>
 <com.google.android.material.button.MaterialButton android:id="@+id/routes_week" style="@style/RoutePeriodButton" android:text="@string/routes_week" android:contentDescription="@string/routes_week_hint"/>
 <com.google.android.material.button.MaterialButton android:id="@+id/routes_seven" style="@style/RoutePeriodButton" android:text="@string/routes_seven" android:contentDescription="@string/routes_seven_hint"/>
 </com.google.android.material.button.MaterialButtonToggleGroup>
-<TextView android:id="@+id/text_list_empty" style="@style/SendaSectionText" android:text="@string/routes_empty" android:layout_marginTop="24dp"/>
-<LinearLayout android:id="@+id/list_routes" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="8dp"/>
-<LinearLayout android:id="@+id/routes_active_controls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
-<TextView style="@style/SendaSectionLabel" android:text="@string/main_route_state" android:layout_marginTop="12dp"/>
-<TextView android:id="@+id/text_route_summary" style="@style/SendaSectionText"/>
-<TextView android:id="@+id/text_last_o3" style="@style/SendaSectionText"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/button_resume_route" style="@style/SendaSectionButton" android:text="@string/main_resume"/>
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
-<com.google.android.material.button.MaterialButton android:id="@+id/button_route_map" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:text="@string/main_map"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/button_route_summary" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:text="@string/main_summary"/>
+</LinearLayout>
+<TextView android:id="@+id/text_list_empty" style="@style/AccountDetail" android:text="@string/routes_empty" android:layout_marginTop="16dp"/>
+<LinearLayout android:id="@+id/list_routes" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingTop="4dp" android:paddingBottom="8dp"/>
+<LinearLayout android:id="@+id/routes_active_controls" style="@style/AccountCard" android:visibility="gone">
+<TextView style="@style/OverlineText" android:text="ESTADO DEL RECORRIDO"/>
+<TextView android:id="@+id/text_route_summary" style="@style/SendaSectionText" android:textSize="14sp" android:textColor="@color/senda_muted" android:layout_marginTop="6dp"/>
+<TextView android:id="@+id/text_last_o3" style="@style/SendaSectionText" android:textSize="14sp"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_resume_route" style="@style/MintButton" android:minHeight="48dp" android:textSize="16sp" android:text="@string/main_resume" app:icon="@drawable/ic_s_play" app:iconTint="@color/senda_ink"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
+<com.google.android.material.button.MaterialButton android:id="@+id/button_route_map" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:layout_marginEnd="6dp" android:text="@string/main_map"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_route_summary" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="6dp" android:text="@string/main_summary"/>
 </LinearLayout>
 </LinearLayout>
-<TextView android:id="@+id/page_number" style="@style/SendaSectionText"/>
+<TextView android:id="@+id/page_number" style="@style/SendaSectionText" android:gravity="center" android:textColor="@color/senda_muted"/>
 <LinearLayout android:id="@+id/routes_pages" android:layout_width="match_parent" android:layout_height="wrap_content">
-<com.google.android.material.button.MaterialButton android:id="@+id/button_previous" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:text="@string/main_prev"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/button_next" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:text="@string/main_next"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_previous" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:layout_marginEnd="6dp" android:text="@string/main_prev"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_next" style="@style/SendaSectionButton" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="6dp" android:text="@string/main_next"/>
 </LinearLayout>
 </LinearLayout>

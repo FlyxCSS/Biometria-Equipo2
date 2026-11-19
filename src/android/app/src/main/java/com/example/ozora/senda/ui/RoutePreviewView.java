@@ -13,7 +13,11 @@ import java.util.List;
 public final class RoutePreviewView extends View {
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final List<double[]> points=new ArrayList<>();
+    private final Paint bitmapPaint=new Paint(Paint.FILTER_BITMAP_FLAG|Paint.ANTI_ALIAS_FLAG);
+    private static Bitmap texture;
+    private int seed;
     public RoutePreviewView(Context context,AttributeSet attrs) { super(context,attrs); }
+    public void setSeed(long value) { seed=(int)Math.abs(value%97); invalidate(); }
     public void setPoints(List<RoutePoint> route) {
         points.clear();
         double previous=0;
@@ -32,13 +36,21 @@ public final class RoutePreviewView extends View {
         super.onDraw(canvas);
         float scale=getResources().getDisplayMetrics().density;
         RectF bounds=new RectF(0,0,getWidth(),getHeight());
-        Path clip=new Path(); clip.addRoundRect(bounds,16*scale,16*scale,Path.Direction.CW);
+        Path clip=new Path(); clip.addRoundRect(bounds,20*scale,20*scale,Path.Direction.CW);
         canvas.save(); canvas.clipPath(clip);
-        canvas.drawColor(0xffd6e0ce);
-        paint.setStyle(Paint.Style.FILL); paint.setColor(0xffb3cdae);
-        canvas.drawOval(new RectF(-getWidth()*.4f,getHeight()*.35f,getWidth()*1.4f,getHeight()*1.4f),paint);
+        canvas.drawColor(0xffb7cda6);
+        if(texture==null) texture=BitmapFactory.decodeResource(getResources(),R.drawable.senda_map_texture);
+        if(texture!=null) {
+            float s=Math.max(getWidth()/(float)texture.getWidth(),getHeight()/(float)texture.getHeight())*1.6f;
+            float w=texture.getWidth()*s,h=texture.getHeight()*s;
+            // Recorte distinto por ruta para que las miniaturas no sean idénticas.
+            float ox=(float)(((seed*37)%100)/100.0*(w-getWidth())), oy=(float)(((seed*61)%100)/100.0*(h-getHeight()));
+            canvas.drawBitmap(texture,null,new RectF(-ox,-oy,w-ox,h-oy),bitmapPaint);
+        }
+        paint.setStyle(Paint.Style.FILL);
         if(points.isEmpty()) {
-            paint.setColor(0xff466650); paint.setTextSize(12*scale); paint.setTextAlign(Paint.Align.CENTER);
+            paint.setColor(0xccffffff); paint.setTextSize(12*scale); paint.setTextAlign(Paint.Align.CENTER);
+            paint.setFakeBoldText(true);
             canvas.drawText(getContext().getString(R.string.routes_no_gps),getWidth()/2f,getHeight()/2f+4*scale,paint);
             canvas.restore(); return;
         }
@@ -59,12 +71,12 @@ public final class RoutePreviewView extends View {
             segment=p[2]; lastX=x; lastY=y;
         }
         paint.setStyle(Paint.Style.STROKE); paint.setStrokeJoin(Paint.Join.ROUND); paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(8*scale); paint.setColor(0xfff7f3e8); canvas.drawPath(path,paint);
-        paint.setStrokeWidth(4*scale); paint.setColor(0xfffad99e); canvas.drawPath(path,paint);
+        paint.setStrokeWidth(7*scale); paint.setColor(0x33000000); canvas.drawPath(path,paint);
+        paint.setStrokeWidth(4.5f*scale); paint.setColor(0xffffffff); canvas.drawPath(path,paint);
         paint.setStyle(Paint.Style.FILL); paint.setColor(0xffffffff);
-        canvas.drawCircle(firstX,firstY,4*scale,paint); canvas.drawCircle(lastX,lastY,4*scale,paint);
-        paint.setColor(0xff1d4032);
-        canvas.drawCircle(firstX,firstY,2.5f*scale,paint); canvas.drawCircle(lastX,lastY,2.5f*scale,paint);
+        canvas.drawCircle(lastX,lastY,7*scale,paint);
+        paint.setColor(0xff1f3d2f);
+        canvas.drawCircle(lastX,lastY,4.5f*scale,paint);
         canvas.restore();
     }
 }

@@ -1,5 +1,5 @@
 <resources>
-<string name="routes_subtitle">Rutas del trabajador y sus datos</string>
+<string name="routes_subtitle">Recorridos y sus datos</string>
 <string name="routes_today">Hoy</string><string name="routes_yesterday">Ayer</string>
 <string name="routes_week">Semana</string><string name="routes_seven">7 días</string>
 <string name="routes_week_hint">Semana actual, de lunes a domingo</string>
@@ -24,13 +24,15 @@
     <string name="route_max">Máximo</string>
     <string name="route_min">Mínimo</string>
     <string name="route_points">Puntos medidos</string>
-    <string name="route_show_all">Ver todos ›</string>
+    <string name="route_show_all">Ver todos</string>
     <string name="route_show_less">Ver menos</string>
     <string name="route_show_more">Cargar más</string>
     <string name="route_ozone_value">%1$d ppb</string>
     <string name="route_started">Hora inicio · %1$s</string>
     <string name="route_duration">Duración</string>
     <string name="route_measurements">Mediciones</string>
+    <string name="route_recording">Grabando</string>
+    <string name="route_last_o3">Último O₃</string>
     <string name="route_receiving">Conectado</string>
     <string name="route_no_signal">Sin señal</string>
     <string name="route_gps_only">Solo GPS</string>

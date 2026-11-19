@@ -19,15 +19,20 @@ public final class RouteCardView extends MaterialCardView {
     public RouteCardView(Context context) {
         super(context);
         float density=getResources().getDisplayMetrics().density;
-        setRadius(20*density); setCardElevation(3*density);
-        setStrokeColor(0xff98b595);
+        setRadius(26*density); setCardElevation(density);
+        setStrokeColor(0x00ffffff); setCardBackgroundColor(0xffffffff);
         setClickable(true); setFocusable(true);
         View.inflate(context,R.layout.item_route,this);
     }
     public void bind(long id,long start,Long end,double meters,int count,List<RoutePoint> points) {
         this.routeId=id; this.start=start;
-        ((TextView)findViewById(R.id.route_name)).setText("RUTA "+id+" · "+
-                new SimpleDateFormat("dd/MM/yy",Locale.getDefault()).format(new Date(start)));
+        ((RoutePreviewView)findViewById(R.id.route_preview)).setSeed(id);
+        android.text.SpannableStringBuilder name=new android.text.SpannableStringBuilder("Ruta "+id);
+        name.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),0,name.length(),0);
+        int from=name.length();
+        name.append(" · ").append(new SimpleDateFormat("dd/MM/yy",Locale.getDefault()).format(new Date(start)));
+        name.setSpan(new android.text.style.ForegroundColorSpan(0xff5e6861),from,name.length(),0);
+        ((TextView)findViewById(R.id.route_name)).setText(name);
         long now=System.currentTimeMillis();
         long[] today=RoutePeriod.TODAY.bounds(now,TimeZone.getDefault());
         long[] yesterday=RoutePeriod.YESTERDAY.bounds(now,TimeZone.getDefault());
@@ -43,12 +48,11 @@ public final class RouteCardView extends MaterialCardView {
     public void update(Route route,long now) { update(route.end,route.meters,route.count,now); }
     private void update(Long end,double meters,int count,long now) {
         boolean active=end==null;
-        setCardBackgroundColor(active?0xffd4dfcd:0xffffffff);
-        setStrokeWidth(active?(int)Math.ceil(getResources().getDisplayMetrics().density):0);
         findViewById(R.id.route_status).setVisibility(active?VISIBLE:GONE);
+        findViewById(R.id.route_chevron).setVisibility(active?GONE:VISIBLE);
         long seconds=Math.max(0,(end==null?now:end)-start)/1000;
         String duration=String.format(Locale.getDefault(),"%02d:%02d:%02d",seconds/3600,seconds/60%60,seconds%60);
-        String distance=String.format(Locale.getDefault(),"%.2f km",meters/1000);
+        String distance=String.format(Locale.getDefault(),meters>=10000?"%.0f km":"%.1f km",meters/1000);
         ((TextView)findViewById(R.id.route_duration)).setText(duration);
         ((TextView)findViewById(R.id.route_distance)).setText(distance);
         ((TextView)findViewById(R.id.route_count)).setText(String.valueOf(count));

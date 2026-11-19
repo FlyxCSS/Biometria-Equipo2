@@ -1,8 +1,8 @@
 <resources>
-<string name="flow_back">‹ Volver</string>
+<string name="flow_back">Volver</string>
 <string name="bio_title">Autenticación biométrica</string>
 <string name="bio_question">¿Activar acceso biométrico?</string>
-<string name="bio_description">Usa la seguridad integrada de Android para entrar más rápido.</string>
+<string name="bio_description">Usa la seguridad integrada de tu dispositivo para entrar más rápido.</string>
 <string name="bio_enable">Activar biometría</string><string name="bio_skip">Ahora no</string>
 <string name="bio_enabled">Acceso biométrico activado</string><string name="bio_disable">Desactivar biometría</string>
 <string name="bio_success">Podrás acceder con tu huella o biometría compatible mientras la sesión siga vigente.</string>
@@ -10,9 +10,9 @@
 <string name="bio_android_settings">Configurar en Android</string>
 <string name="bio_failure">Android no pudo proteger la credencial. Puedes continuar con tu contraseña e intentarlo más tarde.</string>
 <string name="recovery_heading">Cambiar contraseña</string>
-<string name="recovery_question">¿Quieres cambiar la contraseña?</string>
-<string name="recovery_description">Introduce tu correo electrónico para recibir el enlace de recuperación.</string>
-<string name="recovery_link_question">Introduce el enlace recibido en tu correo.</string>
+<string name="recovery_question">Recuperar contraseña</string>
+<string name="recovery_description">Introduce tu correo electrónico y te enviaremos un enlace de recuperación.</string>
+<string name="recovery_link_question">Revisa tu correo</string>
 <string name="recovery_link_description">Pega el enlace completo del correo y elige una nueva contraseña. El enlace caduca a los 30 minutos y solo puede usarse una vez.</string>
 <string name="recovery_link_label">Enlace o token de recuperación</string>
 <string name="recovery_link_hint">Pega aquí el enlace recibido</string>
