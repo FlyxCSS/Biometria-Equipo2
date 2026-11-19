@@ -20,7 +20,7 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SENDA · Parque</title>
-  <link rel="stylesheet" href="/css/estilos.css?v=20261103-3">
+  <link rel="stylesheet" href="/css/estilos.css?v=20261120">
   <script src="/js/LogicaFake.js?v=20261118" defer></script>
   <script src="/js/app.js?v=20261103-3" defer></script>
 </head>
@@ -29,14 +29,15 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
   <main>
     <div id="mensaje" role="status" aria-live="polite" tabindex="-1"></div>
     <section id="acceso" class="tarjeta estrecha">
-      <p class="ceja">Acceso al parque</p><h1>Tu parque, conectado.</h1>
-      <p>Entra con tu cuenta para registrar trabajadores y consultar la última lectura recibida.</p>
+      <a class="volver-landing" href="/" aria-label="Volver a OZORA"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4M10 6l-6 6 6 6"/></svg></a>
+      <img class="logo-acceso" src="/assets/ozora.svg?v=20261104-2" alt="OZORA" width="160" height="77">
+      <h1>Accede a <strong>SENDA</strong></h1>
       <form id="form-login">
-        <label for="correo">Correo electrónico</label><input id="correo" name="correo" type="email" maxlength="100" autocomplete="username" required>
-        <label for="contrasena">Contraseña</label><input id="contrasena" name="contrasena" type="password" autocomplete="current-password" required>
-        <button type="submit">Iniciar sesión</button>
+        <label for="correo">Email</label><input id="correo" name="correo" type="email" maxlength="100" autocomplete="username" placeholder="ejemplo@correo.com" required>
+        <label for="contrasena">Contraseña</label><input id="contrasena" name="contrasena" type="password" autocomplete="current-password" placeholder="Introduzca su contraseña" required>
+        <button type="submit">Iniciar Sesión</button>
       </form>
-      <button id="abrir-recuperacion" class="enlace" type="button">¿Has olvidado tu contraseña?</button>
+      <p class="pie-acceso">¿Has olvidado tu contraseña? <button id="abrir-recuperacion" class="enlace" type="button">Recuperar contraseña</button></p>
     </section>
 
     <section id="recuperacion" class="tarjeta estrecha" hidden>

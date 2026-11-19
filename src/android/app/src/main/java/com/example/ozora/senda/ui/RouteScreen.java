@@ -74,7 +74,8 @@ public abstract class RouteScreen extends FieldScreen {
         button.setMinHeight(0);
         button.setMinimumHeight(0);
         button.setPadding(0, 0, 0, 0);
-        button.setElevation(dp(2));
+        button.setElevation(0); button.setStateListAnimator(null);
+        button.setStrokeWidth(dp(1)); button.setStrokeColor(ColorStateList.valueOf(0xffe6e2d9));
         button.setContentDescription(getString(R.string.route_back));
         button.setOnClickListener(view -> finish());
         return button;
@@ -88,7 +89,8 @@ public abstract class RouteScreen extends FieldScreen {
     protected void card(View view) {
         view.setBackgroundResource(R.drawable.s_card);
         view.setClipToOutline(true);
-        view.setElevation(dp(1));
+        view.setElevation(0); // Sin sombra: tarjeta plana con borde suave, como el resto del rediseño.
+        view.setForeground(getDrawable(R.drawable.s_card_outline));
     }
 
     /** Valor grande con la unidad pequeña y gris, p. ej. "72 ppb". */

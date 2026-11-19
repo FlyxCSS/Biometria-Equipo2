@@ -39,6 +39,32 @@ async function solicitarInformacion(evento) {
 }
 formularioContacto.addEventListener('submit', solicitarInformacion);
 
+/** --------------------
+ * Diseño lógico: pestaña: Elemento --> seleccionarPestana() -->
+ * Descripción: Muestra el llavero, la app o la web de SENDA y mueve el indicador de puntos.
+ * Accesible con teclado (flechas izquierda/derecha) según el patrón ARIA de pestañas.
+ * -------------------- */
+const pestanas = [...document.querySelectorAll('.pestanas [role="tab"]')];
+const puntos = [...document.querySelectorAll('.puntos i')];
+function seleccionarPestana(pestana, enfocar) {
+    pestanas.forEach((otra, indice) => {
+        const activa = otra === pestana;
+        otra.setAttribute('aria-selected', String(activa));
+        otra.tabIndex = activa ? 0 : -1;
+        document.getElementById(otra.getAttribute('aria-controls')).hidden = !activa;
+        puntos[indice]?.classList.toggle('activo', activa);
+    });
+    if (enfocar) pestana.focus();
+}
+pestanas.forEach((pestana, indice) => {
+    pestana.addEventListener('click', () => seleccionarPestana(pestana, false));
+    pestana.addEventListener('keydown', evento => {
+        if (evento.key !== 'ArrowRight' && evento.key !== 'ArrowLeft') return;
+        const paso = evento.key === 'ArrowRight' ? 1 : -1;
+        seleccionarPestana(pestanas[(indice + paso + pestanas.length) % pestanas.length], true);
+    });
+});
+
 // Los correos emitidos antes de separar la landing enlazaban a /#token=... .
 const enlaceAntiguo = new URLSearchParams(location.hash.slice(1));
 if (enlaceAntiguo.has('token')) location.replace(RUTA_BASE + '/acceso' + location.hash);

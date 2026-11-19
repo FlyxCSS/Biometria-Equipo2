@@ -190,6 +190,17 @@ public final class AccountActivity extends FieldScreen {
      * Preferencias <--
      * Descripción: Preferences. Edita datos locales y sincroniza la fotografía de la cuenta
      * -------------------- */
+    /** El lápiz pone el cursor al final del campo y abre el teclado. */
+    private void editarConLapiz(int lapiz, int campo) {
+        findViewById(lapiz).setOnClickListener(v -> {
+            EditText field = findViewById(campo);
+            field.requestFocus();
+            field.setSelection(field.length());
+            ((android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                    .showSoftInput(field, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+        });
+    }
+
     public static SharedPreferences preferences(android.content.Context context, SessionManager session) {
         return context.getSharedPreferences("campo-" + session.worker.id + "-" + session.worker.parkId,
                 MODE_PRIVATE);
@@ -217,6 +228,8 @@ public final class AccountActivity extends FieldScreen {
         showPhoto();
         findViewById(R.id.profile_change_photo).setOnClickListener(v -> elegirFoto());
         findViewById(R.id.profile_camera).setOnClickListener(v -> abrirCamara());
+        editarConLapiz(R.id.profile_name_edit, R.id.profile_name);
+        editarConLapiz(R.id.profile_phone_edit, R.id.profile_phone);
         findViewById(R.id.profile_remove_photo).setOnClickListener(v -> {
             if (busy) return;
             new android.app.AlertDialog.Builder(this)

@@ -145,6 +145,7 @@ public final class SummaryActivity extends RouteScreen {
         filters.setSelectionRequired(true);
         filters.setBackgroundResource(R.drawable.s_segment_track);
         filters.setPadding(dp(4), dp(4), dp(4), dp(4));
+        filters.setInnerCornerSize(new com.google.android.material.shape.AbsoluteCornerSize(dp(22)));
         MaterialButton ozone = filter(R.string.route_ozone);
         MaterialButton temp = filter(R.string.route_temperature);
         filters.addView(ozone, new LinearLayout.LayoutParams(0, dp(44), 1));
@@ -207,6 +208,7 @@ public final class SummaryActivity extends RouteScreen {
         button.setId(View.generateViewId());
         button.setText(title);
         button.setAllCaps(false);
+        button.setElevation(0); button.setStateListAnimator(null);
         button.setBackgroundTintList(new ColorStateList(
                 new int[][]{{android.R.attr.state_checked}, {}}, new int[]{0xffffffff, 0x00ffffff}));
         button.setTextColor(new ColorStateList(
@@ -277,9 +279,9 @@ public final class SummaryActivity extends RouteScreen {
             try(Cursor c=readings(-1,0)) {
                 while(c.moveToNext()) { int v=c.getInt(0); total+=v; min=Math.min(min,v); max=Math.max(max,v); temperatureCount++; }
             }
-            average.setText(temperatureCount==0 ? "—" : value((int)Math.round(total/temperatureCount)));
-            maximum.setText(temperatureCount==0 ? "—" : value(max));
-            minimum.setText(temperatureCount==0 ? "—" : value(min));
+            average.setText(temperatureCount==0 ? "—" : medida((int)Math.round(total/temperatureCount)));
+            maximum.setText(temperatureCount==0 ? "—" : medida(max));
+            minimum.setText(temperatureCount==0 ? "—" : medida(min));
             rows.removeAllViews(); shown=0;
             all.setVisibility(temperatureCount>PREVIEW ? View.VISIBLE : View.GONE);
             all.setText(expanded ? R.string.route_show_less : R.string.route_show_all);
@@ -323,14 +325,16 @@ public final class SummaryActivity extends RouteScreen {
                 int umbral = getSharedPreferences("campo-" + session.worker.id + "-" + session.worker.parkId, MODE_PRIVATE).getInt("umbral", 60);
                 View dot = new View(this);
                 dot.setBackgroundResource(R.drawable.s_circle_ink);
-                dot.setBackgroundTintList(ColorStateList.valueOf(ppb >= umbral * 1.25f ? 0xffd2493a
-                        : ppb >= umbral ? 0xffe2b54a : 0xff6ba57a));
+                // Ozono: color según el umbral. Temperatura (centésimas de °C): frío, templado o calor.
+                dot.setBackgroundTintList(ColorStateList.valueOf(temperature
+                        ? (ppb < 1500 ? 0xff5b8fd6 : ppb <= 2800 ? 0xff6ba57a : 0xffe8873a)
+                        : ppb >= umbral * 1.25f ? 0xffd2493a : ppb >= umbral ? 0xffe2b54a : 0xff6ba57a));
                 row.addView(dot, new LinearLayout.LayoutParams(dp(10), dp(10)));
                 TextView time = label(readingTime(readings.getString(1)), 18, false);
                 LinearLayout.LayoutParams timeSize = new LinearLayout.LayoutParams(0, -2, 1);
                 timeSize.setMarginStart(dp(18));
                 row.addView(time, timeSize);
-                row.addView(label(valueWithUnit(String.valueOf(ppb), "ppb"), 18, true));
+                row.addView(label(medida(ppb), 18, true));
                 rows.addView(row);
                 shown++;
             }
@@ -363,6 +367,12 @@ public final class SummaryActivity extends RouteScreen {
      * Text <--
      * Descripción: Value. Presenta mapa, estadísticas y lecturas del recorrido
      * -------------------- */
+    /** Valor grande con su unidad pequeña: "72 ppb" para ozono o "21,5 °C" para temperatura. */
+    private CharSequence medida(int raw) {
+        return temperature ? valueWithUnit(String.format(Locale.getDefault(), "%.1f", raw / 100.0), "°C")
+                : valueWithUnit(String.valueOf(raw), "ppb");
+    }
+
     private String value(int ppb) { return temperature ? String.format(Locale.getDefault(), "%.2f °C", ppb / 100.0) : getString(R.string.route_ozone_value, ppb); }
 
 
