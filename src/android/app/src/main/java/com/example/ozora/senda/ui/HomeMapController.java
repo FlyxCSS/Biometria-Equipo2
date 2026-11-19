@@ -37,6 +37,7 @@ public final class HomeMapController implements LocationTracker.Oyente {
     private JSONArray points = new JSONArray();
     private int min, max;
     private long lastRefresh;
+    private com.google.android.material.bottomsheet.BottomSheetBehavior<View> sheet;
 
     public HomeMapController(Activity activity, View root, SessionManager session, boolean enabled, boolean week) {
         this(activity, root, session, enabled, week, false);
@@ -61,11 +62,7 @@ public final class HomeMapController implements LocationTracker.Oyente {
                 ready = true;
                 render();
                 if (last != null) position(true);
-                root.findViewById(R.id.home_bottom_card).post(() -> {
-                    if (!disposed) web.evaluateJavascript("setBottom(" +
-                            (root.findViewById(R.id.home_bottom_card).getHeight()
-                            / activity.getResources().getDisplayMetrics().density + 8) + ")", null);
-                });
+                root.post(() -> updateMapInset());
             }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 if (request.isForMainFrame() || "tile.openstreetmap.org".equals(request.getUrl().getHost())) {
@@ -97,8 +94,33 @@ public final class HomeMapController implements LocationTracker.Oyente {
         periods.addOnButtonCheckedListener((group, id, checked) -> {
             if (checked) { this.week = id == R.id.home_week; refresh(true); }
         });
+        if (!backdrop) {
+            View panel = root.findViewById(R.id.home_bottom_card);
+            sheet = com.google.android.material.bottomsheet.BottomSheetBehavior.from(panel);
+            sheet.setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED);
+            sheet.addBottomSheetCallback(new com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback() {
+                @Override public void onStateChanged(View bottom, int state) {
+                    boolean open = state == com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED;
+                    ((TextView)root.findViewById(R.id.home_sheet_toggle)).setText(open ? "━  Ocultar detalles" : "━  Última lectura · Ver detalles");
+                    root.findViewById(R.id.home_sheet_toggle).setContentDescription(open ? "Recoger detalles de ozono" : "Expandir detalles de ozono");
+                    updateMapInset();
+                }
+                @Override public void onSlide(View bottom, float offset) { updateMapInset(); }
+            });
+            root.findViewById(R.id.home_sheet_toggle).setOnClickListener(v -> sheet.setState(
+                    sheet.getState() == com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+                    ? com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
+                    : com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED));
+        } else root.findViewById(R.id.home_recenter).setVisibility(View.GONE);
         updateControls();
         refresh(true);
+    }
+    private void updateMapInset() {
+        if (!ready || disposed) return;
+        View panel = root.findViewById(R.id.home_bottom_card);
+        float height = panel.getVisibility() == View.VISIBLE
+                ? Math.max(0, root.getHeight() - panel.getTop()) : 0;
+        web.evaluateJavascript("setBottom(" + (height / activity.getResources().getDisplayMetrics().density + 8) + ")", null);
     }
 
     static String mapHtml(Activity activity, String file) throws IOException {

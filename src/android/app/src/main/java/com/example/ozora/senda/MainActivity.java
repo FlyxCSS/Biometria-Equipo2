@@ -340,7 +340,13 @@ public final class      MainActivity extends FieldScreen {
             textoEn(R.id.home_park, getString(R.string.home_park, session.worker.parkId));
             boolean receiving = activo && RutaService.actual == id && RutaService.ultimoAnuncio > 0
                     && SystemClock.elapsedRealtime() - RutaService.ultimoAnuncio < ajustes().getInt("silencio", 20) * 1000L;
-            textoEn(R.id.text_device, getString(receiving ? R.string.home_receiving : R.string.home_not_receiving));
+            textoEn(R.id.text_device, receiving ? "● Bluetooth conectado" : "○ Sin conexión BLE");
+            TextView connection = section.findViewById(R.id.text_device);
+            connection.setTextColor(getColor(receiving ? R.color.status_connected : R.color.status_neutral));
+            android.graphics.drawable.GradientDrawable badge = new android.graphics.drawable.GradientDrawable();
+            badge.setCornerRadius(dp(24));
+            badge.setColor(getColor(receiving ? R.color.status_connected_surface : R.color.status_neutral_surface));
+            connection.setBackground(badge);
             if (homeMap != null) homeMap.refresh(false);
         }
         if (tab == R.id.tab_inicio) {
