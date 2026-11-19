@@ -77,7 +77,7 @@ footer { padding: 1.5rem; text-align: center; color: #61736a; font-size: .8rem; 
  * Acceso con el diseño "Login" (20/11/2026): tarjeta blanca a la izquierda sobre la foto
  * del bosque. Solo se aplica fuera del panel (acceso, recuperación, restablecer y cambio inicial).
  * -------------------- */
-body:not(.panel-abierto) { min-height: 100vh; background: #24453f url('/assets/ozora-bosque.jpg') right center / cover no-repeat; }
+body:not(.panel-abierto) { min-height: 100vh; background: #24453f url('/assets/ozora-login.png') center center / cover no-repeat; }
 body:not(.panel-abierto) .cabecera, body:not(.panel-abierto) footer { display: none; }
 body:not(.panel-abierto) main { max-width: none; min-height: 100vh; margin: 0; padding: clamp(12px, 2.2vw, 32px); display: flex; flex-direction: column; justify-content: center; }
 body:not(.panel-abierto) #mensaje { width: min(100%, 640px); margin-bottom: 12px; }
