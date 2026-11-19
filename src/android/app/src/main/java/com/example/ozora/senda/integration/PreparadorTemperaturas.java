@@ -1,3 +1,11 @@
+/*
+ * Nombre: PreparadorTemperaturas.java
+ * Descripción: Valida ubicación y deduplica temperatura de forma independiente.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Valida ubicación y deduplica temperatura de forma independiente.
+ */
 package com.example.ozora.senda.integration;
 
 import android.location.Location;
@@ -14,6 +22,12 @@ public final class PreparadorTemperaturas {
     private final ControlContadores contadores = new ControlContadores();
     private final ControlLecturasSinContador sinContador = new ControlLecturasSinContador();
 
+
+    /** --------------------
+     * Diseño lógico: sensor: Text, trama: IBeaconParserResultado, ubicacion: Posicion --> preparar() -->
+     * MedicionTemperatura <--
+     * Descripción: Preparar. Valida ubicación y deduplica temperatura de forma independiente
+     * -------------------- */
     public MedicionTemperatura preparar(String sensor, IBeaconParser.Resultado trama, Location ubicacion) {
         if (sensor == null || trama == null || !sensor.equalsIgnoreCase(trama.nombreBle)
                 || trama.obtenerTemperaturaC() == null
@@ -29,5 +43,10 @@ public final class PreparadorTemperaturas {
                 ubicacion.getLatitude(), ubicacion.getLongitude());
     }
 
+
+    /** --------------------
+     * Diseño lógico: reiniciar() -->
+     * Descripción: Reiniciar. Valida ubicación y deduplica temperatura de forma independiente
+     * -------------------- */
     public void reiniciar() { contadores.reiniciar(); sinContador.reiniciar(); }
 }

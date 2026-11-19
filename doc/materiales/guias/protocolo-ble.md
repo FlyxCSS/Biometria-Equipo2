@@ -10,7 +10,7 @@ La descripcion de Major directo debajo corresponde a la version anterior.
 # O3, temperatura y bateria en SENDA
 
 Abrir `microprocesador.ino` con todos los archivos de esta carpeta. La logica principal
-permanece en `TareaSensorMedicionOZONO.ino`. Placa: SparkFun Pro nRF52840 Mini,
+permanece en `microprocesador.ino`. Placa: SparkFun Pro nRF52840 Mini,
 core Adafruit nRF52. No mezclar estos archivos con la copia de Documents/GitHub.
 
 ## Formato

@@ -1,3 +1,11 @@
+/*
+ * Nombre: HomeMapController.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.Manifest;
@@ -40,9 +48,21 @@ public final class HomeMapController implements LocationTracker.Oyente {
     /** Capa elegida en el desplegable: ozono o temperatura. */
     private boolean temperature;
 
+
+    /** --------------------
+     * Diseño lógico: activity: Activity, root: Vista, session: SessionManager, enabled: B, week: B --> HomeMapController() -->
+     * HomeMapController <--
+     * Descripción: Construye HomeMapController. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public HomeMapController(Activity activity, View root, SessionManager session, boolean enabled, boolean week) {
         this(activity, root, session, enabled, week, false);
     }
+
+    /** --------------------
+     * Diseño lógico: activity: Activity, root: Vista, session: SessionManager, enabled: B, week: B, backdrop: B --> HomeMapController() -->
+     * HomeMapController <--
+     * Descripción: Construye HomeMapController. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public HomeMapController(Activity activity, View root, SessionManager session, boolean enabled, boolean week, boolean backdrop) {
         this.activity = activity;
         this.root = root;
@@ -57,6 +77,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
         web.getSettings().setGeolocationEnabled(false);
         web.getSettings().setUserAgentString("SENDA-Equipo2/1.0 (+https://github.com/FlyxCSS/Biometria-Equipo2)");
         web.setWebViewClient(new WebViewClient() {
+
+            /** --------------------
+             * Diseño lógico: view: WebView, url: Text --> onPageFinished() -->
+             * Descripción: On Page Finished. Aplicación de campo: acceso, captura, recorridos y presentación Android
+             * -------------------- */
             @Override public void onPageFinished(WebView view, String url) {
                 if (disposed) return;
                 if (backdrop) web.evaluateJavascript("document.querySelector('.leaflet-tile-pane').style.filter='blur(5px) saturate(.75)';map.dragging.disable();map.touchZoom.disable();map.doubleClickZoom.disable();map.scrollWheelZoom.disable();", null);
@@ -65,6 +90,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
                 if (last != null) position(true);
                 root.post(() -> updateMapInset());
             }
+
+            /** --------------------
+             * Diseño lógico: view: WebView, request: WebResourceRequest, error: WebResourceError --> onReceivedError() -->
+             * Descripción: On Received Error. Aplicación de campo: acceso, captura, recorridos y presentación Android
+             * -------------------- */
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 if (request.isForMainFrame() || "tile.openstreetmap.org".equals(request.getUrl().getHost())) {
                     mapUnavailable = true;
@@ -72,6 +102,12 @@ public final class HomeMapController implements LocationTracker.Oyente {
                     if (foreground) status(activity.getString(R.string.home_map_offline));
                 }
             }
+
+            /** --------------------
+             * Diseño lógico: view: WebView, request: WebResourceRequest --> shouldOverrideUrlLoading() -->
+             * B <--
+             * Descripción: Should Override Url Loading. Aplicación de campo: acceso, captura, recorridos y presentación Android
+             * -------------------- */
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri url = request.getUrl();
                 if ("https".equals(url.getScheme()) && "www.openstreetmap.org".equals(url.getHost())) {
@@ -116,6 +152,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
         updateControls();
         refresh(true);
     }
+
+    /** --------------------
+     * Diseño lógico: updateMapInset() -->
+     * Descripción: Update Map Inset. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void updateMapInset() {
         if (!ready || disposed) return;
         View panel = root.findViewById(R.id.home_bottom_card);
@@ -124,11 +165,23 @@ public final class HomeMapController implements LocationTracker.Oyente {
         web.evaluateJavascript("setBottom(" + (height / activity.getResources().getDisplayMetrics().density + 8) + ")", null);
     }
 
+
+    /** --------------------
+     * Diseño lógico: activity: Activity, file: Text --> mapHtml() --x
+     * Text <--
+     * Descripción: Map Html. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     static String mapHtml(Activity activity, String file) throws IOException {
         return asset(activity, file).replace("/*LEAFLET_CSS*/", asset(activity, "leaflet.css"))
                 .replace("/*LEAFLET_JS*/", asset(activity, "leaflet.js"));
     }
 
+
+    /** --------------------
+     * Diseño lógico: activity: Activity, file: Text --> asset() --x
+     * Text <--
+     * Descripción: Asset. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private static String asset(Activity activity, String file) throws IOException {
         try (InputStream stream = activity.getAssets().open("map/" + file);
              ByteArrayOutputStream output = new ByteArrayOutputStream()) {
@@ -139,9 +192,26 @@ public final class HomeMapController implements LocationTracker.Oyente {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: heatEnabled() -->
+     * B <--
+     * Descripción: Heat Enabled. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public boolean heatEnabled() { return enabled; }
+
+    /** --------------------
+     * Diseño lógico: weekSelected() -->
+     * B <--
+     * Descripción: Week Selected. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public boolean weekSelected() { return week; }
 
+
+    /** --------------------
+     * Diseño lógico: start() -->
+     * Descripción: Start. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void start() {
         foreground = true;
         web.onResume();
@@ -154,6 +224,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
         refresh(true);
     }
 
+
+    /** --------------------
+     * Diseño lógico: stop() -->
+     * Descripción: Stop. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void stop() {
         foreground = false;
         location.detener();
@@ -162,6 +237,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
         web.onPause();
     }
 
+
+    /** --------------------
+     * Diseño lógico: destroy() -->
+     * Descripción: Destroy. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void destroy() {
         disposed = true;
         stop();
@@ -170,6 +250,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
         web.destroy();
     }
 
+
+    /** --------------------
+     * Diseño lógico: recenter() -->
+     * Descripción: Recenter. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void recenter() {
         if (ready && mapUnavailable) web.evaluateJavascript("retryTiles()", null);
         if (last == null) { start(); return; }
@@ -178,6 +263,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
         position(true);
     }
 
+
+    /** --------------------
+     * Diseño lógico: position: Posicion --> alRecibirUbicacion() -->
+     * Descripción: Al Recibir Ubicacion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override public void alRecibirUbicacion(Location position) {
         if (!foreground || disposed || SessionManager.current() != session) return;
         long age = SystemClock.elapsedRealtimeNanos() - position.getElapsedRealtimeNanos();
@@ -192,14 +282,29 @@ public final class HomeMapController implements LocationTracker.Oyente {
         showStatus();
     }
 
+
+    /** --------------------
+     * Diseño lógico: error: Text --> alOcurrirError() -->
+     * Descripción: Al Ocurrir Error. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override public void alOcurrirError(String error) { if (!disposed && foreground) status(error); }
 
+
+    /** --------------------
+     * Diseño lógico: recenter: B --> position() -->
+     * Descripción: Position. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void position(boolean recenter) {
         if (!ready || last == null) return;
         web.evaluateJavascript("setPosition(" + last.getLatitude() + "," + last.getLongitude() + ","
                 + last.getAccuracy() + "," + recenter + ")", null);
     }
 
+
+    /** --------------------
+     * Diseño lógico: updateControls() -->
+     * Descripción: Update Controls. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void updateControls() {
         root.findViewById(R.id.home_legend).setVisibility(enabled ? View.VISIBLE : View.GONE);
         root.findViewById(R.id.home_heat_filters).setVisibility(enabled ? View.VISIBLE : View.GONE);
@@ -220,6 +325,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
         showStatus();
     }
 
+
+    /** --------------------
+     * Diseño lógico: force: B --> refresh() -->
+     * Descripción: Refresh. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void refresh(boolean force) {
         if (ready && foreground && !disposed) {
             web.evaluateJavascript("window.tileState || null", value -> {
@@ -281,11 +391,21 @@ public final class HomeMapController implements LocationTracker.Oyente {
         });
     }
 
+
+    /** --------------------
+     * Diseño lógico: render() -->
+     * Descripción: Render. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void render() {
         if (!ready || disposed) return;
         web.evaluateJavascript("setReadings(" + points + "," + enabled + "," + min + "," + max + ")", null);
     }
 
+
+    /** --------------------
+     * Diseño lógico: showStatus() -->
+     * Descripción: Show Status. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void showStatus() {
         if (mapUnavailable) { status(activity.getString(R.string.home_map_offline)); return; }
         if (last == null) return;
@@ -295,6 +415,11 @@ public final class HomeMapController implements LocationTracker.Oyente {
         status(message);
     }
 
+
+    /** --------------------
+     * Diseño lógico: message: Text --> status() -->
+     * Descripción: Status. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void status(String message) {
         TextView status = root.findViewById(R.id.home_map_status);
         status.setText(message);

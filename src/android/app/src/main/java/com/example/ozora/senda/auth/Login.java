@@ -1,10 +1,10 @@
 /*
  * Nombre: Login.java
- * Descripción: Acceso de trabajador y cambio obligatorio de contraseña inicial.
+ * Descripción: Gestiona acceso, errores y primer cambio de contraseña.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
- * Autor: Equipo Android y Julia (integración con asistencia de Codex).
- * Aportación: Impedir entrar al panel hasta completar el primer cambio en PHP.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Gestiona acceso, errores y primer cambio de contraseña.
  */
 package com.example.ozora.senda.auth;
 
@@ -34,8 +34,12 @@ public final class Login extends AuthScreen {
     private boolean ocupado;
     private String tokenInicial;
     private long venceInicial;
-    /** Diseño lógico: (estado) -> onCreate -> vacío.
-     * Descripción: Reutiliza la sesión vigente; la biometría valida su credencial con el servidor al acceder de nuevo. */
+
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onCreate() -->
+     * Descripción: Reutiliza la sesión vigente; la biometría valida su credencial con el servidor al acceder de nuevo
+     * -------------------- */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         logica=new LogicaFake(this);
@@ -43,15 +47,28 @@ public final class Login extends AuthScreen {
         if (SessionManager.current() != null) { abrirPanel(); return; }
         acceso(); mensaje(getIntent().getStringExtra("mensaje"));
     }
-    /** Diseño lógico: () -> abrirPanel -> vacío.
-     * Descripción: Abre el cuaderno tras un login sin cambio pendiente. */
+
+
+    /** --------------------
+     * Diseño lógico: abrirPanel() -->
+     * Descripción: Abre el cuaderno tras un login sin cambio pendiente
+     * -------------------- */
     private void abrirPanel() {
         startActivity(new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
         finish();
     }
-    /** Diseño lógico: () -> onDestroy -> vacío.
-     * Descripción: Cancela la biometría y descarta el token temporal de primer acceso. */
+
+
+    /** --------------------
+     * Diseño lógico: onDestroy() -->
+     * Descripción: Cancela la biometría y descarta el token temporal de primer acceso
+     * -------------------- */
     @Override protected void onDestroy() { tokenInicial=null; bio.cancelar(); super.onDestroy(); }
+
+    /** --------------------
+     * Diseño lógico: acceso() -->
+     * Descripción: Acceso. Gestiona acceso, errores y primer cambio de contraseña
+     * -------------------- */
     private void acceso() {
         mostrarFormulario();
         findViewById(R.id.auth_submit).setOnClickListener(v -> entrar());
@@ -69,17 +86,37 @@ public final class Login extends AuthScreen {
             if (!bio.activo()) { mensaje(getString(R.string.auth_bio_setup)); return; }
             if (!bio.disponible()) { mensaje("Biometría no disponible. Usa tu contraseña."); return; }
             bio.abrir(new BiometricHelper.Resultado() {
+
+                /** --------------------
+                 * Diseño lógico: token: Text --> aceptar() -->
+                 * Descripción: Aceptar. Gestiona acceso, errores y primer cambio de contraseña
+                 * -------------------- */
                 public void aceptar(String token) { autenticar(null, null, token); }
+
+                /** --------------------
+                 * Diseño lógico: texto: Text --> error() -->
+                 * Descripción: Error. Gestiona acceso, errores y primer cambio de contraseña
+                 * -------------------- */
                 public void error(String texto) { mensaje(texto); }
             });
         });
     }
 
+
+    /** --------------------
+     * Diseño lógico: texto: Text --> mensaje() -->
+     * Descripción: Mensaje. Gestiona acceso, errores y primer cambio de contraseña
+     * -------------------- */
     @Override protected void mensaje(String texto) {
         super.mensaje(null);
         if (texto != null && !texto.equals(getString(R.string.auth_busy))) aviso(texto, false);
     }
 
+
+    /** --------------------
+     * Diseño lógico: entrar() -->
+     * Descripción: Entrar. Gestiona acceso, errores y primer cambio de contraseña
+     * -------------------- */
     private void entrar() {
         if (ocupado || bio.enCurso()) return;
         String correo = email.getText().toString().trim();
@@ -99,8 +136,12 @@ public final class Login extends AuthScreen {
         autenticar(correo, clave, null);
     }
 
-    /** Diseño lógico: (correo, clave, token biométrico) -> autenticar -> vacío.
-     * Descripción: Verifica sesión y deriva al primer cambio antes de guardar el acceso al panel. */
+
+
+    /** --------------------
+     * Diseño lógico: correo: Text, clave: Text, guardado: Text --> autenticar() -->
+     * Descripción: Verifica sesión y deriva al primer cambio antes de guardar el acceso al panel
+     * -------------------- */
     private void autenticar(String correo,String clave,String guardado) {
         if(ocupado) return;
         ocupado=true; mostrarEspera(true); mensaje(getString(R.string.auth_busy));
@@ -151,8 +192,12 @@ public final class Login extends AuthScreen {
         });
     }
 
-    /** Diseño lógico: (campo contraseña) -> agregarClave -> vacío.
-     * Descripción: Añade un icono de ojo con nombre accesible sin cambiar el texto escrito. */
+
+
+    /** --------------------
+     * Diseño lógico: clave: Text --> agregarClave() -->
+     * Descripción: Añade un icono de ojo con nombre accesible sin cambiar el texto escrito
+     * -------------------- */
     private void agregarClave(EditText clave) {
         LinearLayout fila=new LinearLayout(this);
         fila.setGravity(android.view.Gravity.CENTER_VERTICAL);
@@ -170,8 +215,12 @@ public final class Login extends AuthScreen {
         contenido.addView(fila);
     }
 
-    /** Diseño lógico: (correo utilizado) -> primerAcceso -> vacío.
-     * Descripción: Solicita la clave actual y la nueva; el token temporal no abre recorridos ni biometría. */
+
+
+    /** --------------------
+     * Diseño lógico: correo: Text --> primerAcceso() -->
+     * Descripción: Solicita la clave actual y la nueva; el token temporal no abre recorridos ni biometría
+     * -------------------- */
     private void primerAcceso(String correo) {
         pagina("Cambia tu contraseña inicial");
         texto("Antes de comenzar, elige una contraseña propia de 12 a 72 bytes UTF-8.",16,false);

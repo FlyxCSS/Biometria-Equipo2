@@ -1,1 +1,9 @@
+<!--
+Nombre: ic_s_bell.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24"><path android:fillColor="#00000000" android:strokeColor="#1F3D2F" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M6,16.5V11A6,6 0,0 1,18 11V16.5L19.5,18H4.5Z M10,20.5A2,2 0,0 0,14 20.5"/></vector>

@@ -1,3 +1,11 @@
+/*
+ * Nombre: RouteMap.java
+ * Descripción: Representa el trazado y conserva la interacción táctil del mapa.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Representa el trazado y conserva la interacción táctil del mapa.
+ */
 package com.example.ozora.senda.ui;
 
 import android.app.Activity;
@@ -24,6 +32,12 @@ public final class RouteMap {
     private String draw;
     private final boolean active;
 
+
+    /** --------------------
+     * Diseño lógico: activity: Activity, web: WebView, status: Text, active: B --> RouteMap() -->
+     * RouteMap <--
+     * Descripción: Construye RouteMap. Representa el trazado y conserva la interacción táctil del mapa
+     * -------------------- */
     public RouteMap(Activity activity, WebView web, TextView status, boolean active) {
         this.web = web;
         this.status = status;
@@ -40,12 +54,23 @@ public final class RouteMap {
         web.getSettings().setAllowContentAccess(false);
         web.getSettings().setUserAgentString("SENDA-Equipo2/1.0 (+https://github.com/FlyxCSS/Biometria-Equipo2)");
         web.setWebViewClient(new WebViewClient() {
+
+            /** --------------------
+             * Diseño lógico: view: WebView, url: Text --> onPageFinished() -->
+             * Descripción: On Page Finished. Representa el trazado y conserva la interacción táctil del mapa
+             * -------------------- */
             @Override public void onPageFinished(WebView view, String url) {
                 if (disposed) return;
                 ready = true;
                 render();
             }
 
+
+            /** --------------------
+             * Diseño lógico: view: WebView, request: WebResourceRequest --> shouldOverrideUrlLoading() -->
+             * B <--
+             * Descripción: Should Override Url Loading. Representa el trazado y conserva la interacción táctil del mapa
+             * -------------------- */
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if ("https".equals(request.getUrl().getScheme())
                         && "www.openstreetmap.org".equals(request.getUrl().getHost())) {
@@ -64,6 +89,11 @@ public final class RouteMap {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: points: [Dato], readings: [Dato], top: Z, bottom: Z --> update() -->
+     * Descripción: Update. Representa el trazado y conserva la interacción táctil del mapa
+     * -------------------- */
     public void update(List<RoutePoint> points, JSONArray readings, int top, int bottom) {
         JSONArray segments = new JSONArray();
         JSONArray segment = null;
@@ -86,10 +116,20 @@ public final class RouteMap {
         checkTiles();
     }
 
+
+    /** --------------------
+     * Diseño lógico: render() -->
+     * Descripción: Render. Representa el trazado y conserva la interacción táctil del mapa
+     * -------------------- */
     private void render() {
         if (ready && !disposed && draw != null) web.evaluateJavascript(draw, null);
     }
 
+
+    /** --------------------
+     * Diseño lógico: checkTiles() -->
+     * Descripción: Check Tiles. Representa el trazado y conserva la interacción táctil del mapa
+     * -------------------- */
     public void checkTiles() {
         if (ready && !disposed && hasPoints) {
             web.evaluateJavascript("window.tilesUnavailable", result -> {
@@ -100,11 +140,21 @@ public final class RouteMap {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: showStatus() -->
+     * Descripción: Show Status. Representa el trazado y conserva la interacción táctil del mapa
+     * -------------------- */
     private void showStatus() {
         status.setText(offline ? R.string.route_map_offline : (active ? R.string.route_wait_gps : R.string.route_no_gps));
         status.setVisibility(offline || !hasPoints ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
+
+    /** --------------------
+     * Diseño lógico: destroy() -->
+     * Descripción: Destroy. Representa el trazado y conserva la interacción táctil del mapa
+     * -------------------- */
     public void destroy() {
         disposed = true;
         ((ViewGroup) web.getParent()).removeView(web);

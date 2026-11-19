@@ -1,7 +1,21 @@
+/*
+ * Nombre: TelemetriaTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.bluetooth;
 import org.junit.Test;
 import static org.junit.Assert.*;
 public class TelemetriaTest {
+
+    /** --------------------
+     * Diseño lógico: tipo: Z, valor: Z, nombre: Text --> trama() -->
+     * IBeaconParserResultado <--
+     * Descripción: Trama. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private IBeaconParser.Resultado trama(int tipo, int valor, String nombre) {
         byte[] b = new byte[23]; b[0] = 2; b[1] = 0x15;
         String uuid = IBeaconParser.UUID_PROYECTO.replace("-", "");
@@ -10,6 +24,11 @@ public class TelemetriaTest {
         b[20]=(byte)(valor>>8); b[21]=(byte)valor; b[22]=-53;
         return IBeaconParser.interpretar(b,nombre,-70);
     }
+
+    /** --------------------
+     * Diseño lógico: majorDirectoYUnidades() -->
+     * Descripción: Major Directo YUnidades. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void majorDirectoYUnidades() {
         IBeaconParser.Resultado o3=trama(11,347,"S-001");
         assertEquals(11,o3.major); assertEquals(-1,o3.contador);
@@ -19,6 +38,11 @@ public class TelemetriaTest {
         assertEquals(Integer.valueOf(72),trama(14,72,"S-001").obtenerBateriaPorcentaje());
         assertFalse(trama(14,72,"S-001").esOzono());
     }
+
+    /** --------------------
+     * Diseño lógico: recibeLaSecuenciaRealDelMicroConContador() -->
+     * Descripción: Recibe La Secuencia Real Del Micro Con Contador. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void recibeLaSecuenciaRealDelMicroConContador() {
         EstadoLlavero estado = new EstadoLlavero();
         IBeaconParser.Resultado primera = trama(3116,2941,"S-001");
@@ -43,6 +67,11 @@ public class TelemetriaTest {
         assertEquals(29.39,estado.temperatura("S-001",13000),0.000001);
         assertNull(estado.bateria("S-001",13000));
     }
+
+    /** --------------------
+     * Diseño lógico: valoresDesconocidosYLimites() -->
+     * Descripción: Valores Desconocidos YLimites. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void valoresDesconocidosYLimites() {
         assertNull(trama(11,65535,"S-001").obtenerOzonoPpb());
         assertNull(trama(12,0x8000,"S-001").obtenerTemperaturaC());
@@ -53,6 +82,11 @@ public class TelemetriaTest {
         assertEquals(Integer.valueOf(100),trama(14,100,"S-001").obtenerBateriaPorcentaje());
         assertNull(trama(15,12,"S-001"));
     }
+
+    /** --------------------
+     * Diseño lógico: caducaCadaLecturaYSeparaLlaveros() -->
+     * Descripción: Caduca Cada Lectura YSepara Llaveros. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void caducaCadaLecturaYSeparaLlaveros() {
         EstadoLlavero e=new EstadoLlavero();
         e.actualizar(trama(12,2345,"S-001"),1000);

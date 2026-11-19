@@ -1,12 +1,14 @@
 <?php
 /*
  * Nombre: integracion.php
- * Descripción: Pruebas HTTP y MySQL reales del backend sobre una BD de pruebas.
+ * Descripción: Comprobación automática de contratos, límites y aislamiento.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Evidencia de permisos, persistencia, sesiones, alta y recuperación.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Comprobación automática de contratos, límites y aislamiento.
  */
+
+
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
 require_once dirname(__DIR__) . '/business_logic/Correo.php';
@@ -19,8 +21,12 @@ if (($config['environment'] ?? '') !== 'local' || !str_ends_with($nombreBd, '_te
 $base = rtrim($config['app_url'], '/');
 $comprobaciones = 0;
 
-/** Diseño lógico: (condición, descripción) -> comprobar -> vacío o fallo.
- * Descripción: Cuenta aserciones y detiene el proceso si una expectativa falla. */
+
+
+/** --------------------
+ * Diseño lógico: condicion: B, descripcion: Text --> comprobar() -->
+ * Descripción: Cuenta aserciones y detiene el proceso si una expectativa falla
+ * -------------------- */
 function comprobar(bool $condicion, string $descripcion): void
 {
     global $comprobaciones;
@@ -28,8 +34,13 @@ function comprobar(bool $condicion, string $descripcion): void
     $comprobaciones++;
 }
 
-/** Diseño lógico: (método, ruta, datos, token, estado esperado) -> pedir -> JSON.
- * Descripción: Hace una petición HTTP real y exige estado y formato coherentes. */
+
+
+/** --------------------
+ * Diseño lógico: metodo: Text, ruta: Text, datos: Dato, token: Text, esperado: Z, tipo: Text --> pedir() -->
+ * [Dato] <--
+ * Descripción: Hace una petición HTTP real y exige estado y formato coherentes
+ * -------------------- */
 function pedir(string $metodo, string $ruta, mixed $datos, string $token, int $esperado, string $tipo = 'application/json'): array
 {
     global $base;
@@ -46,8 +57,13 @@ function pedir(string $metodo, string $ruta, mixed $datos, string $token, int $e
     return $json;
 }
 
-/** Diseño lógico: (SQL, parámetros) -> sql -> PDOStatement.
- * Descripción: Prepara los datos ficticios y verifica las filas realmente guardadas. */
+
+
+/** --------------------
+ * Diseño lógico: consulta: Text, parametros: [Dato] --> sql() -->
+ * Filas <--
+ * Descripción: Prepara los datos ficticios y verifica las filas realmente guardadas
+ * -------------------- */
 function sql(string $consulta, array $parametros = []): PDOStatement
 {
     global $db;
@@ -56,8 +72,13 @@ function sql(string $consulta, array $parametros = []): PDOStatement
     return $q;
 }
 
-/** Diseño lógico: (correo) -> tokenDelCorreo -> token.
- * Descripción: Lee solo el buzón ficticio privado para probar el uso del enlace. */
+
+
+/** --------------------
+ * Diseño lógico: correo: Text --> tokenDelCorreo() -->
+ * Text <--
+ * Descripción: Lee solo el buzón ficticio privado para probar el uso del enlace
+ * -------------------- */
 function tokenDelCorreo(string $correo): string
 {
     global $db, $config;

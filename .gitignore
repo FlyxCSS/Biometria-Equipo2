@@ -4,3 +4,13 @@
 /config/local.php
 /var/
 /.env
+
+# Artefactos de desarrollo: conservarlos fuera del repositorio.
+**/.idea/
+**/.gradle/
+**/build/
+**/.cxx/
+*.log
+*.tmp
+.DS_Store
+__MACOSX/

@@ -1,3 +1,11 @@
+<#
+Nombre: iniciar-local.ps1
+Descripción: Operaciones locales de instalación y administración.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente tools.
+#>
 # Nombre: iniciar-local.ps1
 # Descripción: Arranca las herramientas portables ya preparadas para la demo local.
 # Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
@@ -9,7 +17,7 @@ $raizSenda = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $phpSenda = Join-Path $raizSenda '.local/tools/php/php.exe'
 $mysqlSenda = @(Get-ChildItem (Join-Path $raizSenda '.local/tools/mysql') -Directory -Filter 'mysql-*-winx64')
 if (!(Test-Path $phpSenda) -or $mysqlSenda.Count -ne 1 -or !(Test-Path (Join-Path $raizSenda 'src/config/local.php'))) {
-    throw 'Falta el entorno portable o su configuración. Consulta doc/backend-puesta-en-marcha.md.'
+    throw 'Falta el entorno portable o su configuración. Consulta doc/materiales/guias/backend-puesta-en-marcha.md.'
 }
 $datosSenda = Join-Path $raizSenda '.local/mysql-data'
 if (!(Get-NetTCPConnection -LocalPort 3307 -State Listen -ErrorAction SilentlyContinue)) {

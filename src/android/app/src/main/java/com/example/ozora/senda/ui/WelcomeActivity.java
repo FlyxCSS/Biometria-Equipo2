@@ -1,3 +1,11 @@
+/*
+ * Nombre: WelcomeActivity.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.animation.ValueAnimator;
@@ -30,6 +38,11 @@ public final class WelcomeActivity extends FieldScreen {
     private ValueAnimator animator;
     private Intro intro;
 
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onCreate() -->
+     * Descripción: On Create. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         if (!isTaskRoot() && Intent.ACTION_MAIN.equals(getIntent().getAction())) { finish(); return; }
@@ -42,6 +55,11 @@ public final class WelcomeActivity extends FieldScreen {
         if (state == null && !reduced) playIntro();
     }
 
+
+    /** --------------------
+     * Diseño lógico: playIntro() -->
+     * Descripción: Play Intro. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void playIntro() {
         View brand = findViewById(R.id.welcome_brand);
         View tagline = findViewById(R.id.welcome_tagline);
@@ -69,6 +87,11 @@ public final class WelcomeActivity extends FieldScreen {
             animator.setInterpolator(new AccelerateDecelerateInterpolator());
             animator.addUpdateListener(a -> { intro.progress = (float) a.getAnimatedValue(); intro.invalidate(); });
             animator.addListener(new android.animation.AnimatorListenerAdapter() {
+
+                /** --------------------
+                 * Diseño lógico: a: androidanimationAnimator --> onAnimationEnd() -->
+                 * Descripción: On Animation End. Aplicación de campo: acceso, captura, recorridos y presentación Android
+                 * -------------------- */
                 @Override public void onAnimationEnd(android.animation.Animator a) { finishIntro(); }
             });
             animator.start();
@@ -76,6 +99,11 @@ public final class WelcomeActivity extends FieldScreen {
     }
 
     /** Sustituye el lienzo por la pantalla real sin salto visual. */
+
+    /** --------------------
+     * Diseño lógico: finishIntro() -->
+     * Descripción: Finish Intro. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void finishIntro() {
         if (intro == null) return;
         Intro done = intro;
@@ -94,6 +122,11 @@ public final class WelcomeActivity extends FieldScreen {
         start.animate().alpha(1f).translationY(0).setStartDelay(300).setDuration(500).setInterpolator(ease).start();
     }
 
+
+    /** --------------------
+     * Diseño lógico: enter() -->
+     * Descripción: Enter. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void enter() {
         if (navigated || isFinishing() || isDestroyed()) return;
         navigated = true;
@@ -102,16 +135,31 @@ public final class WelcomeActivity extends FieldScreen {
         finish();
     }
 
+
+    /** --------------------
+     * Diseño lógico: onPause() -->
+     * Descripción: On Pause. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onPause() {
         if (animator != null) animator.pause();
         super.onPause();
     }
 
+
+    /** --------------------
+     * Diseño lógico: onResume() -->
+     * Descripción: On Resume. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onResume() {
         super.onResume();
         if (animator != null && animator.isPaused()) animator.resume();
     }
 
+
+    /** --------------------
+     * Diseño lógico: onDestroy() -->
+     * Descripción: On Destroy. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onDestroy() {
         if (animator != null) { animator.removeAllListeners(); animator.cancel(); }
         super.onDestroy();
@@ -129,6 +177,12 @@ public final class WelcomeActivity extends FieldScreen {
         final PathMeasure measure = new PathMeasure();
         final float[] position = new float[2];
 
+
+        /** --------------------
+         * Diseño lógico: context: Entorno --> Intro() -->
+         * Intro <--
+         * Descripción: Construye Intro. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         Intro(Context context) {
             super(context);
             setClickable(true);
@@ -136,6 +190,11 @@ public final class WelcomeActivity extends FieldScreen {
             logo = context.getDrawable(R.drawable.senda_logo);
         }
 
+
+        /** --------------------
+         * Diseño lógico: canvas: Canvas --> onDraw() -->
+         * Descripción: On Draw. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         @Override protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
             float w = getWidth(), h = getHeight();

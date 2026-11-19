@@ -1,14 +1,10 @@
 /*
- * ============================================================
  * Nombre: IBeaconParser.java
- * Descripción: Interpreta los datos de fabricante de anuncios
- *              iBeacon emitidos por los llaveros SENDA.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Decodifica UUID, tipo, contador y unidades de los anuncios.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ...
- * Aportación: decodificación de UUID, tipo, contador, valor
- *             de medición y potencia de referencia BLE.
- * ============================================================
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Decodifica UUID, tipo, contador y unidades de los anuncios.
  */
 package com.example.ozora.senda.bluetooth;
 
@@ -30,18 +26,22 @@ public final class IBeaconParser {
 
     // Diseño lógico: () -> IBeaconParser() -> (IBeaconParser)
     // Descripción: Evita crear instancias de una clase de utilidades estáticas.
+
+    /** --------------------
+     * Diseño lógico: IBeaconParser() -->
+     * IBeaconParser <--
+     * Descripción: Construye IBeaconParser. Decodifica UUID, tipo, contador y unidades de los anuncios
+     * -------------------- */
     private IBeaconParser() {
     }
 
-    /**
-     * Diseño lógico: (byte[], String, int) -> interpretar() -> (Resultado|null)
+
+
+    /** --------------------
+     * Diseño lógico: datosFabricante: [Dato], nombreBle: Text, rssi: Z --> interpretar() --x
+     * Resultado <--
      * Descripción: Decodifica un anuncio iBeacon y devuelve sus campos si el
-     *              formato y UUID corresponden a SENDA. El nombre puede ser null.
-     *              Devuelve null si el paquete no es válido o no es del proyecto.
-     * @param datosFabricante Contenido de getManufacturerSpecificData(0x004C).
-     * @param nombreBle Nombre anunciado por el dispositivo, si está disponible.
-     * @param rssi Intensidad de señal capturada en dBm.
-     */
+     * -------------------- */
     public static Resultado interpretar(byte[] datosFabricante, String nombreBle, int rssi) {
         if (datosFabricante == null || datosFabricante.length < LONGITUD_IBEACON) {
             return null;
@@ -68,18 +68,24 @@ public final class IBeaconParser {
                 contador, potenciaReferencia, rssi);
     }
 
-    /**
-     * Diseño lógico: (byte[], int) -> leerUint16() -> (int)
-     * Descripción: Lee un entero de 16 bits sin signo en orden big-endian.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: datos: [Dato], posicion: Z --> leerUint16() --x
+     * Z <--
+     * Descripción: Lee un entero de 16 bits sin signo en orden big-endian
+     * -------------------- */
     private static int leerUint16(byte[] datos, int posicion) {
         return ((datos[posicion] & 0xFF) << 8) | (datos[posicion + 1] & 0xFF);
     }
 
-    /**
-     * Diseño lógico: (byte[], int) -> construirUuid() -> (String)
-     * Descripción: Convierte los 16 bytes del UUID al formato estándar 8-4-4-4-12.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: datos: [Dato], inicio: Z --> construirUuid() --x
+     * Text <--
+     * Descripción: Convierte los 16 bytes del UUID al formato estándar 8-4-4-4-12
+     * -------------------- */
     private static String construirUuid(byte[] datos, int inicio) {
         StringBuilder cadena = new StringBuilder(36);
         for (int i = 0; i < 16; i++) {
@@ -105,6 +111,12 @@ public final class IBeaconParser {
         // Diseño lógico: (String, String, int, int, int, int, int, int)
         //                 -> Resultado() -> (Resultado)
         // Descripción: Guarda los campos decodificados de un anuncio.
+
+        /** --------------------
+         * Diseño lógico: uuid: Text, nombreBle: Text, major: Z, minor: Z, tipo: Z, contador: Z, txPower: Z, rssi: Z --> Resultado() -->
+         * Resultado <--
+         * Descripción: Construye Resultado. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         private Resultado(String uuid, String nombreBle, int major, int minor,
                           int tipo, int contador, int txPower, int rssi) {
             this.uuid = uuid;
@@ -117,36 +129,69 @@ public final class IBeaconParser {
             this.rssi = rssi;
         }
 
-        /**
-         * Diseño lógico: () -> esOzono() -> (boolean)
-         * Descripción: Indica si la medición codificada corresponde al tipo O3.
-         */
+
+
+        /** --------------------
+         * Diseño lógico: esTemperatura() -->
+         * B <--
+         * Descripción: Indica si la medición codificada corresponde al tipo O3
+         * -------------------- */
         public boolean esTemperatura() { return tipo == TIPO_TEMPERATURA; }
+
+        /** --------------------
+         * Diseño lógico: esBateria() -->
+         * B <--
+         * Descripción: Es Bateria. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         public boolean esBateria() { return tipo == TIPO_BATERIA; }
+
+        /** --------------------
+         * Diseño lógico: obtenerTemperaturaC() -->
+         * R <--
+         * Descripción: Obtener Temperatura C. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         public Double obtenerTemperaturaC() {
             if (!esTemperatura() || minor == 0x8000) return null;
             double grados = ((short) minor) / 100.0;
             return grados >= -40 && grados <= 50 ? grados : null;
         }
+
+        /** --------------------
+         * Diseño lógico: obtenerBateriaPorcentaje() -->
+         * Z <--
+         * Descripción: Obtener Bateria Porcentaje. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         public Integer obtenerBateriaPorcentaje() {
             return esBateria() && minor <= 100 ? minor : null;
         }
+
+        /** --------------------
+         * Diseño lógico: esOzono() -->
+         * B <--
+         * Descripción: Es Ozono. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         public boolean esOzono() {
             return tipo == TIPO_O3;
         }
 
-        /**
-         * Diseño lógico: () -> obtenerOzonoPpb() -> (Integer|null)
-         * Descripción: Devuelve Minor como ppb solo si la trama es de ozono.
-         */
+
+
+        /** --------------------
+         * Diseño lógico: obtenerOzonoPpb() -->
+         * Z <--
+         * Descripción: Devuelve Minor como ppb solo si la trama es de ozono
+         * -------------------- */
         public Integer obtenerOzonoPpb() {
             return esOzono() && minor != NO_DISPONIBLE ? minor : null;
         }
 
-        /**
-         * Diseño lógico: () -> obtenerOzonoPpm() -> (Double|null)
-         * Descripción: Convierte el valor de ozono de ppb a ppm.
-         */
+
+
+        /** --------------------
+         * Diseño lógico: obtenerOzonoPpm() -->
+         * R <--
+         * Descripción: Convierte el valor de ozono de ppb a ppm
+         * -------------------- */
         public Double obtenerOzonoPpm() {
             Integer ppb = obtenerOzonoPpb();
             return ppb == null ? null : ppb / 1000.0;

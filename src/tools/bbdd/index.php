@@ -1,12 +1,14 @@
 <?php
 /*
  * Nombre: index.php
- * Descripción: Visor local de MySQL de solo lectura, separado de la web pública.
+ * Descripción: Operaciones locales de instalación y administración.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Permitir consultar registros y estructura sin mostrar secretos ni ejecutar SQL libre.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Operaciones locales de instalación y administración.
  */
+
+
 declare(strict_types=1);
 ini_set('display_errors', '0');
 header('Cache-Control: no-store');
@@ -24,8 +26,13 @@ if (!in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true)
 }
 require_once dirname(__DIR__, 2) . '/business_logic/Apoyo.php';
 
-/** Diseño lógico: (valor) -> escapar -> texto HTML seguro.
- * Descripción: Presenta los datos como texto, sin interpretar contenido guardado. */
+
+
+/** --------------------
+ * Diseño lógico: valor: Dato --> escapar() -->
+ * Text <--
+ * Descripción: Presenta los datos como texto, sin interpretar contenido guardado
+ * -------------------- */
 function escapar(mixed $valor): string
 {
     return htmlspecialchars($valor === null ? 'NULL' : (string)$valor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

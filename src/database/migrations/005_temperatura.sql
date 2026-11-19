@@ -1,3 +1,9 @@
+-- Nombre: 005_temperatura.sql
+-- Descripción: Esquema relacional, integridad y evolución de datos.
+-- Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+-- Fecha: 19/11/2026
+-- Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+-- Aportación: Recursos y configuración del componente database.
 -- Aplicar antes de desplegar la nueva API. Conserva todas las mediciones existentes.
 -- Los nombres automáticos de CHECK varían entre instalaciones MySQL y MariaDB.
 DELIMITER //

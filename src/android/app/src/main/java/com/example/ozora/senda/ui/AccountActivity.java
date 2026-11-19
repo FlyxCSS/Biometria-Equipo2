@@ -1,3 +1,11 @@
+/*
+ * Nombre: AccountActivity.java
+ * Descripción: Edita datos locales y sincroniza la fotografía de la cuenta.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Edita datos locales y sincroniza la fotografía de la cuenta.
+ */
 package com.example.ozora.senda.ui;
 
 import android.content.Intent;
@@ -34,6 +42,11 @@ public final class AccountActivity extends FieldScreen {
                 if (Boolean.TRUE.equals(ok) && cameraUri != null) procesarFoto(cameraUri);
             });
 
+
+    /** --------------------
+     * Diseño lógico: abrirCamara() -->
+     * Descripción: Abrir Camara. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private void abrirCamara() {
         if (busy) return;
         try {
@@ -48,6 +61,11 @@ public final class AccountActivity extends FieldScreen {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: elegirFoto() -->
+     * Descripción: Elegir Foto. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private void elegirFoto() {
         if (busy) return;
         new android.app.AlertDialog.Builder(this).setTitle("Cambiar foto")
@@ -57,6 +75,12 @@ public final class AccountActivity extends FieldScreen {
     }
 
     /** Rotación EXIF de las fotos de cámara, para que el avatar no salga girado. */
+
+    /** --------------------
+     * Diseño lógico: uri: Uri --> rotacion() -->
+     * Z <--
+     * Descripción: Rotacion. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private int rotacion(Uri uri) {
         try (java.io.InputStream input = getContentResolver().openInputStream(uri)) {
             if (input == null) return 0;
@@ -68,6 +92,11 @@ public final class AccountActivity extends FieldScreen {
         } catch (Exception ignored) { return 0; }
     }
 
+
+    /** --------------------
+     * Diseño lógico: uri: Uri --> procesarFoto() -->
+     * Descripción: Procesar Foto. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private void procesarFoto(Uri uri) {
                 if (uri == null || session == null || busy) return;
                 busy = true;
@@ -120,6 +149,11 @@ public final class AccountActivity extends FieldScreen {
                 }, "senda-foto").start();
     }
     /** Sube la foto al servidor (USUARIOS.foto_perfil) en cuanto se elige; solo se da por guardada si responde OK. */
+
+    /** --------------------
+     * Diseño lógico: encoded: Text --> subirFoto() -->
+     * Descripción: Subir Foto. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private void subirFoto(String encoded) {
         try {
             org.json.JSONObject respuesta = new LogicaFake(this).actualizarFotoPerfil(session.token, encoded);
@@ -150,10 +184,21 @@ public final class AccountActivity extends FieldScreen {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: context: androidcontentContext, session: SessionManager --> preferences() --x
+     * Preferencias <--
+     * Descripción: Preferences. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     public static SharedPreferences preferences(android.content.Context context, SessionManager session) {
         return context.getSharedPreferences("campo-" + session.worker.id + "-" + session.worker.parkId,
                 MODE_PRIVATE);
     }
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onCreate() -->
+     * Descripción: On Create. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         session = SessionManager.current();
@@ -189,14 +234,29 @@ public final class AccountActivity extends FieldScreen {
                     .setPositiveButton("Guardar", (dialog, which) -> save()).show();
         });
     }
+
+    /** --------------------
+     * Diseño lógico: onStart() -->
+     * Descripción: On Start. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     @Override protected void onStart() {
         super.onStart();
         if (session == null || SessionManager.current() != session) finish();
     }
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onSaveInstanceState() -->
+     * Descripción: On Save Instance State. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     @Override protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putString("photo", photo);
     }
+
+    /** --------------------
+     * Diseño lógico: showPhoto() -->
+     * Descripción: Show Photo. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private void showPhoto() {
         ImageView view = findViewById(R.id.profile_photo);
         mostrarFoto(view, photo);
@@ -212,6 +272,11 @@ public final class AccountActivity extends FieldScreen {
         initials.setText(letters);
     }
 
+
+    /** --------------------
+     * Diseño lógico: view: ImageView, foto: Text --> mostrarFoto() --x
+     * Descripción: Mostrar Foto. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     public static void mostrarFoto(ImageView view, String foto) {
         view.setImageResource(R.drawable.account_avatar);
         if (foto == null) return;
@@ -222,6 +287,11 @@ public final class AccountActivity extends FieldScreen {
             } else view.setImageURI(Uri.parse(foto));
         } catch (RuntimeException ignored) { view.setImageResource(R.drawable.account_avatar); }
     }
+
+    /** --------------------
+     * Diseño lógico: save() -->
+     * Descripción: Save. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private void save() {
         if (SessionManager.current() != session) { finish(); return; }
         EditText name = findViewById(R.id.profile_name);
@@ -265,6 +335,11 @@ public final class AccountActivity extends FieldScreen {
         }, "senda-perfil").start();
     }
 
+
+    /** --------------------
+     * Diseño lógico: security() -->
+     * Descripción: Security. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private void security() {
         setContentView(R.layout.activity_security);
         protegerBarras(findViewById(R.id.security_root));
@@ -276,6 +351,11 @@ public final class AccountActivity extends FieldScreen {
         findViewById(R.id.security_submit).setOnClickListener(v -> changePassword(current, next, confirm));
         mensajes();
     }
+
+    /** --------------------
+     * Diseño lógico: current: Text, next: Text, confirm: Text --> changePassword() -->
+     * Descripción: Change Password. Edita datos locales y sincroniza la fotografía de la cuenta
+     * -------------------- */
     private void changePassword(EditText current, EditText next, EditText confirm) {
         if (busy) return;
         if (SessionManager.current() != session) { finish(); return; }

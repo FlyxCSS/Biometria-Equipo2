@@ -1,3 +1,11 @@
+<!--
+Nombre: auth_landscape.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="390dp" android:height="844dp" android:viewportWidth="390" android:viewportHeight="844">
 <path android:fillColor="#F7F2E8" android:pathData="M0,0H390V844H0Z"/>
 <path android:fillColor="#E3E7D6" android:pathData="M0,218 C63,205 83,268 155,266 S210,310 260,270 S341,213 390,202 V844H0Z"/>

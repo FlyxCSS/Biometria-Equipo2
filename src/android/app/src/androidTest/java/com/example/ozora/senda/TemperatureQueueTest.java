@@ -1,3 +1,11 @@
+/*
+ * Nombre: TemperatureQueueTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda;
 
 import android.content.Context;
@@ -11,6 +19,11 @@ import static org.junit.Assert.*;
 
 /** SQLite real: migración conservadora, cola persistente y aislamiento entre cuentas. */
 public class TemperatureQueueTest {
+
+    /** --------------------
+     * Diseño lógico: versionCuatroConservaLecturasSinGpsComoHistoricoLocal() -->
+     * Descripción: Version Cuatro Conserva Lecturas Sin Gps Como Historico Local. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void versionCuatroConservaLecturasSinGpsComoHistoricoLocal() {
         Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
         String archivo="temperatura-v4-test.db";
@@ -34,6 +47,11 @@ public class TemperatureQueueTest {
             }
         } finally { context.deleteDatabase(archivo); }
     }
+
+    /** --------------------
+     * Diseño lógico: migraVersionTresYConservaTemperaturasSinReenviarElHistorico() -->
+     * Descripción: Migra Version Tres YConserva Temperaturas Sin Reenviar El Historico. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void migraVersionTresYConservaTemperaturasSinReenviarElHistorico() {
         Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
         String archivo="temperatura-cola-test.db";

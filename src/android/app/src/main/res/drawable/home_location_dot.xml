@@ -1,3 +1,11 @@
+<!--
+Nombre: home_location_dot.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="28dp" android:height="28dp" android:viewportWidth="28" android:viewportHeight="28">
     <path android:fillColor="#B3D7FF" android:pathData="M14,1a13,13 0,1 0,0 26a13,13 0,1 0,0 -26"/>
     <path android:fillColor="#4285F4" android:strokeColor="#FFFFFF" android:strokeWidth="2" android:pathData="M14,7a7,7 0,1 0,0 14a7,7 0,1 0,0 -14"/>

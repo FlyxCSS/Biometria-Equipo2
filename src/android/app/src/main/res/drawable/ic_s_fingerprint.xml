@@ -1,1 +1,9 @@
+<!--
+Nombre: ic_s_fingerprint.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24"><path android:fillColor="#00000000" android:strokeColor="#1F3D2F" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M6.2,8.2C7.6,6 9.6,5 12,5C15.8,5 18.5,7.8 18.5,11.3V12.5 M5.5,11.5V12.5 M8.5,18.5C8.2,16.7 8.3,14 8.5,11.5C8.8,9.7 10.2,8.5 12,8.5C13.9,8.5 15.3,10 15.3,12V13.5C15.3,15.3 15,17 14.3,18.8 M12,11.8V14C12,16.2 11.6,18 10.8,19.8 M18.3,15.5C18.1,16.6 17.8,17.6 17.4,18.5"/></vector>

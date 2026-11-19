@@ -1,18 +1,25 @@
 <?php
 /*
  * Nombre: validacion.php
- * Descripción: Pruebas unitarias de entradas y límites del contrato de mediciones.
+ * Descripción: Comprobación automática de contratos, límites y aislamiento.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Comprobar fechas, tipos y coordenadas sin necesitar MySQL.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Comprobación automática de contratos, límites y aislamiento.
  */
+
+
 declare(strict_types=1);
+require_once dirname(__DIR__) . '/communication/ContextoWeb.php';
 require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
 $comprobaciones = 0;
 
-/** Diseño lógico: (condición, descripción) -> comprobar -> vacío o fallo.
- * Descripción: Cuenta verificaciones y detiene una prueba que no cumple el resultado esperado. */
+
+
+/** --------------------
+ * Diseño lógico: condicion: B, descripcion: Text --> comprobar() -->
+ * Descripción: Cuenta verificaciones y detiene una prueba que no cumple el resultado esperado
+ * -------------------- */
 function comprobar(bool $condicion, string $descripcion): void
 {
     global $comprobaciones;
@@ -22,14 +29,18 @@ function comprobar(bool $condicion, string $descripcion): void
     $comprobaciones++;
 }
 
-/** Diseño lógico: (lectura) -> esperarRechazo -> vacío o fallo.
- * Descripción: Exige que una entrada incorrecta produzca validación 422. */
+
+
+/** --------------------
+ * Diseño lógico: lectura: [Dato] --> esperarRechazo() -->
+ * Descripción: Exige que una entrada incorrecta produzca validación 422
+ * -------------------- */
 function esperarRechazo(array $lectura): void
 {
     try {
         validarMedicion($lectura);
-    } catch (ErrorApi $error) {
-        comprobar($error->estado === 422, 'El error debe ser 422.');
+    } catch (ErrorDominio $error) {
+        comprobar(estadoErrorDominio($error) === 422, 'El error debe ser 422.');
         return;
     }
     throw new RuntimeException('Se aceptó una entrada inválida.');

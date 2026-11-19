@@ -1,3 +1,11 @@
+/*
+ * Nombre: MainActivity.java
+ * Descripción: Coordina cinco secciones, permisos y acciones del trabajador.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Coordina cinco secciones, permisos y acciones del trabajador.
+ */
 package com.example.ozora.senda;
 
 import android.Manifest;
@@ -95,6 +103,11 @@ public final class      MainActivity extends FieldScreen {
     private static final java.util.concurrent.ExecutorService REMOTO = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     private final Runnable tick = new Runnable() {
+
+        /** --------------------
+         * Diseño lógico: run() -->
+         * Descripción: Run. Coordina cinco secciones, permisos y acciones del trabajador
+         * -------------------- */
         @Override public void run() {
             if (SessionManager.current() != session) {
                 salir(false);
@@ -109,6 +122,11 @@ public final class      MainActivity extends FieldScreen {
         }
     };
 
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onCreate() -->
+     * Descripción: On Create. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         session = SessionManager.current();
@@ -125,6 +143,11 @@ public final class      MainActivity extends FieldScreen {
         navigation = findViewById(R.id.bottom_navigation);
 
         backToHome = new OnBackPressedCallback(false) {
+
+            /** --------------------
+             * Diseño lógico: handleOnBackPressed() -->
+             * Descripción: Handle On Back Pressed. Coordina cinco secciones, permisos y acciones del trabajador
+             * -------------------- */
             @Override public void handleOnBackPressed() {
                 navigation.setSelectedItemId(R.id.tab_inicio);
             }
@@ -155,6 +178,11 @@ public final class      MainActivity extends FieldScreen {
             abrirRuta(RouteActivity.class, id);
     }
 
+
+    /** --------------------
+     * Diseño lógico: intent: Navegacion --> onNewIntent() -->
+     * Descripción: On New Intent. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
@@ -168,6 +196,11 @@ public final class      MainActivity extends FieldScreen {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onSaveInstanceState() -->
+     * Descripción: On Save Instance State. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putBoolean("heat_enabled", homeMap != null ? homeMap.heatEnabled() : heatEnabled);
@@ -180,6 +213,11 @@ public final class      MainActivity extends FieldScreen {
         state.putInt("history_page", historyPage);
     }
 
+
+    /** --------------------
+     * Diseño lógico: onStart() -->
+     * Descripción: On Start. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override protected void onStart() {
         super.onStart();
         if (session != null) {
@@ -195,12 +233,22 @@ public final class      MainActivity extends FieldScreen {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: onStop() -->
+     * Descripción: On Stop. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override protected void onStop() {
         reloj.removeCallbacks(tick);
         if (homeMap != null) homeMap.stop();
         super.onStop();
     }
 
+
+    /** --------------------
+     * Diseño lógico: onDestroy() -->
+     * Descripción: On Destroy. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override protected void onDestroy() {
         if (bio != null) bio.cancelar();
         if (homeMap != null) homeMap.destroy();
@@ -209,6 +257,11 @@ public final class      MainActivity extends FieldScreen {
         super.onDestroy();
     }
 
+
+    /** --------------------
+     * Diseño lógico: destino: Z --> mostrar() -->
+     * Descripción: Mostrar. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void mostrar(int destino) {
         if (history != null) { history.close(); history = null; }
         int layout = R.layout.section_inicio;
@@ -314,6 +367,11 @@ public final class      MainActivity extends FieldScreen {
     }
 
     /** El panel de medidas queda siempre por encima de la barra flotante, mida lo que mida. */
+
+    /** --------------------
+     * Diseño lógico: ajustarPanelInicio() -->
+     * Descripción: Ajustar Panel Inicio. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void ajustarPanelInicio() {
         navigation.post(() -> {
             if (tab != R.id.tab_inicio) return;
@@ -326,19 +384,39 @@ public final class      MainActivity extends FieldScreen {
         });
     }
 
+
+    /** --------------------
+     * Diseño lógico: viewId: Z, action: Runnable --> accion() -->
+     * Descripción: Accion. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void accion(int viewId, Runnable action) {
         section.findViewById(viewId).setOnClickListener(v -> action.run());
     }
 
+
+    /** --------------------
+     * Diseño lógico: viewId: Z, visible: B --> visible() -->
+     * Descripción: Visible. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void visible(int viewId, boolean visible) {
         section.findViewById(viewId).setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
+
+    /** --------------------
+     * Diseño lógico: viewId: Z, text: Text --> textoEn() -->
+     * Descripción: Texto En. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void textoEn(int viewId, CharSequence text) {
         TextView view = section.findViewById(viewId);
         if (!android.text.TextUtils.equals(view.getText(), text)) view.setText(text);
     }
 
+
+    /** --------------------
+     * Diseño lógico: texto: Text --> mensaje() -->
+     * Descripción: Mensaje. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override protected void mensaje(String texto) {
         TextView feedback = findViewById(R.id.main_feedback);
         if (feedback == null) return;
@@ -347,6 +425,11 @@ public final class      MainActivity extends FieldScreen {
 
     }
 
+
+    /** --------------------
+     * Diseño lógico: actualizar() -->
+     * Descripción: Actualizar. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void actualizar() {
         Route route = rutas.ultimaRuta(session.worker);
         long anterior = id;
@@ -451,15 +534,33 @@ public final class      MainActivity extends FieldScreen {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: estadoUbicacion() -->
+     * Text <--
+     * Descripción: Estado Ubicacion. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private String estadoUbicacion() {
         return getString(permiso(Manifest.permission.ACCESS_FINE_LOCATION)
                 ? R.string.main_location_ready : R.string.main_location_missing);
     }
 
+
+    /** --------------------
+     * Diseño lógico: permiso: Text --> permiso() -->
+     * B <--
+     * Descripción: Permiso. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private boolean permiso(String permiso) {
         return checkSelfPermission(permiso) == PackageManager.PERMISSION_GRANTED;
     }
 
+
+    /** --------------------
+     * Diseño lógico: estadoSensor() -->
+     * Text <--
+     * Descripción: Estado Sensor. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private String estadoSensor() {
         String estado = sensorRuta == null ? getString(R.string.main_no_device)
                 : getString(R.string.main_device_id, sensorRuta);
@@ -474,6 +575,11 @@ public final class      MainActivity extends FieldScreen {
         return estado + "\n" + RutaService.estado;
     }
 
+
+    /** --------------------
+     * Diseño lógico: sensor: Text, conAviso: B --> mostrarUltima() -->
+     * Descripción: Mostrar Ultima. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void mostrarUltima(String sensor, boolean conAviso) {
         String lectura = getString(R.string.main_no_readings);
         String aviso = "";
@@ -533,6 +639,11 @@ public final class      MainActivity extends FieldScreen {
     }
 
     /** Nivel orientativo respecto al umbral configurado y posición en la barra 0–120 ppb. */
+
+    /** --------------------
+     * Diseño lógico: value: Z --> mostrarNivel() -->
+     * Descripción: Mostrar Nivel. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void mostrarNivel(int value) {
         TextView level = section.findViewById(R.id.home_level);
         if (value < 0) { level.setVisibility(View.GONE); return; }
@@ -550,6 +661,12 @@ public final class      MainActivity extends FieldScreen {
     }
 
     /** Hora de la última lectura: "12:46" si es de hoy, "18/11 · 12:46" si no. */
+
+    /** --------------------
+     * Diseño lógico: iso: Text --> horaLectura() -->
+     * Text <--
+     * Descripción: Hora Lectura. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private String horaLectura(String iso) {
         try {
             long instant = SessionManager.instante(iso);
@@ -561,6 +678,12 @@ public final class      MainActivity extends FieldScreen {
         } catch (ParseException e) { return ""; }
     }
 
+
+    /** --------------------
+     * Diseño lógico: name: Text, max: Z --> iniciales() --x
+     * Text <--
+     * Descripción: Iniciales. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private static String iniciales(String name, int max) {
         if (name == null) return "";
         StringBuilder out = new StringBuilder();
@@ -570,6 +693,12 @@ public final class      MainActivity extends FieldScreen {
         return out.toString();
     }
 
+
+    /** --------------------
+     * Diseño lógico: iso: Text --> fechaLectura() -->
+     * Text <--
+     * Descripción: Fecha Lectura. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private String fechaLectura(String iso) {
         try {
             return fecha.format(new Date(SessionManager.instante(iso)));
@@ -578,16 +707,32 @@ public final class      MainActivity extends FieldScreen {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: sensor: Text --> nombreSensor() -->
+     * Text <--
+     * Descripción: Nombre Sensor. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private String nombreSensor(String sensor) {
         return sensor == null ? getString(R.string.main_unknown_sensor) : sensor;
     }
 
+
+    /** --------------------
+     * Diseño lógico: incremento: Z --> cambiarPagina() -->
+     * Descripción: Cambiar Pagina. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void cambiarPagina(int incremento) {
         if (tab == R.id.tab_rutas) routePage += incremento;
         else historyPage += incremento;
         cargarPagina(true);
     }
 
+
+    /** --------------------
+     * Diseño lógico: desplazar: B --> cargarPagina() -->
+     * Descripción: Cargar Pagina. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void cargarPagina(boolean desplazar) {
         boolean esRuta = tab == R.id.tab_rutas;
         int pagina = esRuta ? routePage : historyPage;
@@ -621,6 +766,11 @@ public final class      MainActivity extends FieldScreen {
         if (desplazar) scroll.scrollTo(0, 0);
     }
 
+
+    /** --------------------
+     * Diseño lógico: lista: LinearLayout, ruta: Cursor --> agregarRuta() -->
+     * Descripción: Agregar Ruta. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void agregarRuta(LinearLayout lista, Cursor ruta) {
         long routeId=ruta.getLong(0);
         RouteCardView card=new RouteCardView(this);
@@ -634,6 +784,11 @@ public final class      MainActivity extends FieldScreen {
         routeCards.put(routeId,card);
     }
 
+
+    /** --------------------
+     * Diseño lógico: lista: LinearLayout, lectura: Cursor --> agregarLectura() -->
+     * Descripción: Agregar Lectura. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void agregarLectura(LinearLayout lista, Cursor lectura) {
         TextView fila = new TextView(this);
         fila.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge);
@@ -643,10 +798,20 @@ public final class      MainActivity extends FieldScreen {
         lista.addView(fila);
     }
 
+
+    /** --------------------
+     * Diseño lógico: pantalla: Class, rutaId: Z --> abrirRuta() -->
+     * Descripción: Abrir Ruta. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void abrirRuta(Class<?> pantalla, long rutaId) {
         if (rutaId > 0) startActivity(new Intent(this, pantalla).putExtra(EXTRA_ROUTE_ID, rutaId));
     }
 
+
+    /** --------------------
+     * Diseño lógico: confirmarSalida() -->
+     * Descripción: Confirmar Salida. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void confirmarSalida() {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setMessage(activo ? "Al cerrar sesión finalizará el recorrido." : "¿Cerrar la sesión en este dispositivo?")
@@ -656,21 +821,53 @@ public final class      MainActivity extends FieldScreen {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.status_error));
     }
 
+
+    /** --------------------
+     * Diseño lógico: mensaje: Text --> acceso() -->
+     * Descripción: Acceso. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void acceso(String mensaje) {
         startActivity(new Intent(this,Login.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK).putExtra("mensaje",mensaje));
         finish();
     }
+
+    /** --------------------
+     * Diseño lógico: ajustes() -->
+     * Preferencias <--
+     * Descripción: Ajustes. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private SharedPreferences ajustes() { return getSharedPreferences("campo-"+session.worker.id+"-"+session.worker.parkId,MODE_PRIVATE); }
+
+    /** --------------------
+     * Diseño lógico: elegido() -->
+     * Text <--
+     * Descripción: Elegido. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private String elegido() { return ajustes().getString("sensor",null); }
+
+    /** --------------------
+     * Diseño lógico: seleccionar() -->
+     * Descripción: Seleccionar. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void seleccionar() {
         startActivityForResult(new Intent(this,QrScannerActivity.class).putExtra("sensor",elegido()),REQUEST_SENSOR);
     }
+
+    /** --------------------
+     * Diseño lógico: req: Z, result: Z, data: Navegacion --> onActivityResult() -->
+     * Descripción: On Activity Result. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override protected void onActivityResult(int req,int result,Intent data) {
         super.onActivityResult(req,result,data);
         if(req==REQUEST_SENSOR && result==RESULT_OK && data!=null && !activo && SessionManager.current()!=null) {
             cambiarLlavero(data.getStringExtra("sensor"));
         }
     }
+
+    /** --------------------
+     * Diseño lógico: gestionarLlavero() -->
+     * Descripción: Gestionar Llavero. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void gestionarLlavero() {
         if (activo || operacionLlavero) { mensaje(getString(R.string.keyring_active_hint)); return; }
         if (elegido() == null) { seleccionar(); return; }
@@ -682,6 +879,11 @@ public final class      MainActivity extends FieldScreen {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getColor(R.color.status_error));
     }
 
+
+    /** --------------------
+     * Diseño lógico: sensor: Text --> cambiarLlavero() -->
+     * Descripción: Cambiar Llavero. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void cambiarLlavero(String sensor) {
         actualizar();
         if (activo || operacionLlavero || SessionManager.current() != session) return;
@@ -712,6 +914,11 @@ public final class      MainActivity extends FieldScreen {
         });
     }
 
+
+    /** --------------------
+     * Diseño lógico: sensor: Text --> guardarLlavero() -->
+     * Descripción: Guardar Llavero. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void guardarLlavero(String sensor) {
         SharedPreferences.Editor editor = ajustes().edit().putString("sensor", sensor);
         if (!android.text.TextUtils.equals(sensor, elegido())) {
@@ -721,6 +928,11 @@ public final class      MainActivity extends FieldScreen {
         editor.apply();
     }
 
+
+    /** --------------------
+     * Diseño lógico: actualizarRemoto() -->
+     * Descripción: Actualizar Remoto. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void actualizarRemoto() {
         REMOTO.execute(() -> {
             try {
@@ -742,6 +954,11 @@ public final class      MainActivity extends FieldScreen {
     }
 
     /** Activa pidiendo el permiso aquí mismo; Android solo permite quitarlo desde sus ajustes. */
+
+    /** --------------------
+     * Diseño lógico: abrirNotificaciones() -->
+     * Descripción: Abrir Notificaciones. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void abrirNotificaciones() {
         boolean enabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
         if (!enabled && Build.VERSION.SDK_INT >= 33 && !permiso(Manifest.permission.POST_NOTIFICATIONS)
@@ -757,6 +974,11 @@ public final class      MainActivity extends FieldScreen {
         catch (android.content.ActivityNotFoundException e) { abrirAjustesApp(); }
     }
 
+
+    /** --------------------
+     * Diseño lógico: cambiarUbicacion() -->
+     * Descripción: Cambiar Ubicacion. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void cambiarUbicacion() {
         if (!permiso(Manifest.permission.ACCESS_FINE_LOCATION)
                 && (!ajustes().getBoolean("location_asked", false)
@@ -771,20 +993,40 @@ public final class      MainActivity extends FieldScreen {
         if (!activo || !permiso(Manifest.permission.ACCESS_FINE_LOCATION)) abrirAjustesApp();
     }
 
+
+    /** --------------------
+     * Diseño lógico: abrirAjustesApp() -->
+     * Descripción: Abrir Ajustes App. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void abrirAjustesApp() {
         try {
             startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null)));
         } catch (android.content.ActivityNotFoundException ignored) { }
     }
 
+
+    /** --------------------
+     * Diseño lógico: mostrarAyuda() -->
+     * Descripción: Mostrar Ayuda. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void mostrarAyuda() {
         new AlertDialog.Builder(this).setTitle(R.string.account_help)
                 .setMessage("Llavero: escanea su QR y comienza un recorrido para recibir lecturas por Bluetooth. La batería y el firmware no están disponibles con el protocolo actual.\n\nUbicación: permite la ubicación precisa y los dispositivos cercanos para registrar el recorrido.\n\nPerfil: la foto se guarda en tu cuenta del servidor; el nombre visible y el teléfono se guardan en este móvil. Para cambiar el correo o el parque, contacta con tu responsable.\n\nEnvíos: si falla la conexión, las lecturas se conservan en el móvil. Puedes reintentarlas desde Ajustes.")
                 .setPositiveButton("Entendido", null).show();
     }
+
+    /** --------------------
+     * Diseño lógico: configurarBiometria() -->
+     * Descripción: Configurar Biometria. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void configurarBiometria() {
         startActivity(new Intent(this, com.example.ozora.senda.auth.BiometricSetupActivity.class));
     }
+
+    /** --------------------
+     * Diseño lógico: configurar() -->
+     * Descripción: Configurar. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void configurar() {
         List<String> opciones=new ArrayList<>();
         opciones.add(bio.activo()?"Desactivar biometría":"Activar biometría");
@@ -798,6 +1040,11 @@ public final class      MainActivity extends FieldScreen {
             else preparar();
         }).show();
     }
+
+    /** --------------------
+     * Diseño lógico: key: Text, titulo: Text, inicial: Z, max: Z --> ajustarNumero() -->
+     * Descripción: Ajustar Numero. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void ajustarNumero(String key,String titulo,int inicial,int max) {
         EditText e=campo(titulo,InputType.TYPE_CLASS_NUMBER); e.setText(String.valueOf(ajustes().getInt(key,inicial)));
         new AlertDialog.Builder(this).setTitle(titulo).setView(e).setNegativeButton("Cancelar",null).setPositiveButton("Guardar",(d,w)->{
@@ -807,6 +1054,11 @@ public final class      MainActivity extends FieldScreen {
             } catch(NumberFormatException ex) { mensaje("Introduce un número entre 1 y "+max+"."); }
         }).show();
     }
+
+    /** --------------------
+     * Diseño lógico: preparar() -->
+     * Descripción: Preparar. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void preparar() {
         List<String> permisos=new ArrayList<>(Arrays.asList(Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION));
         if(Build.VERSION.SDK_INT>=31 && (activo?sensorRuta:elegido())!=null) {
@@ -823,6 +1075,11 @@ public final class      MainActivity extends FieldScreen {
         }
         iniciar();
     }
+
+    /** --------------------
+     * Diseño lógico: centrarMapa() -->
+     * Descripción: Centrar Mapa. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void centrarMapa() {
         if (!permiso(Manifest.permission.ACCESS_FINE_LOCATION)) {
             mapPermissionAsked = true;
@@ -831,6 +1088,11 @@ public final class      MainActivity extends FieldScreen {
         } else if (homeMap != null) homeMap.recenter();
     }
 
+
+    /** --------------------
+     * Diseño lógico: req: Z, permisos: [Dato], resultados: [Dato] --> onRequestPermissionsResult() -->
+     * Descripción: On Request Permissions Result. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     @Override public void onRequestPermissionsResult(int req,String[] permisos,int[] resultados) {
         super.onRequestPermissionsResult(req,permisos,resultados);
         if (req == REQUEST_ROUTE_NOTIFICATION) {
@@ -857,6 +1119,11 @@ public final class      MainActivity extends FieldScreen {
         for(int r:resultados) if(r!=PackageManager.PERMISSION_GRANTED) { mensaje("Para registrar el recorrido permite la ubicación precisa y, si usas llavero, los dispositivos cercanos en Ajustes."); return; }
         if(resultados.length>0) preparar();
     }
+
+    /** --------------------
+     * Diseño lógico: iniciar() -->
+     * Descripción: Iniciar. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void iniciar() {
         if(System.currentTimeMillis()>=session.expiresAt) { salir(false); return; }
         actualizar();
@@ -884,6 +1151,11 @@ public final class      MainActivity extends FieldScreen {
         } catch(RuntimeException e) { mensaje("Android no pudo iniciar la captura. Revisa los permisos y reanúdala desde Rutas."); }
         actualizar();
     }
+
+    /** --------------------
+     * Diseño lógico: confirmarFin() -->
+     * Descripción: Confirmar Fin. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void confirmarFin() {
         new AlertDialog.Builder(this).setTitle("¿Finalizar recorrido?").setMessage("Se cerrará la captura y podrás consultar el resumen y el mapa.")
             .setPositiveButton("Finalizar",(d,w)->{
@@ -894,11 +1166,21 @@ public final class      MainActivity extends FieldScreen {
                 abrirRuta(SummaryActivity.class, terminada);
             }).setNegativeButton("Continuar",null).show();
     }
+
+    /** --------------------
+     * Diseño lógico: finalizar() -->
+     * Descripción: Finalizar. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void finalizar() {
         if(activo) {
             RutaService.finalizar(this, rutas, id); activo=false;
         }
     }
+
+    /** --------------------
+     * Diseño lógico: revocar: B --> salir() -->
+     * Descripción: Salir. Coordina cinco secciones, permisos y acciones del trabajador
+     * -------------------- */
     private void salir(boolean revocar) {
         String anterior=session.token;
         finalizar();

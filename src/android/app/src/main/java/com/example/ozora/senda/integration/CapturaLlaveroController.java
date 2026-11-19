@@ -1,10 +1,10 @@
 /*
  * Nombre: CapturaLlaveroController.java
- * Descripción: API reutilizable de recepción BLE y ubicación sin depender de pantallas.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Relaciona anuncios del llavero con ubicación y preparadores.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ...
- * Aportación: Contrato estable para las pantallas de Persona 2 y red de Persona 3.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Relaciona anuncios del llavero con ubicación y preparadores.
  */
 package com.example.ozora.senda.integration;
 
@@ -24,15 +24,45 @@ import com.example.ozora.senda.qr.QrLlaveroParser;
 /** La selección QR NO es autorización. No transmite al servidor. */
 public final class CapturaLlaveroController implements BleScanner.Oyente, LocationTracker.Oyente {
     public interface Oyente {
+
+        /** --------------------
+         * Diseño lógico: alRecibirAnuncio() -->
+         * Descripción: Al Recibir Anuncio. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         default void alRecibirAnuncio() {}
+
+        /** --------------------
+         * Diseño lógico: medicion: MedicionTemperatura --> alPrepararTemperatura() -->
+         * Descripción: Al Preparar Temperatura. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         default void alPrepararTemperatura(MedicionTemperatura medicion) {}
-        /** Diseño lógico: (String) -> alCambiarEstado() -> (void). */
+
+
+        /** --------------------
+         * Diseño lógico: mensaje: Text --> alCambiarEstado() -->
+         * Descripción: Al Cambiar Estado. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         void alCambiarEstado(String mensaje);
-        /** Diseño lógico: (Location) -> alRecibirUbicacion() -> (void). */
+
+
+        /** --------------------
+         * Diseño lógico: ubicacion: Posicion --> alRecibirUbicacion() -->
+         * Descripción: Al Recibir Ubicacion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         void alRecibirUbicacion(Location ubicacion);
-        /** Diseño lógico: (MedicionAmbiental, int) -> alPrepararMedicion() -> (void). */
+
+
+        /** --------------------
+         * Diseño lógico: medicion: MedicionAmbiental, rssi: Z --> alPrepararMedicion() -->
+         * Descripción: Al Preparar Medicion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         void alPrepararMedicion(MedicionAmbiental medicion, int rssi);
-        /** Diseño lógico: (String) -> alDescartarMedicion() -> (void). */
+
+
+        /** --------------------
+         * Diseño lógico: motivo: Text --> alDescartarMedicion() -->
+         * Descripción: Al Descartar Medicion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         void alDescartarMedicion(String motivo);
     }
     private final BleScanner ble;
@@ -50,15 +80,26 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
     private long instantePendienteMs;
     private static final long MAX_ESPERA_TRAMA_MS = 10_000L;
 
-    /** Diseño lógico: (Context, Oyente) -> CapturaLlaveroController() -> (CapturaLlaveroController). */
+
+
+    /** --------------------
+     * Diseño lógico: contexto: Entorno, oyente: Oyente --> CapturaLlaveroController() -->
+     * CapturaLlaveroController <--
+     * Descripción: Construye CapturaLlaveroController. Relaciona anuncios del llavero con ubicación y preparadores
+     * -------------------- */
     public CapturaLlaveroController(Context contexto, Oyente oyente) {
         if (oyente == null) throw new IllegalArgumentException("Oyente obligatorio");
         this.oyente = oyente;
         this.ble = new BleScanner(contexto, this);
         this.gps = new LocationTracker(contexto, this);
     }
-    /** Diseño lógico: (String) -> seleccionarQr() -> (boolean).
-     * Descripción: Selecciona localmente; no consulta inventario ni asigna trabajador. */
+
+
+    /** --------------------
+     * Diseño lógico: texto: Text --> seleccionarQr() -->
+     * B <--
+     * Descripción: Selecciona localmente; no consulta inventario ni asigna trabajador
+     * -------------------- */
     public boolean seleccionarQr(String texto) {
         String normalizado = QrLlaveroParser.extraerIdentificador(texto);
         if (normalizado == null) return false;
@@ -66,10 +107,21 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
         informar("QR aceptado localmente: " + llavero + ". Pendiente de autorización REST.");
         return true;
     }
-    /** Diseño lógico: () -> getLlaveroSeleccionado() -> (String). */
+
+
+    /** --------------------
+     * Diseño lógico: getLlaveroSeleccionado() -->
+     * Text <--
+     * Descripción: Get Llavero Seleccionado. Relaciona anuncios del llavero con ubicación y preparadores
+     * -------------------- */
     public String getLlaveroSeleccionado() { return llavero; }
-    /** Diseño lógico: () -> iniciar() -> (boolean).
-     * Descripción: Requiere permisos concedidos previamente por Activity. */
+
+
+    /** --------------------
+     * Diseño lógico: iniciar() -->
+     * B <--
+     * Descripción: Requiere permisos concedidos previamente por Activity
+     * -------------------- */
     public boolean iniciar() {
         if (llavero == null) { informar("Escanea primero un QR válido."); return false; }
         detener(); ultima = null; preparador.reiniciar(); activo = true;
@@ -83,9 +135,19 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
         informar("Capturando " + llavero + ". Buscando ubicación reciente...");
         return true;
     }
-    /** Diseño lógico: () -> detener() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: detener() -->
+     * Descripción: Detener. Relaciona anuncios del llavero con ubicación y preparadores
+     * -------------------- */
     public void detener() { preparadorTemperaturas.reiniciar(); temperaturaPendiente = null; instanteTemperaturaPendiente = 0; activo = false; EstadoLlavero.COMPARTIDO.reiniciar(); principal.removeCallbacksAndMessages(null); ble.detenerEscaneo(); gps.detener(); ultima = null; pendienteUbicacion = null; instantePendienteMs = 0; }
-    /** Diseño lógico: (IBeaconParser.Resultado, String) -> alRecibirTrama() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: trama: IBeaconParserResultado, mac: Text --> alRecibirTrama() -->
+     * Descripción: Al Recibir Trama. Relaciona anuncios del llavero con ubicación y preparadores
+     * -------------------- */
     @Override public void alRecibirTrama(IBeaconParser.Resultado trama, String mac) {
         principal.post(() -> {
             if (!activo || llavero == null || trama == null || trama.nombreBle == null
@@ -111,7 +173,12 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
             publicarSiValida(trama);
         });
     }
-    /** Diseño lógico: (Location) -> alRecibirUbicacion() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: ubicacion: Posicion --> alRecibirUbicacion() -->
+     * Descripción: Al Recibir Ubicacion. Relaciona anuncios del llavero con ubicación y preparadores
+     * -------------------- */
     @Override public void alRecibirUbicacion(Location ubicacion) {
         principal.post(() -> {
             if (!activo) return;
@@ -134,21 +201,40 @@ public final class CapturaLlaveroController implements BleScanner.Oyente, Locati
             }
         });
     }
-    /** Diseño lógico: (IBeaconParser.Resultado) -> publicarSiValida() -> (void).
-     * Descripción: Prepara una lectura solo cuando haya posición válida; evita reenviar repetidas. */
+
+
+    /** --------------------
+     * Diseño lógico: trama: IBeaconParserResultado --> publicarTemperatura() -->
+     * Descripción: Prepara una lectura solo cuando haya posición válida; evita reenviar repetidas
+     * -------------------- */
     private void publicarTemperatura(IBeaconParser.Resultado trama) {
         MedicionTemperatura medicion = preparadorTemperaturas.preparar(llavero, trama, ultima);
         if (medicion != null) oyente.alPrepararTemperatura(medicion);
     }
 
+
+    /** --------------------
+     * Diseño lógico: trama: IBeaconParserResultado --> publicarSiValida() -->
+     * Descripción: Publicar Si Valida. Relaciona anuncios del llavero con ubicación y preparadores
+     * -------------------- */
     private void publicarSiValida(IBeaconParser.Resultado trama) {
         PreparadorMediciones.Resultado r = preparador.preparar(llavero, trama, ultima);
         if (r.medicion != null) oyente.alPrepararMedicion(r.medicion, trama.rssi);
         else if (r.mensaje != null && !r.mensaje.startsWith("Anuncio BLE repetido"))
             oyente.alDescartarMedicion(r.mensaje);
     }
-    /** Diseño lógico: (String) -> alOcurrirError() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: mensaje: Text --> alOcurrirError() -->
+     * Descripción: Al Ocurrir Error. Relaciona anuncios del llavero con ubicación y preparadores
+     * -------------------- */
     @Override public void alOcurrirError(String mensaje) { informar(mensaje); }
-    /** Diseño lógico: (String) -> informar() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: mensaje: Text --> informar() -->
+     * Descripción: Informar. Relaciona anuncios del llavero con ubicación y preparadores
+     * -------------------- */
     private void informar(String mensaje) { principal.post(() -> oyente.alCambiarEstado(mensaje)); }
 }

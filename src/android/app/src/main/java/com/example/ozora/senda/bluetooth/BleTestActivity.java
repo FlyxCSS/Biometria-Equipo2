@@ -1,13 +1,10 @@
 /*
- * ============================================================
  * Nombre: BleTestActivity.java
- * Descripción: Pantalla temporal para verificar anuncios BLE
- *              y valores O3 del llavero SENDA S-001.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ---
- * Aportación: Prueba aislada de escaneo BLE con permisos Android.
- * ============================================================
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
  */
 package com.example.ozora.senda.bluetooth;
 
@@ -34,10 +31,12 @@ public final class BleTestActivity extends Activity implements BleScanner.Oyente
     private Button botonIniciar;
     private Button botonDetener;
 
-    /**
-     * Diseño lógico: (Bundle) -> onCreate() -> (void)
-     * Descripción: Inicializa la vista de prueba y configura sus botones.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: savedInstanceState: EstadoVista --> onCreate() -->
+     * Descripción: Inicializa la vista de prueba y configura sus botones
+     * -------------------- */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,10 +51,12 @@ public final class BleTestActivity extends Activity implements BleScanner.Oyente
         mostrarEstado("Listo. Activa Bluetooth y pulsa Iniciar escaneo.");
     }
 
-    /**
-     * Diseño lógico: () -> comprobarEIniciar() -> (void)
-     * Descripción: Verifica Bluetooth y solicita permisos de forma previa al escaneo.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: comprobarEIniciar() -->
+     * Descripción: Verifica Bluetooth y solicita permisos de forma previa al escaneo
+     * -------------------- */
     private void comprobarEIniciar() {
         BluetoothManager gestor = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter adaptador = gestor == null ? null : gestor.getAdapter();
@@ -88,20 +89,24 @@ public final class BleTestActivity extends Activity implements BleScanner.Oyente
         }
     }
 
-    /**
-     * Diseño lógico: (List<String>, String) -> anadirSiFalta() -> (void)
-     * Descripción: Añade un permiso a la solicitud si Android no lo ha concedido.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: pendientes: [Dato], permiso: Text --> anadirSiFalta() -->
+     * Descripción: Añade un permiso a la solicitud si Android no lo ha concedido
+     * -------------------- */
     private void anadirSiFalta(List<String> pendientes, String permiso) {
         if (checkSelfPermission(permiso) != PackageManager.PERMISSION_GRANTED) {
             pendientes.add(permiso);
         }
     }
 
-    /**
-     * Diseño lógico: (int, String[], int[]) -> onRequestPermissionsResult() -> (void)
-     * Descripción: Continua el escaneo solo si se concedieron los permisos.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: codigo: Z, permisos: [Dato], resultados: [Dato] --> onRequestPermissionsResult() -->
+     * Descripción: Continua el escaneo solo si se concedieron los permisos
+     * -------------------- */
     @Override
     public void onRequestPermissionsResult(int codigo, String[] permisos, int[] resultados) {
         super.onRequestPermissionsResult(codigo, permisos, resultados);
@@ -119,10 +124,12 @@ public final class BleTestActivity extends Activity implements BleScanner.Oyente
         comprobarEIniciar();
     }
 
-    /**
-     * Diseño lógico: (IBeaconParser.Resultado, String) -> alRecibirTrama() -> (void)
-     * Descripción: Muestra el contenido de una trama iBeacon válida en pantalla.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: medida: IBeaconParserResultado, direccionMac: Text --> alRecibirTrama() -->
+     * Descripción: Muestra el contenido de una trama iBeacon válida en pantalla
+     * -------------------- */
     @Override
     public void alRecibirTrama(IBeaconParser.Resultado medida, String direccionMac) {
         runOnUiThread(() -> {
@@ -144,36 +151,44 @@ public final class BleTestActivity extends Activity implements BleScanner.Oyente
         });
     }
 
-    /**
-     * Diseño lógico: (String) -> alOcurrirError() -> (void)
-     * Descripción: Muestra los errores informados por el escáner.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: mensaje: Text --> alOcurrirError() -->
+     * Descripción: Muestra los errores informados por el escáner
+     * -------------------- */
     @Override
     public void alOcurrirError(String mensaje) {
         runOnUiThread(() -> mostrarEstado(mensaje));
     }
 
-    /**
-     * Diseño lógico: (String) -> mostrarEstado() -> (void)
-     * Descripción: Actualiza el texto de estado de la prueba BLE.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: mensaje: Text --> mostrarEstado() -->
+     * Descripción: Actualiza el texto de estado de la prueba BLE
+     * -------------------- */
     private void mostrarEstado(String mensaje) {
         textoEstado.setText(mensaje);
     }
 
-    /**
-     * Diseño lógico: () -> detener() -> (void)
-     * Descripción: Detiene el escaneo si está activo.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: detener() -->
+     * Descripción: Detiene el escaneo si está activo
+     * -------------------- */
     private void detener() {
         if (escaner != null) escaner.detenerEscaneo();
         mostrarEstado("Escaneo detenido.");
     }
 
-    /**
-     * Diseño lógico: () -> onStop() -> (void)
-     * Descripción: Detiene el escaneo cuando la pantalla deja de ser visible.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: onStop() -->
+     * Descripción: Detiene el escaneo cuando la pantalla deja de ser visible
+     * -------------------- */
     @Override
     protected void onStop() {
         detener();

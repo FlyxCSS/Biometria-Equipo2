@@ -1,3 +1,11 @@
+<!--
+Nombre: themes.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.SENDA" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/senda_ink</item>

@@ -1,3 +1,11 @@
+/*
+ * Nombre: StatisticsCalculator.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.statistics;
 
 import com.example.ozora.senda.model.Route;
@@ -6,6 +14,12 @@ import java.util.Date;
 import java.util.Locale;
 
 public final class StatisticsCalculator {
+
+    /** --------------------
+     * Diseño lógico: route: Route, now: Z --> resumen() --x
+     * Text <--
+     * Descripción: Resumen. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public static String resumen(Route route, long now) {
         if (route == null) return "Todavía no has iniciado un recorrido.";
         long end = route.end == null ? now : route.end;

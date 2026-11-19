@@ -30,7 +30,7 @@ Actualización del 03/11/2026: alta con contraseña inicial elegida por el jefe,
 
 Comprobado en navegador el formulario actualizado del jefe, con el campo de contraseña inicial:
 
-![Alta con contraseña inicial](evidencias/alta-contrasena-inicial.jpg)
+![Alta con contraseña inicial](../evidencias/alta-contrasena-inicial.jpg)
 
 Cobertura de integración: credenciales incorrectas; cuenta y organización inactivas; sesiones válidas, caducadas, revocadas por logout o cambio de contraseña; rol de jefe y trabajador; aislamiento de dos organizaciones y parques; llavero ajeno/inactivo; JSON incorrecto, arrays, tipo MIME erróneo y cuerpo grande; validación sin inserciones; guardado confirmado; reintento sin duplicar; conflicto sin sobrescribir; milisegundos y precisión completa de coordenadas; última captura entre varios llaveros, empates y orden diferente al de recepción; reasignación sin trasladar histórico; alta con correo único y sin inyección de parque; enlace de alta; respuesta genérica de recuperación; token caducado, consumido y cuenta desactivada; revocación de sesiones; métodos y rutas incorrectos; límite de intentos; archivos privados inaccesibles por HTTP.
 
@@ -42,13 +42,13 @@ Revisadas la conversación «Diseñar identidad visual en Figma», la arquitectu
 
 Comprobaciones en navegador: portada desktop a 1512 px, acceso real de jefe y última medición, formulario público con datos ficticios y confirmación del servidor, recursos visuales cargados y sin errores de consola. Vista móvil a 390 px: corregido un desbordamiento de las tarjetas de solución; portada y panel sin desbordamiento horizontal. Verificado el enlace antiguo `/#token=...` con token ficticio: conduce al formulario de `/acceso` y limpia el fragmento, sin cambiar contraseñas.
 
-![Portada OZORA desktop](evidencias/ozora-desktop.jpg)
+![Portada OZORA desktop](../evidencias/ozora-desktop.jpg)
 
-Otras evidencias: [OZORA móvil](evidencias/ozora-movil.jpg) y [panel con identidad SENDA](evidencias/panel-senda-figma.jpg).
+Otras evidencias: [OZORA móvil](../evidencias/ozora-movil.jpg) y [panel con identidad SENDA](../evidencias/panel-senda-figma.jpg).
 
 Captura de la demo, con cuentas, coordenadas y medición ficticias:
 
-![Panel del jefe y alta confirmada](evidencias/panel-senda.jpg)
+![Panel del jefe y alta confirmada](../evidencias/panel-senda.jpg)
 
 ## Límites
 
@@ -56,7 +56,7 @@ Actualización de roles y formularios del 03/11/2026: 216 comprobaciones HTTP/My
 
 Verificación visual en Plesk: aviso de correo repetido dentro de `form-alta`, foco en el aviso y correo con `aria-invalid=true`; icono de ojo junto a la clave. La captura usa exclusivamente la cuenta ficticia de trabajador. Los mensajes de éxito y error de cada formulario tienen una región accesible propia, en vez de depender del aviso global situado al principio de la página.
 
-![Aviso de correo repetido junto al alta en Plesk](evidencias/aviso-alta-plesk.jpg)
+![Aviso de correo repetido junto al alta en Plesk](../evidencias/aviso-alta-plesk.jpg)
 
 Comprobación parcial en Plesk del 03/11/2026: portada y acceso servidos por HTTPS en `/senda`, solicitud ficticia guardada en MySQL y confirmada en phpMyAdmin; sesión sin credenciales rechazada con 401 y configuración privada inaccesible con 404. El esquema está importado y la conexión configurada. Cuentas de demo importadas por la propietaria. Reproducido y corregido el fallo de reenvío de Authorization entre Apache y PHP-FPM: login correcto seguido de sesión 401 antes del arreglo, sesión 200 después. Login del jefe confirmado en navegador hasta la pantalla de cambio obligatorio. Verificado el botón Mostrar/Ocultar cambiando el tipo del campo sin enviar el formulario; disponible también en cambio inicial, recuperación y alta. Cambio personal de contraseña completado por la propietaria; panel del jefe y botón Actualizar comprobados en Plesk, con la lectura simulada de 42 ppb del llavero S-001. Tras el arreglo se han repetido las 203 comprobaciones HTTP/MySQL locales, todas correctas.
 

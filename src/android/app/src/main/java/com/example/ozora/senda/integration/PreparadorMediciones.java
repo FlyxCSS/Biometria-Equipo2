@@ -1,10 +1,10 @@
 /*
  * Nombre: PreparadorMediciones.java
- * Descripción: Valida lecturas BLE y posiciones antes de construir mediciones.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Valida ubicación y deduplica lecturas de ozono.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ...
- * Aportación: Preparación local de datos para integración REST, sin transmisión.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Valida ubicación y deduplica lecturas de ozono.
  */
 package com.example.ozora.senda.integration;
 
@@ -24,8 +24,13 @@ public final class PreparadorMediciones {
     private final ControlContadores contadores = new ControlContadores();
     private final ControlLecturasSinContador sinContador = new ControlLecturasSinContador();
 
-    /** Diseño lógico: (String, IBeaconParser.Resultado, Location) -> preparar() -> (Resultado)
-     * Descripción: Rechaza otra emisora, tramas no O3, ubicación antigua o imprecisa y duplicados recientes. */
+
+
+    /** --------------------
+     * Diseño lógico: seleccionado: Text, trama: IBeaconParserResultado, ubicacion: Posicion --> preparar() -->
+     * Resultado <--
+     * Descripción: Rechaza otra emisora, tramas no O3, ubicación antigua o imprecisa y duplicados recientes
+     * -------------------- */
     public Resultado preparar(String seleccionado, IBeaconParser.Resultado trama, Location ubicacion) {
         if (seleccionado == null || trama == null || trama.nombreBle == null
                 || !seleccionado.equalsIgnoreCase(trama.nombreBle)) {
@@ -51,6 +56,12 @@ public final class PreparadorMediciones {
         return Resultado.ok(medicion);
     }
 
+
+    /** --------------------
+     * Diseño lógico: ubicacion: Posicion --> errorUbicacion() --x
+     * Text <--
+     * Descripción: Error Ubicacion. Valida ubicación y deduplica lecturas de ozono
+     * -------------------- */
     static String errorUbicacion(Location ubicacion) {
         if (ubicacion == null) return "Esperando la primera ubicación.";
         long edadMs = SystemClock.elapsedRealtimeNanos() / 1_000_000L
@@ -65,21 +76,43 @@ public final class PreparadorMediciones {
         return null;
     }
 
-    /** Diseño lógico: () -> reiniciar() -> (void)
-     * Descripción: Limpia los controles de duplicados al comenzar otra prueba. */
+
+
+    /** --------------------
+     * Diseño lógico: reiniciar() -->
+     * Descripción: Limpia los controles de duplicados al comenzar otra prueba
+     * -------------------- */
     public void reiniciar() { contadores.reiniciar(); sinContador.reiniciar(); }
 
     /** Resultado con medición o motivo de descarte. */
     public static final class Resultado {
         public final MedicionAmbiental medicion;
         public final String mensaje;
+
+        /** --------------------
+         * Diseño lógico: medicion: MedicionAmbiental, mensaje: Text --> Resultado() -->
+         * Resultado <--
+         * Descripción: Construye Resultado. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         private Resultado(MedicionAmbiental medicion, String mensaje) {
             this.medicion = medicion;
             this.mensaje = mensaje;
         }
-        /** Diseño lógico: (MedicionAmbiental) -> ok() -> (Resultado) */
+
+
+        /** --------------------
+         * Diseño lógico: medicion: MedicionAmbiental --> ok() --x
+         * Resultado <--
+         * Descripción: Ok. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         public static Resultado ok(MedicionAmbiental medicion) { return new Resultado(medicion, "Medición preparada (NO enviada)."); }
-        /** Diseño lógico: (String) -> error() -> (Resultado) */
+
+
+        /** --------------------
+         * Diseño lógico: motivo: Text --> error() --x
+         * Resultado <--
+         * Descripción: Error. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         public static Resultado error(String motivo) { return new Resultado(null, motivo); }
     }
 }

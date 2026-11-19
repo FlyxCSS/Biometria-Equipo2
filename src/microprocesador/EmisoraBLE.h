@@ -1,9 +1,14 @@
+/*
+ * Nombre: EmisoraBLE.h
+ * Descripción: Encapsula el anuncio iBeacon con Bluefruit.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Encapsula el anuncio iBeacon con Bluefruit.
+ * Base original: Jordi Bataller i Mascarell
+ */
 // -*- mode: c++ -*-
 
-// ----------------------------------------------------------
-// Jordi Bataller i Mascarell
-// 2019-07-07
-// ----------------------------------------------------------
 #ifndef EMISORA_H_INCLUIDO
 #define EMISORA_H_INCLUIDO
 
@@ -18,7 +23,7 @@
 
 // ----------------------------------------------------------
 // ----------------------------------------------------------
-#include "ServicioEnEmisora.h"
+
 
 // ----------------------------------------------------------
 // ----------------------------------------------------------
@@ -38,8 +43,14 @@ public:
 
   // .........................................................
   // .........................................................
+
+  /** --------------------
+   * Diseño lógico: nombreEmisora_: Text, fabricanteID_: N, txPower_: Z --> EmisoraBLE() -->
+   * Dato <--
+   * Descripción: Construye EmisoraBLE. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   EmisoraBLE( const char * nombreEmisora_, const uint16_t fabricanteID_,
-			  const int8_t txPower_ ) 
+			  const int8_t txPower_ )
 	:
 	nombreEmisora( nombreEmisora_ ) ,
 	fabricanteID( fabricanteID_ ) ,
@@ -56,12 +67,12 @@ public:
   // .........................................................
   /* creo que no me sirve esta versión porque parece
 	 que no se instalen los callbacks si la emisora no está encendida,
-	 pero no la puedo encender en el constructor 
+	 pero no la puedo encender en el constructor
   EmisoraBLE( const char * nombreEmisora_, const uint16_t fabricanteID_,
 			  const int8_t txPower_,
 			  CallbackConexionEstablecida cbce,
 			  CallbackConexionTerminada cbct
-			  ) 
+			  )
 	:
 	EmisoraBLE ( nombreEmisora_, fabricanteID_, txPower_ )
   {
@@ -69,12 +80,17 @@ public:
 	instalarCallbackConexionTerminada( cbct );
   } // ()
   */
-	
+
   // .........................................................
   // .........................................................
+
+  /** --------------------
+   * Diseño lógico: encenderEmisora() -->
+   * Descripción: Encender Emisora. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   void encenderEmisora() {
 	// Serial.println ( "Bluefruit.begin() " );
-	 Bluefruit.begin(); 
+	 Bluefruit.begin();
 
 	 // por si acaso:
 	 (*this).detenerAnuncio();
@@ -82,6 +98,11 @@ public:
 
   // .........................................................
   // .........................................................
+
+  /** --------------------
+   * Diseño lógico: cbce: CallbackConexionEstablecida, cbct: CallbackConexionTerminada --> encenderEmisora() -->
+   * Descripción: Encender Emisora. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   void encenderEmisora( CallbackConexionEstablecida cbce,
 						CallbackConexionTerminada cbct ) {
 
@@ -94,39 +115,55 @@ public:
 
   // .........................................................
   // .........................................................
+
+  /** --------------------
+   * Diseño lógico: detenerAnuncio() -->
+   * Descripción: Detener Anuncio. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   void detenerAnuncio() {
 
 	if ( (*this).estaAnunciando() ) {
 	  // Serial.println ( "Bluefruit.Advertising.stop() " );
-	  Bluefruit.Advertising.stop(); 
+	  Bluefruit.Advertising.stop();
 	}
 
   }  // ()
-  
+
   // .........................................................
   // estaAnunciando() -> Boleano
   // .........................................................
+
+  /** --------------------
+   * Diseño lógico: estaAnunciando() -->
+   * B <--
+   * Descripción: Esta Anunciando. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   bool estaAnunciando() {
 	return Bluefruit.Advertising.isRunning();
   } // ()
 
   // .........................................................
   // .........................................................
+
+  /** --------------------
+   * Diseño lógico: beaconUUID: N, major: N, minor: N, rssi: Z --> emitirAnuncioIBeacon() -->
+   * Descripción: Emitir Anuncio IBeacon. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   void emitirAnuncioIBeacon( uint8_t * beaconUUID, uint16_t major, uint16_t minor, int8_t rssi ) {
 
 	//
 	//
 	//
 	(*this).detenerAnuncio();
-	
+
 
 	// Limpiamos el advertising anterior antes de crear uno nuevo
     Bluefruit.Advertising.clearData();
     Bluefruit.ScanResponse.clearData();
 
-		
+
 	//
-	// creo el beacon 
+	// creo el beacon
 	//
 	BLEBeacon elBeacon( beaconUUID, major, minor, rssi );
 	elBeacon.setManufacturer( (*this).fabricanteID );
@@ -165,7 +202,7 @@ public:
     } else {
       Serial.println("ERROR BLE: no se pudo iniciar el anuncio");
     }
-	
+
   } // ()
 
   // .........................................................
@@ -195,16 +232,16 @@ public:
   //       0x4c, 0x00,             // companyID 2bytes
   //       0x02,                   // ibeacon type 1 byte
   //       0x15,                   // ibeacon length 1 byte (dec=21 lo que va a continuación: desde  la 'f' hasta 0x01)
-  // 
+  //
   // 2. uuid: 16bytes
   // 'f', 'i', 's', 't', 'r', 'o', 'f', 'i', 's', 't', 'r', 'o', 0xa7, 0x10, 0x96, 0xe0
-  // 
+  //
   // 2 major: 2bytes
   // 0x04, 0xd2,
-  // 
+  //
   // minor: 2bytes
   // 0x10, 0xe1,
-  // 
+  //
   // 0xca, // tx power : 1bytes
   //
   // 0x01, // este es el byte 31 = BLE_GAP_ADV_SET_DATA_SIZE_MAX, parece que sobra
@@ -217,9 +254,14 @@ public:
 
 	const uint8_t tamanyoCarga = strlen( carga );
   */
+
+  /** --------------------
+   * Diseño lógico: carga: Text, tamanyoCarga: N --> emitirAnuncioIBeaconLibre() -->
+   * Descripción: Emitir Anuncio IBeacon Libre. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   void emitirAnuncioIBeaconLibre( const char * carga, const uint8_t tamanyoCarga ) {
 
-	(*this).detenerAnuncio(); 
+	(*this).detenerAnuncio();
 
 	Bluefruit.Advertising.clearData();
 	Bluefruit.ScanResponse.clearData(); // hace falta?
@@ -241,11 +283,11 @@ public:
 	  0x4c, 0x00, // companyID 2
 	  0x02, // ibeacon type 1byte
 	  21, // ibeacon length 1byte (dec=21)  longitud del resto // 0x15 // ibeacon length 1byte (dec=21)  longitud del resto
-	  '-', '-', '-', '-', 
-	  '-', '-', '-', '-', 
-	  '-', '-', '-', '-', 
-	  '-', '-', '-', '-', 
-	  '-', '-', '-', '-', 
+	  '-', '-', '-', '-',
+	  '-', '-', '-', '-',
+	  '-', '-', '-', '-',
+	  '-', '-', '-', '-',
+	  '-', '-', '-', '-',
 	  '-'
 	};
 
@@ -253,7 +295,7 @@ public:
 	// addData() hay que usarlo sólo una vez. Por eso copio la carga
 	// en el anterior array, donde he dejado 21 sitios libres
 	//
-	memcpy( &restoPrefijoYCarga[4], &carga[0], ( tamanyoCarga > 21 ? 21 : tamanyoCarga ) ); 
+	memcpy( &restoPrefijoYCarga[4], &carga[0], ( tamanyoCarga > 21 ? 21 : tamanyoCarga ) );
 
 	//
 	// copio la carga para emitir
@@ -272,76 +314,41 @@ public:
 	//
 	// empieza el anuncio, 0 = tiempo indefinido (ya lo pararán)
 	//
-	Bluefruit.Advertising.start( 0 ); 
+	Bluefruit.Advertising.start( 0 );
 
 	Globales::elPuerto.escribir( "emitiriBeacon libre  Bluefruit.Advertising.start( 0 );  \n");
   } // ()
 
   // .........................................................
   // .........................................................
-  bool anyadirServicio( ServicioEnEmisora & servicio ) {
 
-	Globales::elPuerto.escribir( " Bluefruit.Advertising.addService( servicio ); \n");
-
-	bool r = Bluefruit.Advertising.addService( servicio );
-
-	if ( ! r ) {
-	  Serial.println( " SERVICION NO AÑADIDO \n");
-	}
-	
-
-	return r;
-	 // nota: uso conversión de tipo de servicio (ServicioEnEmisora) a BLEService
-	 // para addService()
-  } // ()
-
-  
-  // .........................................................
-  // .........................................................
-  bool anyadirServicioConSusCaracteristicas( ServicioEnEmisora & servicio ) { 
-	return (*this).anyadirServicio( servicio );
-  } // 
-
-  // .........................................................
-  template <typename ... T>
-  bool anyadirServicioConSusCaracteristicas( ServicioEnEmisora & servicio,
-											 ServicioEnEmisora::Caracteristica & caracteristica,
-											 T& ... restoCaracteristicas) {
-
-	servicio.anyadirCaracteristica( caracteristica );
-
-	return anyadirServicioConSusCaracteristicas( servicio, restoCaracteristicas... );
-	
-  } // ()
-
-  // .........................................................
-  template <typename ... T>
-  bool anyadirServicioConSusCaracteristicasYActivar( ServicioEnEmisora & servicio,
-													 // ServicioEnEmisora::Caracteristica & caracteristica,
-													 T& ... restoCaracteristicas) {
-
-	bool r = anyadirServicioConSusCaracteristicas( servicio, restoCaracteristicas... );
-
-	servicio.activarServicio();
-
-	return r;
-	
-  } // ()
-
-  // .........................................................
-  // .........................................................
+  /** --------------------
+   * Diseño lógico: cb: CallbackConexionEstablecida --> instalarCallbackConexionEstablecida() -->
+   * Descripción: Instalar Callback Conexion Establecida. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   void instalarCallbackConexionEstablecida( CallbackConexionEstablecida cb ) {
 	Bluefruit.Periph.setConnectCallback( cb );
   } // ()
 
   // .........................................................
   // .........................................................
+
+  /** --------------------
+   * Diseño lógico: cb: CallbackConexionTerminada --> instalarCallbackConexionTerminada() -->
+   * Descripción: Instalar Callback Conexion Terminada. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   void instalarCallbackConexionTerminada( CallbackConexionTerminada cb ) {
 	Bluefruit.Periph.setDisconnectCallback( cb );
   } // ()
 
   // .........................................................
   // .........................................................
+
+  /** --------------------
+   * Diseño lógico: connHandle: N --> getConexion() -->
+   * BLEConnection <--
+   * Descripción: Get Conexion. Encapsula el anuncio iBeacon con Bluefruit
+   * -------------------- */
   BLEConnection * getConexion( uint16_t connHandle ) {
 	return Bluefruit.Connection( connHandle );
   } // ()

@@ -1,12 +1,14 @@
 <?php
 /*
  * Nombre: example.php
- * Descripción: Configuración de ejemplo; copiar a local.php y ajustar fuera de Git.
+ * Descripción: Plantilla privada de configuración del entorno.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Centralizar el entorno del backend sin publicar secretos.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Plantilla privada de configuración del entorno.
  */
+
+
 return [
     'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=senda;charset=utf8mb4',
     'db_user' => 'senda',

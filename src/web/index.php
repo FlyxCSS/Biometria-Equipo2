@@ -1,14 +1,17 @@
 <?php
 /*
  * Nombre: index.php
- * Descripción: Controlador público para OZORA, el acceso SENDA y la API.
+ * Descripción: Presentación pública OZORA y panel del parque.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Servir solo recursos públicos y aplicar cabeceras comunes.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Presentación pública OZORA y panel del parque.
  */
+
+
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
+require_once dirname(__DIR__) . '/communication/ContextoWeb.php';
 ini_set('display_errors', '0');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');

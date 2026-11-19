@@ -1,10 +1,10 @@
 /*
  * Nombre: app.js
- * Descripción: Cliente de la API real para la web temporal de SENDA.
+ * Descripción: Presentación pública OZORA y panel del parque.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Acceso, alta, última lectura y recuperación sin datos simulados de interfaz.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Presentación pública OZORA y panel del parque.
  */
 'use strict';
 const logica = new LogicaFake(document.documentElement.dataset.basePath || '');
@@ -12,12 +12,22 @@ let tokenSesion = ''; // Solo en memoria: recargar requiere iniciar sesión otra
 let usuarioActual = null;
 let tokenRecuperacion = '';
 
-/** Diseño lógico: (id) -> elemento -> nodo DOM.
- * Descripción: Localiza un control conocido de la página. */
+
+
+/** --------------------
+ * Diseño lógico: id: Dato --> elemento() -->
+ * Dato <--
+ * Descripción: Localiza un control conocido de la página
+ * -------------------- */
 function elemento(id) { return document.getElementById(id); }
 
-/** Diseño lógico: (texto, error, destino) -> mensaje -> vacío.
- * Descripción: Informa del resultado con texto seguro y aviso accesible. */
+
+
+/** --------------------
+ * Diseño lógico: texto: Text, error: Dato, destino: Dato --> mensaje() -->
+ * Dato <--
+ * Descripción: Informa del resultado con texto seguro y aviso accesible
+ * -------------------- */
 function mensaje(texto, error = false, destino = 'mensaje') {
     const aviso = elemento(destino);
     aviso.textContent = texto;
@@ -29,8 +39,13 @@ function mensaje(texto, error = false, destino = 'mensaje') {
     }
 }
 
-/** Diseño lógico: (sección) -> mostrar -> vacío.
- * Descripción: Cambia de pantalla sin duplicar formularios. */
+
+
+/** --------------------
+ * Diseño lógico: seccion: Dato --> mostrar() -->
+ * Dato <--
+ * Descripción: Cambia de pantalla sin duplicar formularios
+ * -------------------- */
 function mostrar(seccion) {
     // Al cambiar de pantalla, todas las claves vuelven a quedar ocultas.
     ocultarContrasenas();
@@ -46,8 +61,13 @@ function mostrar(seccion) {
     mensaje('');
 }
 
-/** Diseño lógico: (contenedor) -> ocultarContrasenas -> vacío.
- * Descripción: Restablece la privacidad de los campos al navegar o terminar un alta. */
+
+
+/** --------------------
+ * Diseño lógico: contenedor: Dato --> ocultarContrasenas() -->
+ * Dato <--
+ * Descripción: Restablece la privacidad de los campos al navegar o terminar un alta
+ * -------------------- */
 function ocultarContrasenas(contenedor = document) {
     for (const boton of contenedor.querySelectorAll('[data-ver-contrasena]')) {
         elemento(boton.getAttribute('aria-controls')).type = 'password';
@@ -58,6 +78,12 @@ function ocultarContrasenas(contenedor = document) {
 }
 
 /** Aplica la caducidad de sesión a las operaciones del proxy. */
+
+/** --------------------
+ * Diseño lógico: operacion: Dato --> conSesion() -->
+ * Dato <--
+ * Descripción: Con Sesion. Presentación pública OZORA y panel del parque
+ * -------------------- */
 async function conSesion(operacion) {
     try {
         return await operacion();
@@ -72,8 +98,13 @@ async function conSesion(operacion) {
     }
 }
 
-/** Diseño lógico: (evento, operación) -> ejecutarFormulario -> promesa vacía.
- * Descripción: Evita envíos repetidos y presenta errores sin perder el formulario. */
+
+
+/** --------------------
+ * Diseño lógico: evento: Dato, operacion: Dato --> ejecutarFormulario() -->
+ * Dato <--
+ * Descripción: Evita envíos repetidos y presenta errores sin perder el formulario
+ * -------------------- */
 async function ejecutarFormulario(evento, operacion) {
     evento.preventDefault();
     const formulario = evento.currentTarget;
@@ -101,8 +132,13 @@ async function ejecutarFormulario(evento, operacion) {
     finally { boton.disabled = false; }
 }
 
-/** Diseño lógico: (texto, clase) -> parrafo -> nodo p.
- * Descripción: Crea texto de lectura sin interpretar HTML procedente del servidor. */
+
+
+/** --------------------
+ * Diseño lógico: texto: Text, clase: Dato --> parrafo() -->
+ * Dato <--
+ * Descripción: Crea texto de lectura sin interpretar HTML procedente del servidor
+ * -------------------- */
 function parrafo(texto, clase = '') {
     const nodo = document.createElement('p');
     nodo.textContent = texto;
@@ -110,8 +146,13 @@ function parrafo(texto, clase = '') {
     return nodo;
 }
 
-/** Diseño lógico: () -> actualizarLectura -> promesa vacía.
- * Descripción: Consulta la captura más reciente y distingue error, ausencia y simulación. */
+
+
+/** --------------------
+ * Diseño lógico: actualizarLectura() -->
+ * Dato <--
+ * Descripción: Consulta la captura más reciente y distingue error, ausencia y simulación
+ * -------------------- */
 async function actualizarLectura() {
     const lectura = elemento('lectura');
     const boton = elemento('actualizar');
@@ -150,8 +191,13 @@ async function actualizarLectura() {
     } finally { boton.disabled = false; }
 }
 
-/** Diseño lógico: (evento submit) -> iniciarSesion -> promesa vacía.
- * Descripción: Abre el panel adecuado al rol devuelto por el servidor. */
+
+
+/** --------------------
+ * Diseño lógico: evento: Dato --> iniciarSesion() -->
+ * Dato <--
+ * Descripción: Abre el panel adecuado al rol devuelto por el servidor
+ * -------------------- */
 async function iniciarSesion(evento) {
     await ejecutarFormulario(evento, async function realizarLogin() {
         // Diseño lógico: () -> realizarLogin -> promesa vacía. Descripción: Obtiene y aplica la sesión real.
@@ -175,8 +221,13 @@ async function iniciarSesion(evento) {
     });
 }
 
-/** Diseño lógico: (evento submit) -> registrarTrabajador -> promesa vacía.
- * Descripción: Crea la cuenta del parque con contraseña inicial elegida por el jefe. */
+
+
+/** --------------------
+ * Diseño lógico: evento: Dato --> registrarTrabajador() -->
+ * Dato <--
+ * Descripción: Crea la cuenta del parque con contraseña inicial elegida por el jefe
+ * -------------------- */
 async function registrarTrabajador(evento) {
     await ejecutarFormulario(evento, async function realizarAlta() {
         // Diseño lógico: () -> realizarAlta -> promesa vacía. Descripción: Envía los datos del alta al servidor.
@@ -191,8 +242,13 @@ async function registrarTrabajador(evento) {
     });
 }
 
-/** Diseño lógico: (evento submit) -> solicitarRecuperacion -> promesa vacía.
- * Descripción: Solicita un enlace sin revelar cuentas registradas. */
+
+
+/** --------------------
+ * Diseño lógico: evento: Dato --> solicitarRecuperacion() -->
+ * Dato <--
+ * Descripción: Solicita un enlace sin revelar cuentas registradas
+ * -------------------- */
 async function solicitarRecuperacion(evento) {
     await ejecutarFormulario(evento, async function realizarSolicitud() {
         // Diseño lógico: () -> realizarSolicitud -> promesa vacía. Descripción: Presenta la respuesta genérica de recuperación.
@@ -201,8 +257,13 @@ async function solicitarRecuperacion(evento) {
     });
 }
 
-/** Diseño lógico: (evento submit) -> restablecerContrasena -> promesa vacía.
- * Descripción: Comprueba la repetición y consume el enlace de alta o recuperación. */
+
+
+/** --------------------
+ * Diseño lógico: evento: Dato --> restablecerContrasena() -->
+ * Dato <--
+ * Descripción: Comprueba la repetición y consume el enlace de alta o recuperación
+ * -------------------- */
 async function restablecerContrasena(evento) {
     await ejecutarFormulario(evento, async function realizarCambio() {
         // Diseño lógico: () -> realizarCambio -> promesa vacía. Descripción: Cambia la contraseña y vuelve al acceso.
@@ -220,8 +281,13 @@ async function restablecerContrasena(evento) {
     });
 }
 
-/** Diseño lógico: (evento submit) -> cambiarContrasenaInicial -> promesa vacía.
- * Descripción: Permite probar el mismo cambio autenticado que utilizará Android. */
+
+
+/** --------------------
+ * Diseño lógico: evento: Dato --> cambiarContrasenaInicial() -->
+ * Dato <--
+ * Descripción: Permite probar el mismo cambio autenticado que utilizará Android
+ * -------------------- */
 async function cambiarContrasenaInicial(evento) {
     await ejecutarFormulario(evento, async function realizarCambioInicial() {
         // Diseño lógico: () -> realizarCambioInicial -> promesa vacía. Descripción: Cambia la clave propia y solicita un login nuevo.
@@ -240,8 +306,13 @@ async function cambiarContrasenaInicial(evento) {
     });
 }
 
-/** Diseño lógico: () -> cerrarSesion -> promesa vacía.
- * Descripción: Revoca la sesión remota y conserva la posibilidad de reintentar si falla. */
+
+
+/** --------------------
+ * Diseño lógico: cerrarSesion() -->
+ * Dato <--
+ * Descripción: Revoca la sesión remota y conserva la posibilidad de reintentar si falla
+ * -------------------- */
 async function cerrarSesion() {
     elemento('salir').disabled = true;
     try {
@@ -257,15 +328,30 @@ async function cerrarSesion() {
     finally { elemento('salir').disabled = false; }
 }
 
-/** Diseño lógico: () -> abrirRecuperacion -> vacío.
- * Descripción: Muestra el formulario de solicitud de enlace. */
+
+
+/** --------------------
+ * Diseño lógico: abrirRecuperacion() -->
+ * Dato <--
+ * Descripción: Muestra el formulario de solicitud de enlace
+ * -------------------- */
 function abrirRecuperacion() { mostrar('recuperacion'); }
-/** Diseño lógico: () -> volverAcceso -> vacío.
- * Descripción: Descarta el enlace local y limpia los campos de contraseña. */
+
+
+/** --------------------
+ * Diseño lógico: volverAcceso() -->
+ * Dato <--
+ * Descripción: Descarta el enlace local y limpia los campos de contraseña
+ * -------------------- */
 function volverAcceso() { tokenRecuperacion = ''; elemento('form-restablecer').reset(); mostrar('acceso'); }
 
-/** Diseño lógico: (evento click) -> alternarContrasena -> vacío.
- * Descripción: Muestra u oculta exclusivamente el campo asociado al botón. */
+
+
+/** --------------------
+ * Diseño lógico: evento: Dato --> alternarContrasena() -->
+ * Dato <--
+ * Descripción: Muestra u oculta exclusivamente el campo asociado al botón
+ * -------------------- */
 function alternarContrasena(evento) {
     const boton = evento.currentTarget;
     const campo = elemento(boton.getAttribute('aria-controls'));
@@ -277,8 +363,13 @@ function alternarContrasena(evento) {
     boton.setAttribute('aria-pressed', String(visible));
 }
 
-/** Diseño lógico: () -> prepararVisibilidadContrasenas -> vacío.
- * Descripción: Añade controles accesibles a las claves de acceso, alta y cambio. */
+
+
+/** --------------------
+ * Diseño lógico: prepararVisibilidadContrasenas() -->
+ * Dato <--
+ * Descripción: Añade controles accesibles a las claves de acceso, alta y cambio
+ * -------------------- */
 function prepararVisibilidadContrasenas() {
     for (const campo of document.querySelectorAll('input[type="password"]')) {
         const boton = document.createElement('button');
@@ -301,8 +392,13 @@ function prepararVisibilidadContrasenas() {
 
 prepararVisibilidadContrasenas();
 
-/** Diseño lógico: () -> prepararAvisosFormularios -> vacío.
- * Descripción: Coloca cada resultado junto al botón donde se realiza la operación. */
+
+
+/** --------------------
+ * Diseño lógico: prepararAvisosFormularios() -->
+ * Dato <--
+ * Descripción: Coloca cada resultado junto al botón donde se realiza la operación
+ * -------------------- */
 function prepararAvisosFormularios() {
     for (const formulario of document.querySelectorAll('form')) {
         const aviso = document.createElement('div');

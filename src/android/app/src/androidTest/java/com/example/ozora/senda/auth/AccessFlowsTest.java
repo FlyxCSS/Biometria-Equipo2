@@ -1,3 +1,11 @@
+/*
+ * Nombre: AccessFlowsTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.auth;
 
 import android.app.Activity;
@@ -24,6 +32,11 @@ import static org.junit.Assert.*;
 public class AccessFlowsTest {
     private final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private final Worker worker = new Worker(2147477000, 2147477000, "Prueba de acceso");
+
+    /** --------------------
+     * Diseño lógico: file: Text --> capture() -->
+     * Descripción: Capture. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void capture(String file) throws Exception {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         android.os.SystemClock.sleep(300);
@@ -33,6 +46,11 @@ public class AccessFlowsTest {
         }
         bitmap.recycle();
     }
+
+    /** --------------------
+     * Diseño lógico: recuperacionValidaCamposYConservaPasoSinEnviarPeticiones() -->
+     * Descripción: Recuperacion Valida Campos YConserva Paso Sin Enviar Peticiones. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void recuperacionValidaCamposYConservaPasoSinEnviarPeticiones() throws Exception {
         SessionManager.clear();
         try (ActivityScenario<RecoveryActivity> screen = ActivityScenario.launch(RecoveryActivity.class)) {
@@ -64,6 +82,11 @@ public class AccessFlowsTest {
             assertNull(SessionManager.current());
         }
     }
+
+    /** --------------------
+     * Diseño lógico: biometriaSePuedeOmitirSinGuardarUnaCredencial() -->
+     * Descripción: Biometria Se Puede Omitir Sin Guardar Una Credencial. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void biometriaSePuedeOmitirSinGuardarUnaCredencial() throws Exception {
         SessionManager.open(worker, Long.MAX_VALUE, "solo-prueba-local");
         try (ActivityScenario<BiometricSetupActivity> screen = ActivityScenario.launch(BiometricSetupActivity.class)) {
@@ -75,6 +98,11 @@ public class AccessFlowsTest {
             assertNotNull(SessionManager.current());
         } finally { SessionManager.clear(); }
     }
+
+    /** --------------------
+     * Diseño lógico: entradaManualQrRechazaErroresYDevuelveCodigoNormalizado() -->
+     * Descripción: Entrada Manual Qr Rechaza Errores YDevuelve Codigo Normalizado. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void entradaManualQrRechazaErroresYDevuelveCodigoNormalizado() throws Exception {
         SessionManager.open(worker, Long.MAX_VALUE, "solo-prueba-local");
         Intent intent = new Intent(context, QrScannerActivity.class);

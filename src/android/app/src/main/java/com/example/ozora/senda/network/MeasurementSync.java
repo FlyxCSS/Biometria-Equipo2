@@ -1,10 +1,10 @@
 /*
  * Nombre: MeasurementSync.java
- * Descripción: Cola persistente de mediciones autenticadas hacia PHP.
+ * Descripción: Envía la cola local por cuenta y conserva las lecturas no confirmadas.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Envíos fuera del hilo de interfaz, reintentos e aislamiento de cuentas.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Envía la cola local por cuenta y conserva las lecturas no confirmadas.
  */
 package com.example.ozora.senda.network;
 
@@ -24,12 +24,42 @@ public final class MeasurementSync {
     private static final AtomicBoolean EN_CURSO = new AtomicBoolean();
     public static volatile String estado = "Sincronización pendiente.";
     private static volatile SessionManager owner;
+
+    /** --------------------
+     * Diseño lógico: MeasurementSync() -->
+     * MeasurementSync <--
+     * Descripción: Construye MeasurementSync. Envía la cola local por cuenta y conserva las lecturas no confirmadas
+     * -------------------- */
     private MeasurementSync() {}
+
+    /** --------------------
+     * Diseño lógico: enCurso() --x
+     * B <--
+     * Descripción: En Curso. Envía la cola local por cuenta y conserva las lecturas no confirmadas
+     * -------------------- */
     public static boolean enCurso() { return EN_CURSO.get(); }
+
+    /** --------------------
+     * Diseño lógico: session: SessionManager --> estado() --x
+     * Text <--
+     * Descripción: Estado. Envía la cola local por cuenta y conserva las lecturas no confirmadas
+     * -------------------- */
     public static String estado(SessionManager session) {
         return owner == session ? estado : "Sincronización pendiente.";
     }
+
+    /** --------------------
+     * Diseño lógico: context: Entorno --> reintentar() --x
+     * B <--
+     * Descripción: Reintentar. Envía la cola local por cuenta y conserva las lecturas no confirmadas
+     * -------------------- */
     public static boolean reintentar(Context context) { return comenzar(context, true); }
+
+    /** --------------------
+     * Diseño lógico: context: Entorno, retry: B --> comenzar() --x
+     * B <--
+     * Descripción: Comenzar. Envía la cola local por cuenta y conserva las lecturas no confirmadas
+     * -------------------- */
     private static boolean comenzar(Context context, boolean retry) {
         SessionManager session = SessionManager.current();
         if (session == null || session.token == null || !EN_CURSO.compareAndSet(false, true)) return false;
@@ -40,8 +70,12 @@ public final class MeasurementSync {
         return true;
     }
 
-    /** Diseño lógico: (contexto) -> sincronizar -> vacío.
-     * Descripción: Reintenta un lote de la cuenta actual.. */
+
+
+    /** --------------------
+     * Diseño lógico: contexto: Entorno --> sincronizar() --x
+     * Descripción: Reintenta un lote de la cuenta actual
+     * -------------------- */
     public static void sincronizar(Context contexto) {
         comenzar(contexto, false);
     }
@@ -49,9 +83,12 @@ public final class MeasurementSync {
     /** Recuento compartido de un envío: lecturas confirmadas y rechazadas. */
     private static final class Recuento { int sent, rejected; }
 
-    /** Diseño lógico: (contexto, sesión capturada) -> enviarPendientes -> vacío.
-     * Descripción: Marca enviada solo tras confirmación; conserva la lectura incluso si se rechaza.
-     * Envía primero el ozono y después la temperatura. */
+
+
+    /** --------------------
+     * Diseño lógico: contexto: Entorno, sesion: SessionManager, retry: B --> enviarPendientes() --x
+     * Descripción: Marca enviada solo tras confirmación; conserva la lectura incluso si se rechaza
+     * -------------------- */
     private static void enviarPendientes(Context contexto, SessionManager sesion, boolean retry) {
         try(RouteManager rutas = new RouteManager(contexto,"recorridos.db")) {
             if (SessionManager.current() != sesion) return;
@@ -69,6 +106,12 @@ public final class MeasurementSync {
     }
 
     /** Recorre por lotes de 50 hasta el último id existente al empezar, sin quedarse en bucle con lecturas nuevas. */
+
+    /** --------------------
+     * Diseño lógico: db: DepositoLocal, logica: LogicaFake, sesion: SessionManager, temperatura: B, recuento: Recuento --> enviarTabla() --x
+     * B <--
+     * Descripción: Enviar Tabla. Envía la cola local por cuenta y conserva las lecturas no confirmadas
+     * -------------------- */
     private static boolean enviarTabla(SQLiteDatabase db, LogicaFake logica, SessionManager sesion,
                                        boolean temperatura, Recuento recuento) throws Exception {
         // Los nombres de tabla/columna son constantes internas, nunca datos recibidos.

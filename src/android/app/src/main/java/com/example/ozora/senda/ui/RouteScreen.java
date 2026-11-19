@@ -1,3 +1,11 @@
+/*
+ * Nombre: RouteScreen.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.content.res.ColorStateList;
@@ -16,12 +24,24 @@ public abstract class RouteScreen extends FieldScreen {
     protected static final int SAGE = 0xffd2dfc9;
     protected static final int CREAM = 0xfff4f1ea;
 
+
+    /** --------------------
+     * Diseño lógico: column() -->
+     * LinearLayout <--
+     * Descripción: Column. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected LinearLayout column() {
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
         return column;
     }
 
+
+    /** --------------------
+     * Diseño lógico: value: Text, size: Z, bold: B --> label() -->
+     * Text <--
+     * Descripción: Label. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected TextView label(CharSequence value, int size, boolean bold) {
         TextView label = new TextView(this);
         label.setText(value);
@@ -31,6 +51,12 @@ public abstract class RouteScreen extends FieldScreen {
         return label;
     }
 
+
+    /** --------------------
+     * Diseño lógico: backButton() -->
+     * MaterialButton <--
+     * Descripción: Back Button. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected MaterialButton backButton() {
         MaterialButton button = new MaterialButton(this);
         button.setText("");
@@ -54,6 +80,11 @@ public abstract class RouteScreen extends FieldScreen {
         return button;
     }
 
+
+    /** --------------------
+     * Diseño lógico: view: Vista --> card() -->
+     * Descripción: Card. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void card(View view) {
         view.setBackgroundResource(R.drawable.s_card);
         view.setClipToOutline(true);
@@ -61,6 +92,12 @@ public abstract class RouteScreen extends FieldScreen {
     }
 
     /** Valor grande con la unidad pequeña y gris, p. ej. "72 ppb". */
+
+    /** --------------------
+     * Diseño lógico: value: Text, unit: Text --> valueWithUnit() -->
+     * Text <--
+     * Descripción: Value With Unit. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected CharSequence valueWithUnit(String value, String unit) {
         android.text.SpannableStringBuilder text = new android.text.SpannableStringBuilder(value);
         if (unit == null || unit.isEmpty()) return text;
@@ -72,6 +109,12 @@ public abstract class RouteScreen extends FieldScreen {
         return text;
     }
 
+
+    /** --------------------
+     * Diseño lógico: value: Text, tone: Z, surface: Z, icon: Z --> chip() -->
+     * Text <--
+     * Descripción: Chip. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected TextView chip(CharSequence value, int tone, int surface, int icon) {
         TextView chip = label(value, 14, true);
         chip.setTextColor(tone);
@@ -88,6 +131,11 @@ public abstract class RouteScreen extends FieldScreen {
         return chip;
     }
 
+
+    /** --------------------
+     * Diseño lógico: parent: LinearLayout, child: Vista, margin: Z --> addWithTopMargin() -->
+     * Descripción: Add With Top Margin. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void addWithTopMargin(LinearLayout parent, View child, int margin) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dp(margin);

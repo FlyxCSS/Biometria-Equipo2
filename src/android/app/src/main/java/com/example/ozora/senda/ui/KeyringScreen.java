@@ -1,3 +1,11 @@
+/*
+ * Nombre: KeyringScreen.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.content.Context;
@@ -23,13 +31,35 @@ import java.util.Date;
 public final class KeyringScreen {
     private final View root;
     private final Context context;
+
+    /** --------------------
+     * Diseño lógico: root: Vista --> KeyringScreen() -->
+     * KeyringScreen <--
+     * Descripción: Construye KeyringScreen. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public KeyringScreen(View root) { this.root = root; context = root.getContext(); }
+
+    /** --------------------
+     * Diseño lógico: id: Z, value: Text --> text() -->
+     * Descripción: Text. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void text(int id, String value) {
         TextView view = root.findViewById(id);
         if (!android.text.TextUtils.equals(view.getText(), value)) view.setText(value);
     }
+
+    /** --------------------
+     * Diseño lógico: id: Z --> color() -->
+     * Z <--
+     * Descripción: Color. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private int color(int id) { return context.getColor(id); }
 
+
+    /** --------------------
+     * Diseño lógico: session: SessionManager, routes: RouteManager, prefs: Preferencias, sensor: Text, active: B, receiving: B, state: Text --> refresh() -->
+     * Descripción: Refresh. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void refresh(SessionManager session, RouteManager routes, SharedPreferences prefs,
                         String sensor, boolean active, boolean receiving, String state) {
         boolean selected = sensor != null;
@@ -125,6 +155,12 @@ public final class KeyringScreen {
                 : selected ? R.string.keyring_local_hint : R.string.keyring_hint));
     }
 
+
+    /** --------------------
+     * Diseño lógico: instant: Z --> cuando() --x
+     * Text <--
+     * Descripción: Cuando. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private static String cuando(long instant) {
         Calendar today = Calendar.getInstance();
         Calendar when = Calendar.getInstance(); when.setTimeInMillis(instant);

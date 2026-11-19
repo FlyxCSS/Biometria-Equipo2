@@ -1,4 +1,12 @@
-<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><style>
+<!doctype html><!--
+Nombre: home.html
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
+<html lang="es"><head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><style>
 /*LEAFLET_CSS*/
 html,body,#map{height:100%;width:100%;padding:0;margin:0;background:#f3f3ee}
 /* Paleta Clean Cut adaptada a teselas raster. Se limita al fondo cartográfico. */
@@ -46,6 +54,11 @@ const canvas=L.DomUtil.create('canvas','heat-canvas');
 canvas.style.position='absolute';
 map.getPanes().overlayPane.appendChild(canvas);
 const context=canvas.getContext('2d');
+
+/* --------------------
+ * Diseño lógico: drawHeat() -->
+ * Descripción: Actualiza la representación del mapa conforme a los datos recibidos.
+ * -------------------- */
 function drawHeat(){
  const size=map.getSize(), origin=map.containerPointToLayerPoint([0,0]);
  L.DomUtil.setPosition(canvas,origin);

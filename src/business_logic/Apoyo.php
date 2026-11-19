@@ -1,47 +1,37 @@
 <?php
 /*
  * Nombre: Apoyo.php
- * Descripción: Errores públicos, configuración, validación y conexión PDO.
+ * Descripción: Define errores de dominio, validaciones y conexión configurada.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Utilidades comunes sencillas para el backend.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Define errores de dominio, validaciones y conexión configurada.
  */
+
+
 declare(strict_types=1);
 
-final class ErrorApi extends RuntimeException
+final class ErrorDominio extends RuntimeException
 {
-    /** Diseño lógico: (estado, código, mensaje, campos) -> __construct -> ErrorApi.
-     * Descripción: Representa un rechazo controlado, sin detalles internos. */
-    public function __construct(public int $estado, public string $codigo, string $mensaje, public array $campos = [])
+
+    /** --------------------
+     * Diseño lógico: codigo: Text, mensaje: Text, campos: [Dato] --> __construct() -->
+     * Dato <--
+     * Descripción: Construye ErrorDominio. Reglas de negocio, autorización y persistencia de SENDA
+     * -------------------- */
+    public function __construct(public string $codigo, string $mensaje, public array $campos = [])
     {
         parent::__construct($mensaje);
     }
 }
 
-/** Diseño lógico: () -> rutaBaseAplicacion -> prefijo de instalación.
- * Descripción: Permite instalar SENDA en su propia carpeta, sin cambiar otras webs del dominio. */
-function rutaBaseAplicacion(): string
-{
-    $base = defined('SENDA_BASE_PATH') ? SENDA_BASE_PATH : (getenv('SENDA_BASE_PATH') ?: '');
-    if (!is_string($base) || !preg_match('~^(?:/[a-zA-Z0-9_-]+)*$~D', $base)) {
-        throw new RuntimeException('Ruta base de instalación inválida');
-    }
-    return $base;
-}
 
-/** Diseño lógico: () -> rutaPeticionAplicacion -> ruta relativa o null.
- * Descripción: Retira únicamente el prefijo de esta instalación, respetando los demás proyectos. */
-function rutaPeticionAplicacion(): ?string
-{
-    $ruta = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    $base = rutaBaseAplicacion();
-    if (!is_string($ruta) || ($base !== '' && $ruta !== $base && !str_starts_with($ruta, $base . '/'))) return null;
-    return substr($ruta, strlen($base)) ?: '/';
-}
 
-/** Diseño lógico: () -> configuracion -> array.
- * Descripción: Lee la configuración privada local, nunca servida por HTTP. */
+/** --------------------
+ * Diseño lógico: configuracion() -->
+ * [Dato] <--
+ * Descripción: Lee la configuración privada local, nunca servida por HTTP
+ * -------------------- */
 function configuracion(): array
 {
     $archivo = getenv('SENDA_CONFIG');
@@ -77,8 +67,13 @@ function configuracion(): array
     return $config;
 }
 
-/** Diseño lógico: (configuración) -> conectar -> PDO.
- * Descripción: Abre MySQL con parámetros reales y fechas UTC. */
+
+
+/** --------------------
+ * Diseño lógico: config: [Dato] --> conectar() -->
+ * Deposito <--
+ * Descripción: Abre MySQL con parámetros reales y fechas UTC
+ * -------------------- */
 function conectar(array $config): PDO
 {
     $pdo = new PDO($config['dsn'], $config['db_user'], $config['db_password'], [
@@ -90,44 +85,68 @@ function conectar(array $config): PDO
     return $pdo;
 }
 
-/** Diseño lógico: (datos, lista de campos) -> exigirCampos -> vacío o error.
- * Descripción: Rechaza campos ausentes y desconocidos para evitar contratos ambiguos. */
+
+
+/** --------------------
+ * Diseño lógico: datos: [Dato], campos: [Dato] --> exigirCampos() -->
+ * Descripción: Rechaza campos ausentes y desconocidos para evitar contratos ambiguos
+ * -------------------- */
 function exigirCampos(array $datos, array $campos): void
 {
     if (array_diff($campos, array_keys($datos)) || array_diff(array_keys($datos), $campos)) {
-        throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Los campos no coinciden con el contrato.');
+        throw new ErrorDominio('DATOS_INVALIDOS', 'Los campos no coinciden con el contrato.');
     }
 }
 
-/** Diseño lógico: (valor) -> validarCorreo -> correo normalizado.
- * Descripción: Valida el correo ASCII y respeta el tamaño del esquema del equipo. */
+
+
+/** --------------------
+ * Diseño lógico: valor: Dato --> validarCorreo() -->
+ * Text <--
+ * Descripción: Valida el correo ASCII y respeta el tamaño del esquema del equipo
+ * -------------------- */
 function validarCorreo(mixed $valor): string
 {
     if (!is_string($valor) || strlen($valor) > 100 || !filter_var(trim($valor), FILTER_VALIDATE_EMAIL)) {
-        throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Introduce un correo válido.', ['correo' => 'Correo inválido.']);
+        throw new ErrorDominio('DATOS_INVALIDOS', 'Introduce un correo válido.', ['correo' => 'Correo inválido.']);
     }
     return strtolower(trim($valor));
 }
 
-/** Diseño lógico: (valor) -> validarContrasena -> contraseña.
- * Descripción: Impide contraseñas demasiado cortas o truncadas por bcrypt. */
+
+
+/** --------------------
+ * Diseño lógico: valor: Dato --> validarContrasena() -->
+ * Text <--
+ * Descripción: Impide contraseñas demasiado cortas o truncadas por bcrypt
+ * -------------------- */
 function validarContrasena(mixed $valor): string
 {
     if (!is_string($valor) || strlen($valor) < 12 || strlen($valor) > 72 || str_contains($valor, "\0")) {
-        throw new ErrorApi(422, 'DATOS_INVALIDOS', 'La contraseña debe ocupar entre 12 y 72 bytes UTF-8.');
+        throw new ErrorDominio('DATOS_INVALIDOS', 'La contraseña debe ocupar entre 12 y 72 bytes UTF-8.');
     }
     return $valor;
 }
 
-/** Diseño lógico: (fecha SQL UTC) -> fechaJson -> fecha ISO UTC.
- * Descripción: Conserva los milisegundos al responder a Android. */
+
+
+/** --------------------
+ * Diseño lógico: fecha: Text --> fechaJson() -->
+ * Text <--
+ * Descripción: Conserva los milisegundos al responder a Android
+ * -------------------- */
 function fechaJson(string $fecha): string
 {
     return (new DateTimeImmutable($fecha, new DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.v\Z');
 }
 
-/** Diseño lógico: (JSON de lectura) -> validarMedicion -> datos normalizados.
- * Descripción: Valida una captura geolocalizada O3 sin inventar ubicación ni unidad. */
+
+
+/** --------------------
+ * Diseño lógico: datos: [Dato] --> validarMedicion() -->
+ * [Dato] <--
+ * Descripción: Valida una captura geolocalizada O3 sin inventar ubicación ni unidad
+ * -------------------- */
 function validarMedicion(array $datos): array
 {
     exigirCampos($datos, ['nombre_micro', 'tipo', 'valor', 'unidad', 'fecha_hora', 'latitud', 'longitud', 'simulada']);
@@ -166,7 +185,7 @@ function validarMedicion(array $datos): array
         $errores['fecha_hora'] = 'La captura no puede adelantarse más de cinco minutos al servidor.';
     }
     if ($errores) {
-        throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Revisa los campos indicados.', $errores);
+        throw new ErrorDominio('DATOS_INVALIDOS', 'Revisa los campos indicados.', $errores);
     }
     $datos['fecha_sql'] = $fecha->format('Y-m-d H:i:s.v');
     return $datos;

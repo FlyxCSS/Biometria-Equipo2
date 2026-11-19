@@ -1,3 +1,11 @@
+/*
+ * Nombre: RecoveryContractTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.network;
 
 import java.io.*;
@@ -10,6 +18,12 @@ import static org.junit.Assert.*;
 
 public class RecoveryContractTest {
     /** Servidor HTTP aislado para probar el transporte sin enviar correos reales. */
+
+    /** --------------------
+     * Diseño lógico: server: ServerSocket, status: Z, response: Text --> responder() -->
+     * Text <--
+     * Descripción: Responder. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private String responder(ServerSocket server, int status, String response) throws Exception {
         server.setSoTimeout(5000);
         try (Socket socket = server.accept()) {
@@ -41,6 +55,11 @@ public class RecoveryContractTest {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: solicitudAceptadaYLimiteDeIntentos() -->
+     * Descripción: Solicitud Aceptada YLimite De Intentos. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void solicitudAceptadaYLimiteDeIntentos() throws Exception {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {

@@ -1,12 +1,14 @@
 <?php
 /*
  * Nombre: preparar-android.php
- * Descripción: Cuentas y llaveros ficticios para comprobar Java contra PHP y MySQL.
+ * Descripción: Comprobación automática de contratos, límites y aislamiento.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Preparar una prueba reproducible sin credenciales reales ni base de producción.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Comprobación automática de contratos, límites y aislamiento.
  */
+
+
 declare(strict_types=1);
 require dirname(__DIR__) . '/business_logic/Apoyo.php';
 $config = configuracion();

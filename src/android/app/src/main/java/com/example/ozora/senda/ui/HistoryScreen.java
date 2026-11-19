@@ -1,3 +1,11 @@
+/*
+ * Nombre: HistoryScreen.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.app.Activity;
@@ -32,6 +40,12 @@ public final class HistoryScreen {
     private int page, generation, chartGeneration, period;
     private boolean remote, closed, busy, temperature;
     private String next;
+
+    /** --------------------
+     * Diseño lógico: activity: Activity, root: Vista, session: SessionManager --> HistoryScreen() -->
+     * HistoryScreen <--
+     * Descripción: Construye HistoryScreen. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public HistoryScreen(Activity activity, View root, SessionManager session) {
         this.activity=activity; this.root=root; this.session=session;
         cursors.add(null);
@@ -61,9 +75,19 @@ public final class HistoryScreen {
         });
         reset();
     }
+
+    /** --------------------
+     * Diseño lógico: close() -->
+     * Descripción: Close. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void close() { closed=true; generation++; chartGeneration++; }
 
     /** Agrupa las lecturas locales por hora, día, semana o mes; sin datos inventados. */
+
+    /** --------------------
+     * Diseño lógico: chart() -->
+     * Descripción: Chart. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void chart() {
         int request=++chartGeneration;
         boolean temp=temperature; int range=period;
@@ -144,11 +168,33 @@ public final class HistoryScreen {
             });
         });
     }
+
+    /** --------------------
+     * Diseño lógico: reset() -->
+     * Descripción: Reset. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void reset() { cursors.clear(); cursors.add(null); load(0); }
+
+    /** --------------------
+     * Diseño lógico: id: Z --> text() -->
+     * Text <--
+     * Descripción: Text. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private TextView text(int id) { return root.findViewById(id); }
+
+    /** --------------------
+     * Diseño lógico: request: Z --> valid() -->
+     * B <--
+     * Descripción: Valid. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private boolean valid(int request) {
         return !closed && request==generation && !activity.isDestroyed() && SessionManager.current()==session;
     }
+
+    /** --------------------
+     * Diseño lógico: targetPage: Z --> load() -->
+     * Descripción: Load. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void load(int targetPage) {
         int request=++generation;
         boolean fromServer=remote;
@@ -217,6 +263,11 @@ public final class HistoryScreen {
             }
         });
     }
+
+    /** --------------------
+     * Diseño lógico: finishLoading() -->
+     * Descripción: Finish Loading. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void finishLoading() {
         busy=false;
         root.findViewById(R.id.history_loading).setVisibility(View.GONE);
@@ -224,7 +275,18 @@ public final class HistoryScreen {
         root.findViewById(R.id.button_previous).setEnabled(page>0);
         root.findViewById(R.id.button_next).setEnabled(next!=null);
     }
+
+    /** --------------------
+     * Diseño lógico: value: Z --> dp() -->
+     * Z <--
+     * Descripción: Dp. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private int dp(int value) { return Math.round(value*activity.getResources().getDisplayMetrics().density); }
+
+    /** --------------------
+     * Diseño lógico: list: LinearLayout, reading: Reading --> card() -->
+     * Descripción: Card. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void card(LinearLayout list, Reading reading) {
         if (list.getChildCount()>0) {
             View divider=new View(activity); divider.setBackgroundColor(0xffece9e2);
@@ -259,12 +321,24 @@ public final class HistoryScreen {
         row.setContentDescription(reading.ppb+" ppb, "+when+", "+detail);
         list.addView(row);
     }
+
+    /** --------------------
+     * Diseño lógico: card: LinearLayout, value: Text, size: Z, bold: B --> label() -->
+     * Text <--
+     * Descripción: Label. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private TextView label(LinearLayout card,String value,int size,boolean bold) {
         TextView text=new TextView(activity); text.setText(value); text.setTextColor(0xff1d4032); text.setTextSize(size);
         text.setPadding(0,dp(4),0,dp(4)); if(bold) text.setTypeface(FieldScreen.inter(activity,true)); card.addView(text); return text;
     }
     private static final class Reading {
         final int ppb; final String date,sensor,status,error;
+
+        /** --------------------
+         * Diseño lógico: ppb: Z, date: Text, sensor: Text, status: Text, error: Text --> Reading() -->
+         * Reading <--
+         * Descripción: Construye Reading. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         Reading(int ppb,String date,String sensor,String status,String error) {
             this.ppb=ppb;this.date=date;this.sensor=sensor;this.status=status;this.error=error;
         }

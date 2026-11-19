@@ -1,4 +1,10 @@
 # Nombre: endpoints.http
+# Descripción: Comprobación automática de contratos, límites y aislamiento.
+# Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+# Fecha: 19/11/2026
+# Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+# Aportación: Recursos y configuración del componente tests.
+# Nombre: endpoints.http
 # Descripción: Peticiones manuales de la demo para clientes REST compatibles.
 # Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
 # Fecha: 02/11/2026

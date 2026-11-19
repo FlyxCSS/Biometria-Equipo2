@@ -1,1 +1,9 @@
+<!--
+Nombre: ic_s_stop.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24"><path android:fillColor="#FFFFFF" android:pathData="M8.5,6H15.5A2.5,2.5 0,0 1,18 8.5V15.5A2.5,2.5 0,0 1,15.5 18H8.5A2.5,2.5 0,0 1,6 15.5V8.5A2.5,2.5 0,0 1,8.5 6Z"/></vector>

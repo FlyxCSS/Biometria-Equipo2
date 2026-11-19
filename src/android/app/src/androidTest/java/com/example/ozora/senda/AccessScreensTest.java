@@ -1,3 +1,11 @@
+/*
+ * Nombre: AccessScreensTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda;
 
 import android.graphics.Bitmap;
@@ -19,6 +27,11 @@ import static androidx.test.espresso.matcher.ViewMatchers.*;
 import static org.junit.Assert.*;
 
 public class AccessScreensTest {
+
+    /** --------------------
+     * Diseño lógico: loginReutilizaLaSesionVigente() -->
+     * Descripción: Login Reutiliza La Sesion Vigente. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void loginReutilizaLaSesionVigente() {
         SessionManager.open(new com.example.ozora.senda.model.Worker(1, 1, "Trabajador"),
                 Long.MAX_VALUE, "token-de-prueba");
@@ -26,6 +39,11 @@ public class AccessScreensTest {
             onView(withId(R.id.bottom_navigation)).check(matches(isDisplayed()));
         } finally { SessionManager.clear(); }
     }
+
+    /** --------------------
+     * Diseño lógico: nombre: Text --> captura() -->
+     * Descripción: Captura. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void captura(String nombre) throws Exception {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         Bitmap bitmap = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
@@ -36,6 +54,11 @@ public class AccessScreensTest {
         bitmap.recycle();
     }
 
+
+    /** --------------------
+     * Diseño lógico: accesoYRecuperacionValidanSinCrearSesion() -->
+     * Descripción: Acceso YRecuperacion Validan Sin Crear Sesion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void accesoYRecuperacionValidanSinCrearSesion() throws Exception {
         SessionManager.clear();
         try (ActivityScenario<Login> activity = ActivityScenario.launch(Login.class)) {

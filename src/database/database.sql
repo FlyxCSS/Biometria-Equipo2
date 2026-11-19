@@ -1,9 +1,9 @@
 -- Nombre: database.sql
--- Descripción: Esquema MySQL 8.4 basado en el diagrama del equipo y ampliaciones técnicas.
+-- Descripción: Esquema relacional, integridad y evolución de datos.
 -- Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
--- Fecha: 02/11/2026
--- Autor: Julia (con asistencia de Codex).
--- Aportación: Tablas, integridad, sesiones, recuperación e índices del Sprint 2.
+-- Fecha: 19/11/2026
+-- Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+-- Aportación: Recursos y configuración del componente database.
 -- Importar en una BD vacía elegida previamente. No elimina tablas existentes.
 SET NAMES utf8mb4;
 SET time_zone = '+00:00';

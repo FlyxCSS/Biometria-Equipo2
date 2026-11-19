@@ -1,10 +1,12 @@
 <?php
 /*
  * Nombre: router.php
- * Descripción: Enrutador para el servidor de desarrollo integrado de PHP.
+ * Descripción: Componente de SENDA.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Punto de entrada local que evita servir archivos privados.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Componente de SENDA.
  */
+
+
 require __DIR__ . '/web/index.php';

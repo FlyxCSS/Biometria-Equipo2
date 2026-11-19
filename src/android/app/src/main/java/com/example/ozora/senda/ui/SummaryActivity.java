@@ -1,3 +1,11 @@
+/*
+ * Nombre: SummaryActivity.java
+ * Descripción: Presenta mapa, estadísticas y lecturas del recorrido.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Presenta mapa, estadísticas y lecturas del recorrido.
+ */
 package com.example.ozora.senda.ui;
 
 import android.content.Intent;
@@ -42,6 +50,11 @@ public final class SummaryActivity extends RouteScreen {
     private boolean temperature, expanded;
     private int shown;
 
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onCreate() -->
+     * Descripción: On Create. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         session = SessionManager.current();
@@ -54,6 +67,11 @@ public final class SummaryActivity extends RouteScreen {
         buildScreen();
     }
 
+
+    /** --------------------
+     * Diseño lógico: buildScreen() -->
+     * Descripción: Build Screen. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private void buildScreen() {
         LinearLayout root = column();
         root.setBackgroundColor(getColor(R.color.senda_surface));
@@ -178,6 +196,12 @@ public final class SummaryActivity extends RouteScreen {
         root.postDelayed(() -> { if (map != null) map.checkTiles(); }, 2500);
     }
 
+
+    /** --------------------
+     * Diseño lógico: title: Z --> filter() -->
+     * MaterialButton <--
+     * Descripción: Filter. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private MaterialButton filter(int title) {
         MaterialButton button = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
         button.setId(View.generateViewId());
@@ -195,6 +219,12 @@ public final class SummaryActivity extends RouteScreen {
         return button;
     }
 
+
+    /** --------------------
+     * Diseño lógico: textButton() -->
+     * MaterialButton <--
+     * Descripción: Text Button. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private MaterialButton textButton() {
         MaterialButton button = new MaterialButton(this);
         button.setBackgroundTintList(ColorStateList.valueOf(0x00000000));
@@ -203,6 +233,12 @@ public final class SummaryActivity extends RouteScreen {
         return button;
     }
 
+
+    /** --------------------
+     * Diseño lógico: parent: LinearLayout, title: Z, margin: Z --> stat() -->
+     * Text <--
+     * Descripción: Stat. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private TextView stat(LinearLayout parent, int title, int margin) {
         LinearLayout block = column();
         card(block);
@@ -220,10 +256,21 @@ public final class SummaryActivity extends RouteScreen {
     }
 
     private int temperatureCount;
+
+    /** --------------------
+     * Diseño lógico: limit: Z, offset: Z --> readings() -->
+     * Cursor <--
+     * Descripción: Readings. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private Cursor readings(int limit,int offset) {
         return temperature ? manager.temperaturasRuta(session.worker,route.id,limit,offset)
                 : manager.lecturasRuta(session.worker,route.id,limit,offset);
     }
+
+    /** --------------------
+     * Diseño lógico: refreshReadings() -->
+     * Descripción: Refresh Readings. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private void refreshReadings() {
         if (temperature) {
             double total=0; int min=Integer.MAX_VALUE,max=Integer.MIN_VALUE; temperatureCount=0;
@@ -258,6 +305,11 @@ public final class SummaryActivity extends RouteScreen {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: limit: Z --> appendRows() -->
+     * Descripción: Append Rows. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private void appendRows(int limit) {
         try (Cursor readings = readings(limit, shown)) {
             while (readings.moveToNext()) {
@@ -286,6 +338,11 @@ public final class SummaryActivity extends RouteScreen {
         more.setVisibility(expanded && shown < (temperature ? temperatureCount : route.count) ? View.VISIBLE : View.GONE);
     }
 
+
+    /** --------------------
+     * Diseño lógico: refreshMap() -->
+     * Descripción: Refresh Map. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private void refreshMap() {
         JSONArray markers = new JSONArray();
         {
@@ -300,24 +357,51 @@ public final class SummaryActivity extends RouteScreen {
         map.update(manager.puntos(route.id), markers, 0, 0);
     }
 
+
+    /** --------------------
+     * Diseño lógico: ppb: Z --> value() -->
+     * Text <--
+     * Descripción: Value. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private String value(int ppb) { return temperature ? String.format(Locale.getDefault(), "%.2f °C", ppb / 100.0) : getString(R.string.route_ozone_value, ppb); }
 
+
+    /** --------------------
+     * Diseño lógico: utc: Text --> readingTime() -->
+     * Text <--
+     * Descripción: Reading Time. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     private String readingTime(String utc) {
         try { return time.format(new Date(SessionManager.instante(utc))); }
         catch (ParseException error) { return utc; }
     }
 
+
+    /** --------------------
+     * Diseño lógico: onStart() -->
+     * Descripción: On Start. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     @Override protected void onStart() {
         super.onStart();
         if (SessionManager.current() != session) finish();
     }
 
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onSaveInstanceState() -->
+     * Descripción: On Save Instance State. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     @Override protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putBoolean("temperature", temperature);
         state.putBoolean("expanded", expanded);
     }
 
+
+    /** --------------------
+     * Diseño lógico: onDestroy() -->
+     * Descripción: On Destroy. Presenta mapa, estadísticas y lecturas del recorrido
+     * -------------------- */
     @Override protected void onDestroy() {
         if (map != null) { map.destroy(); map = null; }
         if (manager != null) manager.close();

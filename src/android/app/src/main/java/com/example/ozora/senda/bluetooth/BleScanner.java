@@ -1,14 +1,10 @@
 /*
- * ============================================================
  * Nombre: BleScanner.java
- * Descripción: Escanea anuncios BLE y comunica las tramas iBeacon
- *              de SENDA decodificadas por IBeaconParser.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ---
- * Aportación: escaneo BLE y entrega de medidas a una interfaz
- *             de recepción sin depender de ninguna Activity.
- * ============================================================
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
  */
 package com.example.ozora.senda.bluetooth;
 
@@ -35,10 +31,20 @@ public final class BleScanner {
     public interface Oyente {
         // Diseño lógico: (IBeaconParser.Resultado, String) -> alRecibirTrama() -> (void)
         // Descripción: Notifica una trama válida y la dirección del emisor.
+
+        /** --------------------
+         * Diseño lógico: medida: IBeaconParserResultado, direccionMac: Text --> alRecibirTrama() -->
+         * Descripción: Al Recibir Trama. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         void alRecibirTrama(IBeaconParser.Resultado medida, String direccionMac);
 
         // Diseño lógico: (String) -> alOcurrirError() -> (void)
         // Descripción: Comunica un error al componente que inició el escaneo.
+
+        /** --------------------
+         * Diseño lógico: mensaje: Text --> alOcurrirError() -->
+         * Descripción: Al Ocurrir Error. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         void alOcurrirError(String mensaje);
     }
 
@@ -50,6 +56,11 @@ public final class BleScanner {
     private final Map<String, String> nombresPorMac = new ConcurrentHashMap<>();
 
     private final ScanCallback callback = new ScanCallback() {
+
+        /** --------------------
+         * Diseño lógico: callbackType: Z, resultado: ScanResult --> onScanResult() -->
+         * Descripción: On Scan Result. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         @Override
         // Diseño lógico: (int, ScanResult) -> onScanResult() -> (void)
         // Descripción: Analiza los datos del fabricante de cada anuncio recibido.
@@ -79,6 +90,11 @@ public final class BleScanner {
             if (medida != null) oyente.alRecibirTrama(medida, mac);
         }
 
+
+        /** --------------------
+         * Diseño lógico: codigoError: Z --> onScanFailed() -->
+         * Descripción: On Scan Failed. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         @Override
         // Diseño lógico: (int) -> onScanFailed() -> (void)
         // Descripción: Notifica fallos de Android al iniciar o mantener el escaneo.
@@ -90,6 +106,12 @@ public final class BleScanner {
 
     // Diseño lógico: (Context, Oyente) -> BleScanner() -> (BleScanner)
     // Descripción: Prepara el escáner sin iniciarlo.
+
+    /** --------------------
+     * Diseño lógico: contexto: Entorno, oyente: Oyente --> BleScanner() -->
+     * BleScanner <--
+     * Descripción: Construye BleScanner. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public BleScanner(Context contexto, Oyente oyente) {
         if (contexto == null || oyente == null) {
             throw new IllegalArgumentException("El contexto y el oyente son obligatorios");
@@ -98,11 +120,13 @@ public final class BleScanner {
         this.oyente = oyente;
     }
 
-    /**
-     * Diseño lógico: () -> iniciarEscaneo() -> (boolean)
+
+
+    /** --------------------
+     * Diseño lógico: iniciarEscaneo() -->
+     * B <--
      * Descripción: Inicia escaneo BLE de baja latencia. Devuelve false y
-     *              notifica error si faltan permisos o Bluetooth está apagado.
-     */
+     * -------------------- */
     public boolean iniciarEscaneo() {
         if (escaneando) {
             return true;
@@ -141,10 +165,12 @@ public final class BleScanner {
         }
     }
 
-    /**
-     * Diseño lógico: () -> detenerEscaneo() -> (void)
-     * Descripción: Detiene la exploración activa y libera la referencia al escáner.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: detenerEscaneo() -->
+     * Descripción: Detiene la exploración activa y libera la referencia al escáner
+     * -------------------- */
     public void detenerEscaneo() {
         escaneando = false;
         nombresPorMac.clear();
@@ -162,19 +188,24 @@ public final class BleScanner {
         }
     }
 
-    /**
-     * Diseño lógico: () -> estaEscaneando() -> (boolean)
-     * Descripción: Indica si se ha solicitado un escaneo activo.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: estaEscaneando() -->
+     * B <--
+     * Descripción: Indica si se ha solicitado un escaneo activo
+     * -------------------- */
     public boolean estaEscaneando() {
         return escaneando;
     }
 
-    /**
-     * Diseño lógico: () -> tienePermisos() -> (boolean)
-     * Descripción: Comprueba los permisos BLE/ubicación vigentes según la API.
-     *              No solicita permisos; esa responsabilidad es de la Activity.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: tienePermisos() -->
+     * B <--
+     * Descripción: Comprueba los permisos BLE/ubicación vigentes según la API
+     * -------------------- */
     private boolean tienePermisos() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             return contexto.checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)

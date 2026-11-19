@@ -1,10 +1,10 @@
 /*
  * Nombre: ControlContadores.java
- * Descripción: Deduplicación local de anuncios BLE por contador y tiempo.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Filtra contadores repetidos en una ventana temporal.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ...
- * Aportación: Acepta reinicios y vuelta de 255 a 0 sin confiar en el contador como ID global.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Filtra contadores repetidos en una ventana temporal.
  */
 package com.example.ozora.senda.integration;
 
@@ -15,8 +15,13 @@ public final class ControlContadores {
     private int ultimoContador = -1;
     private long ultimoInstante = -1L;
 
-    /** Diseño lógico: (String, int, long) -> aceptar() -> (boolean).
-     * Descripción: Descarta el mismo contador solo si aparece inmediatamente otra vez. */
+
+
+    /** --------------------
+     * Diseño lógico: llavero: Text, contador: Z, ahoraMs: Z --> aceptar() -->
+     * B <--
+     * Descripción: Descarta el mismo contador solo si aparece inmediatamente otra vez
+     * -------------------- */
     public boolean aceptar(String llavero, int contador, long ahoraMs) {
         if (llavero == null || contador < 0 || contador > 255 || ahoraMs < 0) return false;
         if (llavero.equals(ultimoLlavero) && contador == ultimoContador
@@ -28,6 +33,11 @@ public final class ControlContadores {
         return true;
     }
 
-    /** Diseño lógico: () -> reiniciar() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: reiniciar() -->
+     * Descripción: Reiniciar. Filtra contadores repetidos en una ventana temporal
+     * -------------------- */
     public void reiniciar() { ultimoLlavero = null; ultimoContador = -1; ultimoInstante = -1L; }
 }

@@ -1,3 +1,11 @@
+/*
+ * Nombre: FinalScreensTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda;
 
 import android.content.Context;
@@ -31,6 +39,11 @@ public class FinalScreensTest {
     private final AtomicInteger posts=new AtomicInteger();
     private volatile int postStatus=200;
     private volatile String history="{\"mediciones\":[{\"valor\":42,\"fecha_hora\":\"2026-11-19T10:00:00.000Z\",\"nombre_micro\":\"S-PRUEBA\",\"simulada\":false}],\"siguiente\":null}";
+
+    /** --------------------
+     * Diseño lógico: setup() -->
+     * Descripción: Setup. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Before public void setup() throws Exception {
         Assume.assumeTrue("Solo instalación aislada",context.getPackageName().endsWith(".elia.validation"));
         assertEquals("http://127.0.0.1:18765/api/v1",context.getString(R.string.senda_api_base));
@@ -53,6 +66,11 @@ public class FinalScreensTest {
             } catch(IOException error) { if(!server.isClosed()) throw new RuntimeException(error); }
         }); thread.start();
     }
+
+    /** --------------------
+     * Diseño lógico: cleanup() -->
+     * Descripción: Cleanup. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @After public void cleanup() throws Exception {
         if(server==null)return;
         waitSync(); SessionManager.clear();server.close();thread.join(5000);
@@ -61,11 +79,21 @@ public class FinalScreensTest {
             db.getWritableDatabase().execSQL("DELETE FROM ruta WHERE usuario IN (?,?)",new Object[]{worker.id,worker.id+1});
         }
     }
+
+    /** --------------------
+     * Diseño lógico: waitSync() -->
+     * Descripción: Wait Sync. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void waitSync() throws Exception {
         long end=System.currentTimeMillis()+15000;
         while(MeasurementSync.enCurso() && System.currentTimeMillis()<end) Thread.sleep(30);
         assertFalse("La cola debe terminar",MeasurementSync.enCurso());
     }
+
+    /** --------------------
+     * Diseño lógico: retryDrainsMoreThanOneBatchAndPreservesOtherAccounts() -->
+     * Descripción: Retry Drains More Than One Batch And Preserves Other Accounts. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void retryDrainsMoreThanOneBatchAndPreservesOtherAccounts() throws Exception {
         try(RouteManager db=new RouteManager(context)) {
             long route=db.iniciar(worker.id,worker.parkId,"S-PRUEBA");
@@ -80,6 +108,11 @@ public class FinalScreensTest {
             assertTrue(MeasurementSync.estado(SessionManager.current()).startsWith("61 enviadas"));
         }
     }
+
+    /** --------------------
+     * Diseño lógico: networkFailurePreservesQueueAndRetryConfirms() -->
+     * Descripción: Network Failure Preserves Queue And Retry Confirms. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void networkFailurePreservesQueueAndRetryConfirms() throws Exception {
         try(RouteManager db=new RouteManager(context)) {
             long route=db.iniciar(worker.id,worker.parkId,"S-PRUEBA");
@@ -90,6 +123,11 @@ public class FinalScreensTest {
             assertTrue(db.estadoEnvios(worker).startsWith("0 pendientes"));
         }
     }
+
+    /** --------------------
+     * Diseño lógico: securityAndPermissionsRenderWithBackNavigation() -->
+     * Descripción: Security And Permissions Render With Back Navigation. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void securityAndPermissionsRenderWithBackNavigation() throws Exception {
         try(ActivityScenario<AccountActivity> screen=ActivityScenario.launch(new Intent(context,AccountActivity.class).putExtra("security",true))) {
             screen.onActivity(a -> {
@@ -105,6 +143,11 @@ public class FinalScreensTest {
             screen.onActivity(a -> a.findViewById(R.id.permissions_back).performClick());
         }
     }
+
+    /** --------------------
+     * Diseño lógico: historyReadsServerAndEmptyState() -->
+     * Descripción: History Reads Server And Empty State. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void historyReadsServerAndEmptyState() throws Exception {
         try(ActivityScenario<MainActivity> screen=ActivityScenario.launch(new Intent(context,MainActivity.class).putExtra(MainActivity.EXTRA_SECTION,R.id.tab_historial))) {
             awaitHistory(screen);
@@ -119,11 +162,21 @@ public class FinalScreensTest {
             screen.onActivity(a -> assertEquals(View.VISIBLE,a.findViewById(R.id.text_list_empty).getVisibility()));
         }
     }
+
+    /** --------------------
+     * Diseño lógico: screen: ActivityScenarioMainActivity --> awaitHistory() -->
+     * Descripción: Await History. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void awaitHistory(ActivityScenario<MainActivity> screen) throws Exception {
         long end=System.currentTimeMillis()+12000; java.util.concurrent.atomic.AtomicBoolean done=new java.util.concurrent.atomic.AtomicBoolean();
         do { screen.onActivity(a -> done.set(a.findViewById(R.id.history_loading).getVisibility()==View.GONE));if(done.get())return;Thread.sleep(50); }while(System.currentTimeMillis()<end);
         fail("Historial bloqueado en carga");
     }
+
+    /** --------------------
+     * Diseño lógico: name: Text --> capture() -->
+     * Descripción: Capture. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void capture(String name) throws Exception {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         Bitmap bitmap=InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();

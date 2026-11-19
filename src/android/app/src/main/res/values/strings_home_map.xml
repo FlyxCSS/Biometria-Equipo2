@@ -1,3 +1,11 @@
+<!--
+Nombre: strings_home_map.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <resources>
 <string name="home_hello">Hola, %1$s</string>
 <string name="home_park">Parque %1$d</string>

@@ -1,3 +1,11 @@
+/*
+ * Nombre: RoutePreviewView.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.content.Context;
@@ -16,8 +24,24 @@ public final class RoutePreviewView extends View {
     private final Paint bitmapPaint=new Paint(Paint.FILTER_BITMAP_FLAG|Paint.ANTI_ALIAS_FLAG);
     private static Bitmap texture;
     private int seed;
+
+    /** --------------------
+     * Diseño lógico: context: Entorno, attrs: AttributeSet --> RoutePreviewView() -->
+     * RoutePreviewView <--
+     * Descripción: Construye RoutePreviewView. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public RoutePreviewView(Context context,AttributeSet attrs) { super(context,attrs); }
+
+    /** --------------------
+     * Diseño lógico: value: Z --> setSeed() -->
+     * Descripción: Set Seed. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void setSeed(long value) { seed=(int)Math.abs(value%97); invalidate(); }
+
+    /** --------------------
+     * Diseño lógico: route: [Dato] --> setPoints() -->
+     * Descripción: Set Points. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void setPoints(List<RoutePoint> route) {
         points.clear();
         double previous=0;
@@ -32,6 +56,11 @@ public final class RoutePreviewView extends View {
         }
         invalidate();
     }
+
+    /** --------------------
+     * Diseño lógico: canvas: Canvas --> onDraw() -->
+     * Descripción: On Draw. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         float scale=getResources().getDisplayMetrics().density;

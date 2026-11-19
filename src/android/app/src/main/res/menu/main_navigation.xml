@@ -1,3 +1,11 @@
+<!--
+Nombre: main_navigation.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/tab_inicio" android:icon="@drawable/ic_s_home" android:title="@string/main_inicio" />
     <item android:id="@+id/tab_rutas" android:icon="@drawable/ic_s_pin" android:title="@string/main_rutas" />

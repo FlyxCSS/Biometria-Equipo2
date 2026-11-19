@@ -1,10 +1,10 @@
 /*
  * Nombre: QrLlaveroParser.java
- * Descripción: Valida el identificador de llavero incluido en un QR de SENDA.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ...
- * Aportación: Interpretación local del contenido QR, sin asignar llaveros ni acceder al servidor.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
  */
 package com.example.ozora.senda.qr;
 
@@ -16,20 +16,24 @@ public final class QrLlaveroParser {
 
     private static final Pattern FORMATO_ID = Pattern.compile("S-[0-9]{3,6}");
 
-    /*
-     * Diseño lógico: () -> QrLlaveroParser() -> (constructor privado)
-     * Descripción: Impide crear instancias de una clase con métodos estáticos.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: QrLlaveroParser() -->
+     * QrLlaveroParser <--
+     * Descripción: Impide crear instancias de una clase con métodos estáticos
+     * -------------------- */
     private QrLlaveroParser() {
         // Clase de utilidades.
     }
 
-    /*
-     * Diseño lógico: (String textoQr) -> extraerIdentificador(String) -> (String)
-     * Descripción: Normaliza y valida un identificador SENDA del tipo S-001.
-     *              Devuelve null si el contenido QR no es válido.
-     *              La validación local no sustituye la autorización del servidor.
-     */
+
+
+    /** --------------------
+     * Diseño lógico: textoQr: Text --> extraerIdentificador() --x
+     * Text <--
+     * Descripción: Normaliza y valida un identificador SENDA del tipo S-001
+     * -------------------- */
     public static String extraerIdentificador(String textoQr) {
         if (textoQr == null) {
             return null;

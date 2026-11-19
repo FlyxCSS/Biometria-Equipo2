@@ -1,3 +1,11 @@
+<!--
+Nombre: activity_link_keyring.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/qr_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@drawable/s_qr_bg">
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="16dp" android:paddingBottom="28dp">
 <com.google.android.material.button.MaterialButton android:id="@+id/qr_back" style="@style/SendaBack" android:layout_marginTop="40dp" app:backgroundTint="#40FFFFFF" app:iconTint="#FFFFFF" android:elevation="0dp" android:contentDescription="Volver"/>

@@ -1,3 +1,11 @@
+/*
+ * Nombre: LogicaFakeTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.network;
 
 import com.example.ozora.senda.model.MedicionAmbiental;
@@ -25,6 +33,11 @@ public class LogicaFakeTest {
     private volatile int estado = 200;
     private volatile String respuesta = "{\"ok\":true,\"data\":{\"guardada\":true}}";
 
+
+    /** --------------------
+     * Diseño lógico: preparar() -->
+     * Descripción: Preparar. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Before public void preparar() throws Exception {
         servidor = new ServerSocket(0, 10, java.net.InetAddress.getByName("127.0.0.1"));
         receptor = new Thread(() -> {
@@ -64,12 +77,23 @@ public class LogicaFakeTest {
                 + servidor.getLocalPort() + "/api/v1", true));
     }
 
+
+    /** --------------------
+     * Diseño lógico: cerrar() -->
+     * Descripción: Cerrar. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @After public void cerrar() throws Exception {
         if (servidor != null) servidor.close();
         if (receptor != null) receptor.join(5000);
         assertNull("Fallo en el servidor de prueba", errorServidor);
     }
 
+
+    /** --------------------
+     * Diseño lógico: entrada: BufferedInputStream --> linea() -->
+     * Text <--
+     * Descripción: Linea. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private String linea(BufferedInputStream entrada) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         int dato;
@@ -79,6 +103,11 @@ public class LogicaFakeTest {
         return bytes.toString(StandardCharsets.US_ASCII.name());
     }
 
+
+    /** --------------------
+     * Diseño lógico: historialAutenticadoConservaCursorSinAlterarlo() -->
+     * Descripción: Historial Autenticado Conserva Cursor Sin Alterarlo. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void historialAutenticadoConservaCursorSinAlterarlo() throws Exception {
         respuesta = "{\"ok\":true,\"data\":{\"mediciones\":[],\"siguiente\":null}}";
         assertEquals(0, logica.historialMediciones("token-test", null).getJSONArray("mediciones").length());
@@ -87,6 +116,11 @@ public class LogicaFakeTest {
         comprobar("GET", "/usuarios/actual/mediciones?cursor=a%2Bb%2Fc%3D%3D", "token-test");
     }
 
+
+    /** --------------------
+     * Diseño lógico: guardarMedicionConservaContratoYConfirmacion() -->
+     * Descripción: Guardar Medicion Conserva Contrato YConfirmacion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void guardarMedicionConservaContratoYConfirmacion() throws Exception {
         MedicionAmbiental m = new MedicionAmbiental("S-001", 2, 39, -0.1, 5,
                 "2026-11-18T10:00:00.000Z", 8);
@@ -104,6 +138,11 @@ public class LogicaFakeTest {
         assertFalse(datos.getBoolean("simulada"));
     }
 
+
+    /** --------------------
+     * Diseño lógico: sesionYRecuperacionUsanLasRutasYCredencialesAdecuadas() -->
+     * Descripción: Sesion YRecuperacion Usan Las Rutas YCredenciales Adecuadas. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void sesionYRecuperacionUsanLasRutasYCredencialesAdecuadas() throws Exception {
         JSONObject datos = new JSONObject().put("correo", "test@example.org");
         logica.iniciarSesion(datos);
@@ -124,6 +163,11 @@ public class LogicaFakeTest {
         assertEquals(datos.toString(), cuerpo);
     }
 
+
+    /** --------------------
+     * Diseño lógico: propagaErroresDelServidorSinConfirmarGuardado() -->
+     * Descripción: Propaga Errores Del Servidor Sin Confirmar Guardado. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void propagaErroresDelServidorSinConfirmarGuardado() throws Exception {
         estado = 401;
         respuesta = "{\"ok\":false,\"error\":{\"mensaje\":\"Sesión caducada\"}}";
@@ -136,6 +180,11 @@ public class LogicaFakeTest {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: requiereConfirmacionExplicitaAntesDeDarPorGuardadaUnaLectura() -->
+     * Descripción: Requiere Confirmacion Explicita Antes De Dar Por Guardada Una Lectura. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void requiereConfirmacionExplicitaAntesDeDarPorGuardadaUnaLectura() throws Exception {
         MedicionAmbiental m = new MedicionAmbiental("S-001", 2, 39, -0.1, 5,
                 "2026-11-18T10:00:00.000Z", 8);
@@ -152,6 +201,11 @@ public class LogicaFakeTest {
         assertTrue(logica.guardarMedicion("token-test", m).getBoolean("duplicada"));
     }
 
+
+    /** --------------------
+     * Diseño lógico: perfilYLlaveroUsanCuentaAutenticada() -->
+     * Descripción: Perfil YLlavero Usan Cuenta Autenticada. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void perfilYLlaveroUsanCuentaAutenticada() throws Exception {
         logica.actualizarFotoPerfil("token-test", "data:image/jpeg;base64,imagen");
         comprobar("POST", "/usuarios/actual/foto", "token-test");
@@ -166,6 +220,11 @@ public class LogicaFakeTest {
         assertEquals("", cuerpo);
     }
 
+
+    /** --------------------
+     * Diseño lógico: temperaturaUsaElEndpointAutenticadoYExigeConfirmacion() -->
+     * Descripción: Temperatura Usa El Endpoint Autenticado YExige Confirmacion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void temperaturaUsaElEndpointAutenticadoYExigeConfirmacion() throws Exception {
         MedicionTemperatura m=new MedicionTemperatura("S-001",2939,"2026-11-19T10:00:00.000Z",39.123456789,-0.376312345);
         assertTrue(logica.guardarTemperatura("token-test",m).getBoolean("guardada"));
@@ -183,6 +242,11 @@ public class LogicaFakeTest {
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: esperado: Text, destino: Text, token: Text --> comprobar() -->
+     * Descripción: Comprobar. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void comprobar(String esperado, String destino, String token) {
         assertEquals(esperado, metodo);
         assertEquals("/api/v1" + destino, ruta);

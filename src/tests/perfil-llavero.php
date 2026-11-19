@@ -1,9 +1,31 @@
 <?php
+/*
+ * Nombre: perfil-llavero.php
+ * Descripción: Comprobación automática de contratos, límites y aislamiento.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Comprobación automática de contratos, límites y aislamiento.
+ */
+
 /** Pruebas de perfil y asignación con SQLite aislado. No prueba los bloqueos de MySQL. */
 declare(strict_types=1);
+require_once dirname(__DIR__) . '/communication/ContextoWeb.php';
 require_once dirname(__DIR__) . '/business_logic/LogicaNegocio.php';
 class BasePrueba extends PDO {
+
+    /** --------------------
+     * Diseño lógico: __construct() -->
+     * Dato <--
+     * Descripción: Construye BasePrueba. Comprobación automática de contratos, límites y aislamiento
+     * -------------------- */
     public function __construct() { parent::__construct('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]); }
+
+    /** --------------------
+     * Diseño lógico: query: Text, options: [Dato] --> prepare() -->
+     * PDOStatementfalse <--
+     * Descripción: Prepare. Comprobación automática de contratos, límites y aislamiento
+     * -------------------- */
     public function prepare(string $query, array $options = []): PDOStatement|false {
         return parent::prepare(str_replace(' FOR UPDATE', '', $query), $options);
     }
@@ -16,9 +38,19 @@ $db->exec('CREATE TABLE USUARIOS(id_usuario INTEGER PRIMARY KEY, foto_perfil TEX
 $l = new LogicaNegocio($db, []);
 $u = ['id_usuario'=>1,'id_parque'=>1,'id_organizacion'=>1,'rol'=>'trabajador'];
 $n = 0;
+
+/** --------------------
+ * Diseño lógico: ok: B --> verificar() -->
+ * Descripción: Verificar. Comprobación automática de contratos, límites y aislamiento
+ * -------------------- */
 function verificar(bool $ok): void { global $n; if (!$ok) throw new RuntimeException('Prueba fallida '.($n+1)); $n++; }
+
+/** --------------------
+ * Diseño lógico: operacion: Closure, estado: Z --> rechazo() -->
+ * Descripción: Rechazo. Comprobación automática de contratos, límites y aislamiento
+ * -------------------- */
 function rechazo(Closure $operacion, int $estado): void {
-    try { $operacion(); } catch (ErrorApi $e) { verificar($e->estado === $estado); return; }
+    try { $operacion(); } catch (ErrorDominio $e) { verificar(estadoErrorDominio($e) === $estado); return; }
     throw new RuntimeException('Se aceptó una operación inválida.');
 }
 foreach ([['foto_perfil'=>123], ['foto_perfil'=>'data:image/png;base64,AA=='], ['foto_perfil'=>'data:image/jpeg;base64,incorrecto'], ['foto_perfil'=>null,'id_usuario'=>2], []] as $datos) {

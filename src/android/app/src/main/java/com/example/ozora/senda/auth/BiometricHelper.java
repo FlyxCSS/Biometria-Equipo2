@@ -1,3 +1,11 @@
+/*
+ * Nombre: BiometricHelper.java
+ * Descripción: Protege una credencial con el almacén y la biometría de Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Protege una credencial con el almacén y la biometría de Android.
+ */
 package com.example.ozora.senda.auth;
 
 import android.content.Context;
@@ -25,16 +33,42 @@ public final class BiometricHelper {
     private Resultado pendiente;
     private String tokenPendiente;
     private byte[] datosPendientes;
-    public interface Resultado { void aceptar(String token); void error(String mensaje); }
+    public interface Resultado {
+/** --------------------
+ * Diseño lógico: token: Text --> aceptar() -->
+ * Descripción: Aceptar. Aplicación de campo: acceso, captura, recorridos y presentación Android
+ * -------------------- */
+void aceptar(String token);
+/** --------------------
+ * Diseño lógico: mensaje: Text --> error() -->
+ * Descripción: Error. Aplicación de campo: acceso, captura, recorridos y presentación Android
+ * -------------------- */
+void error(String mensaje); }
 
+
+    /** --------------------
+     * Diseño lógico: activity: FragmentActivity --> BiometricHelper() -->
+     * BiometricHelper <--
+     * Descripción: Construye BiometricHelper. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     public BiometricHelper(FragmentActivity activity) {
         this.activity = activity;
         prefs = activity.getSharedPreferences("acceso", Context.MODE_PRIVATE);
         prompt = new BiometricPrompt(activity, ContextCompat.getMainExecutor(activity),
                 new BiometricPrompt.AuthenticationCallback() {
+
+            /** --------------------
+             * Diseño lógico: r: BiometricPromptAuthenticationResult --> onAuthenticationSucceeded() -->
+             * Descripción: On Authentication Succeeded. Protege una credencial con el almacén y la biometría de Android
+             * -------------------- */
             @Override public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult r) {
                 completar(r);
             }
+
+            /** --------------------
+             * Diseño lógico: code: Z, msg: Text --> onAuthenticationError() -->
+             * Descripción: On Authentication Error. Protege una credencial con el almacén y la biometría de Android
+             * -------------------- */
             @Override public void onAuthenticationError(int code, @NonNull CharSequence msg) {
                 fallar(msg.toString());
             }
@@ -42,17 +76,46 @@ public final class BiometricHelper {
         // Las credenciales RSA anteriores requieren volver a activar el acceso.
         if (prefs.contains("cifrado") && prefs.getInt("version", 0) != 2) borrar();
     }
+
+    /** --------------------
+     * Diseño lógico: activo() -->
+     * B <--
+     * Descripción: Activo. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     public boolean activo() {
         return prefs.getInt("version", 0) == 2 && prefs.contains("cifrado") && prefs.contains("iv");
     }
+
+    /** --------------------
+     * Diseño lógico: disponible() -->
+     * B <--
+     * Descripción: Disponible. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     public boolean disponible() {
         return BiometricManager.from(activity).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 == BiometricManager.BIOMETRIC_SUCCESS;
     }
+
+    /** --------------------
+     * Diseño lógico: enCurso() -->
+     * B <--
+     * Descripción: En Curso. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     public boolean enCurso() { return pendiente != null; }
+
+    /** --------------------
+     * Diseño lógico: almacen() -->
+     * KeyStore <--
+     * Descripción: Almacen. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     private KeyStore almacen() throws Exception {
         KeyStore ks = KeyStore.getInstance("AndroidKeyStore"); ks.load(null); return ks;
     }
+
+    /** --------------------
+     * Diseño lógico: borrar() -->
+     * Descripción: Borrar. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     public void borrar() {
         cancelar();
         prefs.edit().clear().commit();
@@ -62,11 +125,21 @@ public final class BiometricHelper {
             ks.deleteEntry("senda.sesion.v1");
         } catch (Exception ignored) { }
     }
+
+    /** --------------------
+     * Diseño lógico: cancelar() -->
+     * Descripción: Cancelar. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     public void cancelar() {
         pendiente = null; tokenPendiente = null; datosPendientes = null;
         prompt.cancelAuthentication();
     }
     /** La activación solo se guarda después de confirmar una operación con la clave. */
+
+    /** --------------------
+     * Diseño lógico: token: Text, resultado: Resultado --> activar() -->
+     * Descripción: Activar. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     public void activar(String token, Resultado resultado) {
         if (enCurso()) return;
         if (!disponible()) {
@@ -90,6 +163,11 @@ public final class BiometricHelper {
             else fallar("Android no pudo proteger la credencial. Usa tu contraseña.");
         }
     }
+
+    /** --------------------
+     * Diseño lógico: resultado: Resultado --> abrir() -->
+     * Descripción: Abrir. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     public void abrir(Resultado resultado) {
         if (enCurso()) return;
         if (!activo()) {
@@ -108,6 +186,11 @@ public final class BiometricHelper {
             resultado.error("Accede con tu contraseña y vuelve a activar la biometría.");
         }
     }
+
+    /** --------------------
+     * Diseño lógico: cipher: Cipher, titulo: Text --> mostrar() -->
+     * Descripción: Mostrar. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     private void mostrar(Cipher cipher, String titulo) {
         BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle(titulo)
@@ -117,6 +200,11 @@ public final class BiometricHelper {
                 .build();
         prompt.authenticate(info, new BiometricPrompt.CryptoObject(cipher));
     }
+
+    /** --------------------
+     * Diseño lógico: result: BiometricPromptAuthenticationResult --> completar() -->
+     * Descripción: Completar. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     private void completar(BiometricPrompt.AuthenticationResult result) {
         if (pendiente == null) return;
         Resultado callback = pendiente;
@@ -143,6 +231,11 @@ public final class BiometricHelper {
         pendiente = null; tokenPendiente = null; datosPendientes = null;
         callback.aceptar(token);
     }
+
+    /** --------------------
+     * Diseño lógico: mensaje: Text --> fallar() -->
+     * Descripción: Fallar. Protege una credencial con el almacén y la biometría de Android
+     * -------------------- */
     private void fallar(String mensaje) {
         Resultado callback = pendiente;
         pendiente = null; tokenPendiente = null; datosPendientes = null;

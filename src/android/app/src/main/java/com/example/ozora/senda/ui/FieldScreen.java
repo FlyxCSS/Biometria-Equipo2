@@ -1,3 +1,11 @@
+/*
+ * Nombre: FieldScreen.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.graphics.Typeface;
@@ -22,6 +30,11 @@ public abstract class FieldScreen extends AppCompatActivity {
     private com.google.android.material.snackbar.Snackbar aviso;
 
     /** Un único aviso temporal por pantalla, sin acumular mensajes al pulsar repetidamente. */
+
+    /** --------------------
+     * Diseño lógico: texto: Text, correcto: B --> aviso() -->
+     * Descripción: Aviso. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void aviso(String texto, boolean correcto) {
         if (texto == null || texto.isEmpty() || isFinishing() || isDestroyed()
                 || (aviso != null && aviso.isShownOrQueued())) return;
@@ -43,23 +56,50 @@ public abstract class FieldScreen extends AppCompatActivity {
         aviso.show();
     }
 
+
+    /** --------------------
+     * Diseño lógico: cerrarAviso() -->
+     * Descripción: Cerrar Aviso. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void cerrarAviso() {
         if (aviso != null) { aviso.dismiss(); aviso = null; }
     }
 
+
+    /** --------------------
+     * Diseño lógico: onStop() -->
+     * Descripción: On Stop. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onStop() {
         cerrarAviso();
         super.onStop();
     }
     /** Inter incluida en la app; el peso no depende de la fuente del fabricante. */
+
+    /** --------------------
+     * Diseño lógico: context: androidcontentContext, bold: B --> inter() --x
+     * Typeface <--
+     * Descripción: Inter. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public static Typeface inter(android.content.Context context, boolean bold) {
         Typeface base = androidx.core.content.res.ResourcesCompat.getFont(context, com.example.ozora.senda.R.font.inter);
         if (base == null) return bold ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT;
         if (android.os.Build.VERSION.SDK_INT >= 28) return Typeface.create(base, bold ? 700 : 400, false);
         return Typeface.create(base, bold ? Typeface.BOLD : Typeface.NORMAL);
     }
+
+    /** --------------------
+     * Diseño lógico: n: Z --> dp() -->
+     * Z <--
+     * Descripción: Dp. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected int dp(int n) { return Math.round(n*getResources().getDisplayMetrics().density); }
     /** Una sola aplicación de insets por ventana, también para recortes laterales e IME. */
+
+    /** --------------------
+     * Diseño lógico: root: Vista --> protegerBarras() -->
+     * Descripción: Proteger Barras. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void protegerBarras(View root) {
         int superficie = getColor(com.example.ozora.senda.R.color.senda_surface);
         EdgeToEdge.enable(this, SystemBarStyle.light(superficie, 0xff20372b),
@@ -73,35 +113,74 @@ public abstract class FieldScreen extends AppCompatActivity {
         ViewCompat.requestApplyInsets(root);
     }
 
+
+    /** --------------------
+     * Diseño lógico: titulo: Text --> pagina() -->
+     * Descripción: Pagina. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void pagina(String titulo) {
         ScrollView scroll=new ScrollView(this); scroll.setFillViewport(true); scroll.setBackgroundColor(getColor(com.example.ozora.senda.R.color.senda_surface));
         contenido=new LinearLayout(this); contenido.setOrientation(LinearLayout.VERTICAL);
         contenido.setPadding(dp(22),dp(24),dp(22),dp(24)); scroll.addView(contenido); setContentView(scroll); protegerBarras(scroll);
         texto("S E N D A    /    OZORA",13,true); texto(titulo,29,true);
     }
+
+    /** --------------------
+     * Diseño lógico: valor: Text, tam: Z, negrita: B --> texto() -->
+     * Text <--
+     * Descripción: Texto. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected TextView texto(String valor,int tam,boolean negrita) {
         TextView t=new TextView(this); t.setText(valor); t.setTextSize(tam); t.setTextColor(TEXTO);
         t.setPadding(0,dp(6),0,dp(6)); t.setTypeface(inter(this,negrita));
         contenido.addView(t); return t;
     }
+
+    /** --------------------
+     * Diseño lógico: titulo: Text, tam: Z --> tarjeta() -->
+     * Text <--
+     * Descripción: Tarjeta. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected TextView tarjeta(String titulo,int tam) {
         texto(titulo,14,true); TextView t=texto("",tam,false);
         GradientDrawable fondo=new GradientDrawable(); fondo.setColor(0xffe4ecde); fondo.setCornerRadius(dp(12));
         t.setBackground(fondo); t.setPadding(dp(16),dp(12),dp(16),dp(12)); return t;
     }
+
+    /** --------------------
+     * Diseño lógico: label: Text, click: Runnable --> boton() -->
+     * Button <--
+     * Descripción: Boton. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected Button boton(String label,Runnable click) {
         Button b=new Button(this); b.setText(label); b.setAllCaps(false); b.setTextColor(-1);
         b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(BOSQUE));
         b.setOnClickListener(v->click.run()); contenido.addView(b); return b;
     }
+
+    /** --------------------
+     * Diseño lógico: hint: Text, tipo: Z --> campo() -->
+     * Text <--
+     * Descripción: Campo. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected EditText campo(String hint,int tipo) {
         EditText e=new EditText(this); e.setSingleLine(true); e.setInputType(tipo); e.setHint(hint);
         e.setTextColor(TEXTO); e.setHintTextColor(0xff536855); e.setBackgroundTintList(android.content.res.ColorStateList.valueOf(BOSQUE));
         return e;
     }
+
+    /** --------------------
+     * Diseño lógico: mensajes() -->
+     * Descripción: Mensajes. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void mensajes() {
         error=texto("",15,false); error.setTextColor(getColor(com.example.ozora.senda.R.color.status_error));
         error.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
     }
+
+    /** --------------------
+     * Diseño lógico: s: Text --> mensaje() -->
+     * Descripción: Mensaje. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void mensaje(String s) { if(!isDestroyed() && error!=null) error.setText(s); }
 }

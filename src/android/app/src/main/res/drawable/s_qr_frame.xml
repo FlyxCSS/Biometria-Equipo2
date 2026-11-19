@@ -1,1 +1,9 @@
+<!--
+Nombre: s_qr_frame.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="260dp" android:height="260dp" android:viewportWidth="260" android:viewportHeight="260"><path android:fillColor="#22FFFFFF" android:pathData="M24,0H236A24,24 0,0 1,260 24V236A24,24 0,0 1,236 260H24A24,24 0,0 1,0 236V24A24,24 0,0 1,24 0Z"/><path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="4" android:strokeLineCap="butt" android:pathData="M2,48V26A24,24 0,0 1,26 2H48 M212,2H234A24,24 0,0 1,258 26V48 M258,212V234A24,24 0,0 1,234 258H212 M48,258H26A24,24 0,0 1,2 234V212"/><path android:fillColor="#00000000" android:strokeColor="#7FAEF5" android:strokeWidth="3" android:strokeLineCap="round" android:pathData="M26,130H234"/></vector>

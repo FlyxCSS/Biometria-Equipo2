@@ -1,9 +1,9 @@
 -- Nombre: 001_solicitudes_contacto.sql
--- Descripción: Amplía la BD con solicitudes de información de la web pública.
+-- Descripción: Esquema relacional, integridad y evolución de datos.
 -- Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
--- Fecha: 02/11/2026
--- Autor: Julia (con asistencia de Codex).
--- Aportación: Persistencia del formulario de contacto, sin alterar datos existentes.
+-- Fecha: 19/11/2026
+-- Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+-- Aportación: Recursos y configuración del componente database.
 CREATE TABLE SOLICITUDES_CONTACTO (
     id_solicitud INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL,

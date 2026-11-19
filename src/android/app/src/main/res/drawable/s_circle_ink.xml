@@ -1,1 +1,9 @@
+<!--
+Nombre: s_circle_ink.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval"><solid android:color="#1F3D2F"/></shape>

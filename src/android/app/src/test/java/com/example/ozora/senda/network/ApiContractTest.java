@@ -1,10 +1,10 @@
 /*
  * Nombre: ApiContractTest.java
- * Descripción: Prueba HTTP real de Java contra el backend y MySQL de pruebas.
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Validar primer acceso, revocación, envío y lectura del jefe con el cliente Android.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
  */
 package com.example.ozora.senda.network;
 
@@ -20,13 +20,22 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ApiContractTest {
-    /** Diseño lógico: (cliente, correo, clave) -> entrar -> sesión JSON.
-     * Descripción: Usa exactamente el transporte HTTP de Android sin imprimir tokens. */
+
+
+    /** --------------------
+     * Diseño lógico: api: ApiClient, correo: Text, clave: Text --> entrar() -->
+     * Datos <--
+     * Descripción: Usa exactamente el transporte HTTP de Android sin imprimir tokens
+     * -------------------- */
     private JSONObject entrar(ApiClient api,String correo,String clave) throws Exception {
         return api.pedir("POST","/sesiones",null,new JSONObject().put("correo",correo).put("contrasena",clave));
     }
-    /** Diseño lógico: () -> trabajadorEnviaYJefeRecibe -> vacío.
-     * Descripción: Solo se ejecuta con la fixture local explícita; las cuentas son distintas por variante. */
+
+
+    /** --------------------
+     * Diseño lógico: trabajadorEnviaYJefeRecibe() -->
+     * Descripción: Solo se ejecuta con la fixture local explícita; las cuentas son distintas por variante
+     * -------------------- */
     @Test public void trabajadorEnviaYJefeRecibe() throws Exception {
         String ruta=System.getProperty("senda.contract.fixture");
         Assume.assumeTrue("Preparar fixture local para probar HTTP real",ruta!=null);
@@ -63,8 +72,12 @@ public class ApiContractTest {
         api.pedir("DELETE","/sesiones/actual",token,null);
         api.pedir("DELETE","/sesiones/actual",jefe,null);
     }
-    /** Diseño lógico: () -> releaseRechazaHttp -> vacío.
-     * Descripción: La excepción de HTTP local requiere explícitamente depuración. */
+
+
+    /** --------------------
+     * Diseño lógico: releaseRechazaHttp() -->
+     * Descripción: La excepción de HTTP local requiere explícitamente depuración
+     * -------------------- */
     @Test public void releaseRechazaHttp() throws Exception {
         try { new ApiClient("http://127.0.0.1:8081/api/v1",false).pedir("GET","/sesiones/actual",null,null); fail(); }
         catch(ApiClient.Error e) { assertEquals(0,e.status); }

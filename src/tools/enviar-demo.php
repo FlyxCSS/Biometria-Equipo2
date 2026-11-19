@@ -1,12 +1,14 @@
 <?php
 /*
  * Nombre: enviar-demo.php
- * Descripción: Envía una lectura ficticia por la misma API que utilizará Android.
+ * Descripción: Operaciones locales de instalación y administración.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Demostrar el flujo login -> HTTP -> MySQL -> web sin disponer del llavero.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Operaciones locales de instalación y administración.
  */
+
+
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
 $config = configuracion();
@@ -14,8 +16,13 @@ if (PHP_SAPI !== 'cli' || ($config['environment'] ?? '') !== 'local') {
     throw new RuntimeException('La simulación solo puede ejecutarse por consola en local.');
 }
 
-/** Diseño lógico: (ruta, datos, token) -> enviarDemo -> datos de respuesta.
- * Descripción: Publica JSON en la URL local y comprueba la confirmación del servidor. */
+
+
+/** --------------------
+ * Diseño lógico: ruta: Text, datos: [Dato], token: Text --> enviarDemo() -->
+ * [Dato] <--
+ * Descripción: Publica JSON en la URL local y comprueba la confirmación del servidor
+ * -------------------- */
 function enviarDemo(string $ruta, array $datos, string $token = ''): array
 {
     global $config;

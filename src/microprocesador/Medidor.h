@@ -1,3 +1,12 @@
+/*
+ * Nombre: Medidor.h
+ * Descripción: Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos.
+ * Base original: Jordi Bataller i Mascarell
+ */
 // -*- mode: c++ -*-
 
 #ifndef MEDIDOR_H_INCLUIDO
@@ -36,13 +45,40 @@ private:
   // Alimentacion del ULPSM desde 3V3; no es la referencia interna del ADC.
   const float ALIMENTACION_SENSOR_V = 3.3f;
 
+
+  /** --------------------
+   * Diseño lógico: raw: R --> rawAVoltios() -->
+   * R <--
+   * Descripción: Raw AVoltios. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
+   * -------------------- */
   float rawAVoltios( float raw ) {
     return ( raw * ADC_V ) / ADC_MAX;
   }
 
 public:
 
-  Medidor() {
+
+  /** --------------------
+   * Diseño lógico: medidaFakeO3() -->
+   * R <--
+   * Descripción: Medida Fake O3. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
+   * -------------------- */
+  float medidaFakeO3() const { return 0.033f; } // ppm: 33 ppb.
+
+  /** --------------------
+   * Diseño lógico: medidaFakeTemperatura() -->
+   * R <--
+   * Descripción: Medida Fake Temperatura. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
+   * -------------------- */
+  float medidaFakeTemperatura() const { return 23.45f; } // grados C.
+
+
+/** --------------------
+ * Diseño lógico: Medidor() -->
+ * Dato <--
+ * Descripción: Construye Medidor. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
+ * -------------------- */
+Medidor() {
   } // ()
 
   // ----------------------------------------------------
@@ -50,6 +86,11 @@ public:
   // IMPORTANTE: al ejecutar esta funcion, el sensor debe
   // estar estabilizado y en aire limpio, fuera de la bolsa de O3.
   // ----------------------------------------------------
+
+  /** --------------------
+   * Diseño lógico: iniciarMedidor() -->
+   * Descripción: Iniciar Medidor. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
+   * -------------------- */
   void iniciarMedidor() {
 
     analogReference( AR_INTERNAL );
@@ -94,6 +135,12 @@ public:
   // ppm = (Vgas - Vgas0) / M
   // donde Vgas0 = Vref + offsetCero.
   // ----------------------------------------------------
+
+  /** --------------------
+   * Diseño lógico: medirO3() -->
+   * R <--
+   * Descripción: Medir O3. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
+   * -------------------- */
   float medirO3() {
 
     float sumaRawGas = 0.0f;
@@ -153,6 +200,12 @@ public:
   } // ()
 
   // Devuelve la temperatura de la misma tanda de muestras que medirO3().
+
+  /** --------------------
+   * Diseño lógico: medirTemperatura() -->
+   * R <--
+   * Descripción: Medir Temperatura. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
+   * -------------------- */
   float medirTemperatura() const { return ultimaTemperatura; }
 
 }; // class

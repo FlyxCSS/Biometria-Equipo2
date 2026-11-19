@@ -1,3 +1,11 @@
+<!--
+Nombre: auth_logo.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="128dp" android:height="121dp" android:viewportWidth="32" android:viewportHeight="30.1714">
 <path android:fillColor="#1D4032" android:pathData="M6.11714 27.2343H7.03134C7.07789 27.2343 7.11532 27.2717 7.11532 27.3183V27.9456C7.11532 28.0113 7.04247 28.0523 6.98682 28.0169C6.67264 27.8186 6.36555 27.6082 6.06756 27.3861C6.0028 27.3375 6.0367 27.2343 6.11765 27.2343H6.11714Z"/>
 <path android:fillColor="#1D4032" android:pathData="M8.31229 27.3183C8.31229 27.2717 8.34973 27.2343 8.39628 27.2343H9.33071V27.2353H11.2831C11.3296 27.2353 11.367 27.2728 11.367 27.3193V29.7278C11.367 29.7819 11.3164 29.8219 11.2638 29.8097C10.2515 29.574 9.27911 29.2259 8.35934 28.7798C8.3305 28.7656 8.31179 28.7363 8.31179 28.7039V27.3183H8.31229Z"/>

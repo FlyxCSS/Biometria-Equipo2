@@ -1,10 +1,10 @@
 /*
  * Nombre: ColaMedicionesTest.java
- * Descripción: Persistencia e integridad de la cola REST en SQLite real de Android.
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Verificar migración sin borrado, estados y aislamiento entre trabajadores.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
  */
 package com.example.ozora.senda;
 
@@ -19,8 +19,12 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ColaMedicionesTest {
-    /** Diseño lógico: () -> actualizaSinBorrarLecturasAntiguas -> vacío.
-     * Descripción: Las lecturas v1 permanecen locales y las nuevas guardan identidad BLE y estado. */
+
+
+    /** --------------------
+     * Diseño lógico: actualizaSinBorrarLecturasAntiguas() -->
+     * Descripción: Las lecturas v1 permanecen locales y las nuevas guardan identidad BLE y estado
+     * -------------------- */
     @Test public void actualizaSinBorrarLecturasAntiguas() {
         Context contexto=InstrumentationRegistry.getInstrumentation().getTargetContext();
         String archivo="cola-"+java.util.UUID.randomUUID()+".db";

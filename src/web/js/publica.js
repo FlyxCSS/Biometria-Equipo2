@@ -1,10 +1,10 @@
 /*
  * Nombre: publica.js
- * Descripción: Solicitudes de información y compatibilidad con enlaces de recuperación antiguos.
+ * Descripción: Presentación pública OZORA y panel del parque.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Formulario público real, sin confirmaciones simuladas ni persistencia en navegador.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Presentación pública OZORA y panel del parque.
  */
 'use strict';
 const RUTA_BASE = document.documentElement.dataset.basePath || '';
@@ -12,8 +12,13 @@ const logica = new LogicaFake(RUTA_BASE);
 const formularioContacto = document.getElementById('form-contacto');
 const resultadoContacto = document.getElementById('resultado-contacto');
 
-/** Diseño lógico: (evento submit) -> solicitarInformacion -> promesa vacía.
- * Descripción: Guarda la solicitud en el servidor y solo confirma cuando este la acepta. */
+
+
+/** --------------------
+ * Diseño lógico: evento: Dato --> solicitarInformacion() -->
+ * Dato <--
+ * Descripción: Guarda la solicitud en el servidor y solo confirma cuando este la acepta
+ * -------------------- */
 async function solicitarInformacion(evento) {
     evento.preventDefault();
     const boton = formularioContacto.querySelector('button[type="submit"]');

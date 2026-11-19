@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
+Nombre: activity_llavero_flow_test.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
+<!--
  Nombre: activity_llavero_flow_test.xml
  Descripción: Vista de diagnóstico QR BLE GPS, organizada en tarjetas.
  Copyright (c) 2026 - Equipo 2 - SENDA / OZORA

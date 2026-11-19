@@ -1,3 +1,11 @@
+/*
+ * Nombre: RouteCardView.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.content.Context;
@@ -16,6 +24,12 @@ import java.util.TimeZone;
 
 public final class RouteCardView extends MaterialCardView {
     private long routeId,start;
+
+    /** --------------------
+     * Diseño lógico: context: Entorno --> RouteCardView() -->
+     * RouteCardView <--
+     * Descripción: Construye RouteCardView. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public RouteCardView(Context context) {
         super(context);
         float density=getResources().getDisplayMetrics().density;
@@ -24,6 +38,11 @@ public final class RouteCardView extends MaterialCardView {
         setClickable(true); setFocusable(true);
         View.inflate(context,R.layout.item_route,this);
     }
+
+    /** --------------------
+     * Diseño lógico: id: Z, start: Z, end: Z, meters: R, count: Z, points: [Dato] --> bind() -->
+     * Descripción: Bind. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void bind(long id,long start,Long end,double meters,int count,List<RoutePoint> points) {
         this.routeId=id; this.start=start;
         ((RoutePreviewView)findViewById(R.id.route_preview)).setSeed(id);
@@ -44,8 +63,23 @@ public final class RouteCardView extends MaterialCardView {
         setPoints(points);
         update(end,meters,count,now);
     }
+
+    /** --------------------
+     * Diseño lógico: points: [Dato] --> setPoints() -->
+     * Descripción: Set Points. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void setPoints(List<RoutePoint> points) { ((RoutePreviewView)findViewById(R.id.route_preview)).setPoints(points); }
+
+    /** --------------------
+     * Diseño lógico: route: Route, now: Z --> update() -->
+     * Descripción: Update. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void update(Route route,long now) { update(route.end,route.meters,route.count,now); }
+
+    /** --------------------
+     * Diseño lógico: end: Z, meters: R, count: Z, now: Z --> update() -->
+     * Descripción: Update. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void update(Long end,double meters,int count,long now) {
         boolean active=end==null;
         findViewById(R.id.route_status).setVisibility(active?VISIBLE:GONE);

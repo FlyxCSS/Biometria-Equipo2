@@ -1,10 +1,10 @@
 /*
  * Nombre: ApiClient.java
- * Descripción: Cliente JSON autenticado del backend PHP.
+ * Descripción: Transporta datos estructurados con autenticación y errores controlados.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
- * Autor: Equipo Android y Julia (integración con asistencia de Codex).
- * Aportación: Conservar los errores del contrato para primer acceso y sincronización.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Transporta datos estructurados con autenticación y errores controlados.
  */
 package com.example.ozora.senda.network;
 
@@ -18,26 +18,46 @@ import java.nio.charset.StandardCharsets;
 public final class ApiClient {
     public static final class Error extends IOException {
         public final int status;
-        /** Diseño lógico: (estado HTTP, mensaje) -> Error -> error de API.
-         * Descripción: Conserva el estado para decidir si reintentar o pedir acceso. */
+
+
+        /** --------------------
+         * Diseño lógico: status: Z, msg: Text --> Error() -->
+         * Error <--
+         * Descripción: Conserva el estado para decidir si reintentar o pedir acceso
+         * -------------------- */
         public Error(int status,String msg) { super(msg); this.status=status; }
     }
     final String base;
     private final boolean depuracion;
-    /** Diseño lógico: (contexto) -> ApiClient -> cliente.
-     * Descripción: Lee la URL pública configurada sin incluir secretos en el APK. */
+
+
+    /** --------------------
+     * Diseño lógico: c: Entorno --> ApiClient() -->
+     * ApiClient <--
+     * Descripción: Lee la URL pública configurada sin incluir secretos en el APK
+     * -------------------- */
     public ApiClient(Context c) {
         base=c.getString(R.string.senda_api_base).trim().replaceAll("/+$","");
         depuracion=(c.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0;
     }
-    /** Diseño lógico: (URL, depuración) -> ApiClient -> cliente para pruebas del contrato.
-     * Descripción: Permite comprobar el transporte Java contra PHP sin inicializar una pantalla. */
+
+
+    /** --------------------
+     * Diseño lógico: direccion: Text, debug: B --> ApiClient() -->
+     * ApiClient <--
+     * Descripción: Permite comprobar el transporte Java contra PHP sin inicializar una pantalla
+     * -------------------- */
     ApiClient(String direccion,boolean debug) {
         base=direccion.trim().replaceAll("/+$","");
         depuracion=debug;
     }
-    /** Diseño lógico: (método, ruta, token, JSON) -> pedir -> datos o error.
-     * Descripción: Usa HTTPS, límites de tiempo y mensajes JSON del servidor. */
+
+
+    /** --------------------
+     * Diseño lógico: metodo: Text, ruta: Text, token: Text, datos: Datos --> pedir() -->
+     * Datos <--
+     * Descripción: Usa HTTPS, límites de tiempo y mensajes JSON del servidor
+     * -------------------- */
     public JSONObject pedir(String metodo,String ruta,String token,JSONObject datos) throws Exception {
         if(base.isEmpty()) throw new Error(0,"Falta configurar SENDA_API_BASE con la dirección HTTPS del servidor.");
         URL url=new URL(base+ruta);
@@ -71,8 +91,13 @@ public final class ApiClient {
             return response.getJSONObject("data");
         } finally { con.disconnect(); }
     }
-    /** Diseño lógico: (flujo HTTP) -> leer -> texto.
-     * Descripción: Cierra el flujo y limita el tamaño de respuesta sin registrar cuerpos. */
+
+
+    /** --------------------
+     * Diseño lógico: flujo: InputStream --> leer() -->
+     * Text <--
+     * Descripción: Cierra el flujo y limita el tamaño de respuesta sin registrar cuerpos
+     * -------------------- */
     private String leer(InputStream flujo) throws IOException {
         if(flujo==null) return "";
         StringBuilder texto=new StringBuilder();

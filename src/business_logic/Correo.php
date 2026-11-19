@@ -1,16 +1,23 @@
 <?php
 /*
  * Nombre: Correo.php
- * Descripción: Entrega de la cola de correo, por buzón privado local o PHP mail.
+ * Descripción: Entrega el buzón transaccional y registra el resultado.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Correo recuperable y separado del tiempo de respuesta de la API.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Entrega el buzón transaccional y registra el resultado.
  */
+
+
 declare(strict_types=1);
 
-/** Diseño lógico: (PDO, configuración) -> entregarCorreos -> cantidad enviada.
- * Descripción: Envía pendientes sin exponer tokens por la API; conserva fallos para reintentar. */
+
+
+/** --------------------
+ * Diseño lógico: db: Deposito, config: [Dato] --> entregarCorreos() -->
+ * Z <--
+ * Descripción: Envía pendientes sin exponer tokens por la API; conserva fallos para reintentar
+ * -------------------- */
 function entregarCorreos(PDO $db, array $config): int
 {
     $cantidad = 0;

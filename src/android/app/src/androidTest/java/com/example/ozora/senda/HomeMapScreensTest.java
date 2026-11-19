@@ -1,3 +1,11 @@
+/*
+ * Nombre: HomeMapScreensTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda;
 
 import android.Manifest;
@@ -15,6 +23,11 @@ import static androidx.test.espresso.matcher.ViewMatchers.*;
 import static org.junit.Assert.*;
 
 public class HomeMapScreensTest {
+
+    /** --------------------
+     * Diseño lógico: mapaYFiltrosConservanElEstadoEntreSecciones() -->
+     * Descripción: Mapa YFiltros Conservan El Estado Entre Secciones. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void mapaYFiltrosConservanElEstadoEntreSecciones() throws Exception {
         android.app.Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         String pkg = instrumentation.getTargetContext().getPackageName();
@@ -49,6 +62,11 @@ public class HomeMapScreensTest {
         } finally { SessionManager.clear(); }
     }
 
+
+    /** --------------------
+     * Diseño lógico: calorAislaCuentaYFechasYAgrupaConcentraciones() -->
+     * Descripción: Calor Aisla Cuenta YFechas YAgrupa Concentraciones. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void calorAislaCuentaYFechasYAgrupaConcentraciones() {
         android.content.Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String file="heat-test-"+java.util.UUID.randomUUID()+".db";
@@ -74,6 +92,11 @@ public class HomeMapScreensTest {
         } finally { context.deleteDatabase(file); }
     }
 
+
+    /** --------------------
+     * Diseño lógico: screen: ActivityScenarioMainActivity --> esperarMapa() -->
+     * Descripción: Esperar Mapa. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void esperarMapa(ActivityScenario<MainActivity> screen) throws Exception {
         for (int attempt=0; attempt<30; attempt++) {
             java.util.concurrent.CountDownLatch latch=new java.util.concurrent.CountDownLatch(1);
@@ -89,6 +112,11 @@ public class HomeMapScreensTest {
         fail("El motor del mapa debe inicializarse con Leaflet incluido en el APK");
     }
 
+
+    /** --------------------
+     * Diseño lógico: name: Text --> captura() -->
+     * Descripción: Captura. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void captura(String name) throws Exception {
         android.app.Instrumentation i=InstrumentationRegistry.getInstrumentation();
         i.waitForIdleSync();

@@ -1,1 +1,9 @@
+<!--
+Nombre: s_thumb.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android"><item><shape android:shape="oval"><solid android:color="#26000000"/><size android:width="22dp" android:height="22dp"/></shape></item><item android:left="1dp" android:right="1dp" android:bottom="2dp"><shape android:shape="oval"><solid android:color="#FFFFFF"/></shape></item></layer-list>

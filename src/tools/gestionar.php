@@ -1,12 +1,14 @@
 <?php
 /*
  * Nombre: gestionar.php
- * Descripción: Instalación de esquema, datos ficticios y entrega de correos por consola.
+ * Descripción: Operaciones locales de instalación y administración.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Operaciones reproducibles sin exponer administración por HTTP.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Operaciones locales de instalación y administración.
  */
+
+
 declare(strict_types=1);
 if (PHP_SAPI !== 'cli') {
     http_response_code(404);
@@ -15,8 +17,12 @@ if (PHP_SAPI !== 'cli') {
 require_once dirname(__DIR__) . '/business_logic/Apoyo.php';
 require_once dirname(__DIR__) . '/business_logic/Correo.php';
 
-/** Diseño lógico: (PDO) -> instalarEsquema -> vacío.
- * Descripción: Importa tablas solo en una base vacía; nunca elimina tablas existentes. */
+
+
+/** --------------------
+ * Diseño lógico: db: Deposito --> instalarEsquema() -->
+ * Descripción: Importa tablas solo en una base vacía; nunca elimina tablas existentes
+ * -------------------- */
 function instalarEsquema(PDO $db): void
 {
     if ($db->query('SHOW TABLES')->fetch()) {
@@ -30,8 +36,12 @@ function instalarEsquema(PDO $db): void
     echo "Esquema instalado.\n";
 }
 
-/** Diseño lógico: (PDO) -> actualizarContacto -> vacío.
- * Descripción: Añade la tabla de contacto a una instalación anterior sin borrar ni alterar datos. */
+
+
+/** --------------------
+ * Diseño lógico: db: Deposito --> actualizarContacto() -->
+ * Descripción: Añade la tabla de contacto a una instalación anterior sin borrar ni alterar datos
+ * -------------------- */
 function actualizarContacto(PDO $db): void
 {
     if (!$db->query("SHOW TABLES LIKE 'SOLICITUDES_CONTACTO'")->fetch()) {
@@ -42,8 +52,12 @@ function actualizarContacto(PDO $db): void
     }
 }
 
-/** Diseño lógico: (PDO) -> actualizarContrasenas -> vacío.
- * Descripción: Añade el estado de contraseña inicial sin modificar las contraseñas existentes. */
+
+
+/** --------------------
+ * Diseño lógico: db: Deposito --> actualizarContrasenas() -->
+ * Descripción: Añade el estado de contraseña inicial sin modificar las contraseñas existentes
+ * -------------------- */
 function actualizarContrasenas(PDO $db): void
 {
     if (!$db->query("SHOW COLUMNS FROM USUARIOS LIKE 'debe_cambiar_contrasena'")->fetch()) {
@@ -54,8 +68,12 @@ function actualizarContrasenas(PDO $db): void
     }
 }
 
-/** Diseño lógico: (PDO) -> actualizarRoles -> vacío.
- * Descripción: Migra una instalación anterior; no repite una migración completada o parcial. */
+
+
+/** --------------------
+ * Diseño lógico: db: Deposito --> actualizarRoles() -->
+ * Descripción: Migra una instalación anterior; no repite una migración completada o parcial
+ * -------------------- */
 function actualizarRoles(PDO $db): void
 {
     $antiguo = $db->query("SHOW COLUMNS FROM USUARIOS LIKE 'rol'")->fetch();
@@ -71,8 +89,12 @@ function actualizarRoles(PDO $db): void
     echo "Roles migrados; cuentas y contraseñas conservadas.\n";
 }
 
-/** Diseño lógico: (PDO, configuración) -> crearDemo -> vacío.
- * Descripción: Añade un parque ficticio y dos cuentas con contraseña suministrada por entorno. */
+
+
+/** --------------------
+ * Diseño lógico: db: Deposito, config: [Dato] --> crearDemo() -->
+ * Descripción: Añade un parque ficticio y dos cuentas con contraseña suministrada por entorno
+ * -------------------- */
 function crearDemo(PDO $db, array $config): void
 {
     if (($config['environment'] ?? '') !== 'local') {

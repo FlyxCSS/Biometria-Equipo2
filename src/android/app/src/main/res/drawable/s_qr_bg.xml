@@ -1,1 +1,9 @@
+<!--
+Nombre: s_qr_bg.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"><gradient android:type="linear" android:angle="270" android:startColor="#2C3A2B" android:centerColor="#3A4733" android:endColor="#25301F"/></shape>

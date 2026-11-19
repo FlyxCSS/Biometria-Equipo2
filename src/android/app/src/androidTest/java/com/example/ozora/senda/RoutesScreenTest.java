@@ -1,3 +1,11 @@
+/*
+ * Nombre: RoutesScreenTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda;
 
 import android.content.Context;
@@ -19,6 +27,12 @@ import static androidx.test.espresso.matcher.ViewMatchers.*;
 import static org.junit.Assert.*;
 
 public class RoutesScreenTest {
+
+    /** --------------------
+     * Diseño lógico: db: RouteManager, user: Z, park: Z, start: Z, active: B --> insert() -->
+     * Z <--
+     * Descripción: Insert. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private long insert(RouteManager db,int user,int park,long start,boolean active) {
         android.content.ContentValues value=new android.content.ContentValues();
         value.put("usuario",user); value.put("parque",park); value.put("inicio",start);
@@ -26,6 +40,11 @@ public class RoutesScreenTest {
         if(!active)value.put("fin",start+90*60*1000);
         return db.getWritableDatabase().insertOrThrow("ruta",null,value);
     }
+
+    /** --------------------
+     * Diseño lógico: filtraPorInicioYCuentaSinDuplicarLimites() -->
+     * Descripción: Filtra Por Inicio YCuenta Sin Duplicar Limites. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void filtraPorInicioYCuentaSinDuplicarLimites() {
         Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
         String file="routes-test-"+java.util.UUID.randomUUID()+".db";
@@ -42,6 +61,11 @@ public class RoutesScreenTest {
         } finally { context.deleteDatabase(file); }
     }
 
+
+    /** --------------------
+     * Diseño lógico: tarjetasYFiltrosMuestranLosDatosDelPeriodo() -->
+     * Descripción: Tarjetas YFiltros Muestran Los Datos Del Periodo. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void tarjetasYFiltrosMuestranLosDatosDelPeriodo() throws Exception {
         Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
         Worker worker=new Worker(2147479000,2147479000,"Prueba de rutas");
@@ -81,6 +105,11 @@ public class RoutesScreenTest {
             }
         }
     }
+
+    /** --------------------
+     * Diseño lógico: name: Text --> capture() -->
+     * Descripción: Capture. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void capture(String name) throws Exception {
         android.app.Instrumentation i=InstrumentationRegistry.getInstrumentation();
         i.waitForIdleSync();

@@ -1,3 +1,11 @@
+/*
+ * Nombre: AuthScreen.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.auth;
 
 import android.view.View;
@@ -12,6 +20,11 @@ public abstract class AuthScreen extends FieldScreen {
     protected EditText password;
     private TextView feedback;
 
+
+    /** --------------------
+     * Diseño lógico: mostrarFormulario() -->
+     * Descripción: Mostrar Formulario. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void mostrarFormulario() {
         setContentView(R.layout.activity_auth);
         protegerBarras(findViewById(R.id.auth_scroll));
@@ -28,11 +41,21 @@ public abstract class AuthScreen extends FieldScreen {
         feedback = findViewById(R.id.auth_feedback);
     }
 
+
+    /** --------------------
+     * Diseño lógico: titulo: Text --> pagina() -->
+     * Descripción: Pagina. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void pagina(String titulo) {
         feedback = null;
         super.pagina(titulo);
     }
 
+
+    /** --------------------
+     * Diseño lógico: texto: Text --> mensaje() -->
+     * Descripción: Mensaje. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void mensaje(String texto) {
         if (feedback == null) {
             super.mensaje(texto);
@@ -43,6 +66,11 @@ public abstract class AuthScreen extends FieldScreen {
         feedback.setVisibility(texto == null || texto.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
+
+    /** --------------------
+     * Diseño lógico: esperando: B --> mostrarEspera() -->
+     * Descripción: Mostrar Espera. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     protected void mostrarEspera(boolean esperando) {
         View progress = findViewById(R.id.auth_progress);
         if (progress == null) return;

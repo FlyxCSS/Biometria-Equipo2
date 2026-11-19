@@ -1,3 +1,11 @@
+/*
+ * Nombre: PermissionsActivity.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.Manifest;
@@ -18,6 +26,11 @@ import com.example.ozora.senda.auth.SessionManager;
 public final class PermissionsActivity extends FieldScreen {
     private boolean notifications;
     private SessionManager session;
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onCreate() -->
+     * Descripción: On Create. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         session = SessionManager.current();
@@ -34,18 +47,45 @@ public final class PermissionsActivity extends FieldScreen {
         findViewById(R.id.permissions_enable).setOnClickListener(v -> enable());
         findViewById(R.id.permissions_system).setOnClickListener(v -> system());
     }
+
+    /** --------------------
+     * Diseño lógico: onResume() -->
+     * Descripción: On Resume. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onResume() {
         super.onResume();
         if (session == null || SessionManager.current() != session) { finish(); return; }
         refresh();
     }
+
+    /** --------------------
+     * Diseño lógico: permission: Text --> granted() -->
+     * B <--
+     * Descripción: Granted. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private boolean granted(String permission) { return checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED; }
+
+    /** --------------------
+     * Diseño lógico: gps() -->
+     * B <--
+     * Descripción: Gps. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private boolean gps() {
         LocationManager manager = (LocationManager)getSystemService(LOCATION_SERVICE);
         return manager != null && (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
     }
+
+    /** --------------------
+     * Diseño lógico: id: Z, value: Text --> text() -->
+     * Descripción: Text. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void text(int id, String value) { ((TextView)findViewById(id)).setText(value); }
+
+    /** --------------------
+     * Diseño lógico: refresh() -->
+     * Descripción: Refresh. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void refresh() {
         boolean ready = notifications ? NotificationManagerCompat.from(this).areNotificationsEnabled()
                 : granted(Manifest.permission.ACCESS_FINE_LOCATION) && gps();
@@ -62,6 +102,11 @@ public final class PermissionsActivity extends FieldScreen {
                 : granted(Manifest.permission.ACCESS_FINE_LOCATION) ? "Activar ubicación del móvil" : "Permitir ubicación precisa");
         findViewById(R.id.permissions_enable).setVisibility(ready ? View.GONE : View.VISIBLE);
     }
+
+    /** --------------------
+     * Diseño lógico: enable() -->
+     * Descripción: Enable. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void enable() {
         if (notifications) {
             if (Build.VERSION.SDK_INT >= 33 && !granted(Manifest.permission.POST_NOTIFICATIONS))
@@ -71,15 +116,30 @@ public final class PermissionsActivity extends FieldScreen {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
         } else open(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
     }
+
+    /** --------------------
+     * Diseño lógico: system() -->
+     * Descripción: System. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void system() {
         open(notifications && Build.VERSION.SDK_INT >= 26
                 ? new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName())
                 : new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null)));
     }
+
+    /** --------------------
+     * Diseño lógico: intent: Navegacion --> open() -->
+     * Descripción: Open. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void open(Intent intent) {
         try { startActivity(intent); }
         catch (android.content.ActivityNotFoundException e) { text(R.id.permissions_feedback, "Abre Ajustes de Android → Aplicaciones → SENDA para revisar el permiso."); }
     }
+
+    /** --------------------
+     * Diseño lógico: code: Z, permissions: [Dato], results: [Dato] --> onRequestPermissionsResult() -->
+     * Descripción: On Request Permissions Result. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(code, permissions, results);
         if (SessionManager.current() != session) { finish(); return; }

@@ -1,3 +1,11 @@
+/*
+ * Nombre: BarChartView.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.ui;
 
 import android.content.Context;
@@ -18,6 +26,12 @@ public final class BarChartView extends View {
     private boolean highlightLast;
     private String empty = "";
 
+
+    /** --------------------
+     * Diseño lógico: context: Entorno, attrs: AttributeSet --> BarChartView() -->
+     * BarChartView <--
+     * Descripción: Construye BarChartView. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public BarChartView(Context context, AttributeSet attrs) {
         super(context, attrs);
         float d = getResources().getDisplayMetrics().density;
@@ -27,6 +41,11 @@ public final class BarChartView extends View {
     }
 
     /** NaN indica un intervalo sin lecturas. */
+
+    /** --------------------
+     * Diseño lógico: values: [Dato], labels: [Dato], highlightLast: B, emptyMessage: Text --> setData() -->
+     * Descripción: Set Data. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     public void setData(float[] values, String[] labels, boolean highlightLast, String emptyMessage) {
         this.values = values; this.labels = labels; this.highlightLast = highlightLast;
         this.empty = emptyMessage == null ? "" : emptyMessage;
@@ -37,6 +56,11 @@ public final class BarChartView extends View {
         invalidate();
     }
 
+
+    /** --------------------
+     * Diseño lógico: canvas: Canvas --> onDraw() -->
+     * Descripción: On Draw. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         float d = getResources().getDisplayMetrics().density;

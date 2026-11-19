@@ -1,4 +1,12 @@
 <!doctype html>
+<!--
+Nombre: route.html
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <html lang="es">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -25,6 +33,11 @@ let tileLoaded = false;
 tiles.on('tileload', () => { tileLoaded = true; window.tilesUnavailable = false; });
 tiles.on('tileerror', () => { if (!tileLoaded) window.tilesUnavailable = true; });
 
+
+/* --------------------
+ * Diseño lógico: segments: Dato, readings: Dato, active: Dato, top: Dato, bottom: Dato --> draw() -->
+ * Descripción: Actualiza la representación del mapa conforme a los datos recibidos.
+ * -------------------- */
 function draw(segments, readings, active, top, bottom) {
   document.documentElement.style.setProperty('--bottom', bottom + 'px');
   const bounds = L.latLngBounds([]);

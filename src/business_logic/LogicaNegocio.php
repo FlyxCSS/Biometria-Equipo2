@@ -1,25 +1,37 @@
 <?php
 /*
  * Nombre: LogicaNegocio.php
- * Descripción: Autenticación, trabajadores, mediciones y recuperación de SENDA.
+ * Descripción: Aplica reglas de cuentas, asignación, mediciones y recuperación.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Persistencia real MySQL y control de permisos para el Sprint 2.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplica reglas de cuentas, asignación, mediciones y recuperación.
  */
+
+
 declare(strict_types=1);
 require_once __DIR__ . '/Apoyo.php';
 
 final class LogicaNegocio
 {
-    /** Diseño lógico: (PDO, configuración) -> __construct -> LogicaNegocio.
-     * Descripción: Comparte una conexión y configuración entre operaciones. */
+
+
+    /** --------------------
+     * Diseño lógico: db: Deposito, config: [Dato] --> __construct() -->
+     * Dato <--
+     * Descripción: Comparte una conexión y configuración entre operaciones
+     * -------------------- */
     public function __construct(private PDO $db, private array $config)
     {
     }
 
-    /** Diseño lógico: (SQL, parámetros) -> consulta -> PDOStatement.
-     * Descripción: Ejecuta consultas preparadas, sin concatenar datos del usuario. */
+
+
+    /** --------------------
+     * Diseño lógico: sql: Text, parametros: [Dato] --> consulta() -->
+     * Filas <--
+     * Descripción: Ejecuta consultas preparadas, sin concatenar datos del usuario
+     * -------------------- */
     private function consulta(string $sql, array $parametros = []): PDOStatement
     {
         $consulta = $this->db->prepare($sql);
@@ -27,8 +39,13 @@ final class LogicaNegocio
         return $consulta;
     }
 
-    /** Diseño lógico: (fila usuario) -> usuarioPublico -> array.
-     * Descripción: Selecciona solo los campos que se pueden enviar al cliente. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato] --> usuarioPublico() -->
+     * [Dato] <--
+     * Descripción: Selecciona solo los campos que se pueden enviar al cliente
+     * -------------------- */
     private function usuarioPublico(array $usuario): array
     {
         return ['id_usuario' => (int)$usuario['id_usuario'], 'nombre' => $usuario['nombre'],
@@ -39,8 +56,12 @@ final class LogicaNegocio
                 [$usuario['id_usuario']])->fetchColumn() ?: null)];
     }
 
-    /** Diseño lógico: (operación, IP, correo) -> limitar -> vacío o error 429.
-     * Descripción: Cuenta intentos en una ventana de 15 minutos de forma atómica. */
+
+
+    /** --------------------
+     * Diseño lógico: operacion: Text, ip: Text, correo: Text --> limitar() -->
+     * Descripción: Cuenta intentos en una ventana de 15 minutos de forma atómica
+     * -------------------- */
     public function limitar(string $operacion, string $ip, string $correo = ''): void
     {
         // Dos límites: por IP y por cuenta. No confiar en X-Forwarded-For.
@@ -55,19 +76,24 @@ final class LogicaNegocio
                 ventana = IF(ventana <= UTC_TIMESTAMP() - INTERVAL 15 MINUTE, UTC_TIMESTAMP(), ventana)', [$clave]);
             $fila = $this->consulta('SELECT intentos FROM LIMITES WHERE clave = ?', [$clave])->fetch();
             if ((int)$fila['intentos'] > $maximo) {
-                throw new ErrorApi(429, 'DEMASIADOS_INTENTOS', 'Espera quince minutos antes de volver a intentarlo.');
+                throw new ErrorDominio('DEMASIADOS_INTENTOS', 'Espera quince minutos antes de volver a intentarlo.');
             }
         }
     }
 
-    /** Diseño lógico: (correo, contraseña) -> iniciarSesion -> token, usuario, caducidad.
-     * Descripción: Verifica la cuenta activa y crea una sesión opaca de duración limitada. */
+
+
+    /** --------------------
+     * Diseño lógico: datos: [Dato] --> iniciarSesion() -->
+     * [Dato] <--
+     * Descripción: Verifica la cuenta activa y crea una sesión opaca de duración limitada
+     * -------------------- */
     public function iniciarSesion(array $datos): array
     {
         exigirCampos($datos, ['correo', 'contrasena']);
         $correo = validarCorreo($datos['correo']);
         if (!is_string($datos['contrasena']) || strlen($datos['contrasena']) > 72 || str_contains($datos['contrasena'], "\0")) {
-            throw new ErrorApi(401, 'CREDENCIALES_INVALIDAS', 'No se ha podido iniciar sesión.');
+            throw new ErrorDominio('CREDENCIALES_INVALIDAS', 'No se ha podido iniciar sesión.');
         }
         $this->db->beginTransaction();
         try {
@@ -80,7 +106,7 @@ final class LogicaNegocio
             $valida = password_verify($datos['contrasena'], $hash);
             if (!$usuario || !$valida || !(bool)$usuario['activo'] || !$usuario['password_hash']
                 || ($usuario['id_organizacion'] !== null && $usuario['estado_organizacion'] !== 'activo')) {
-                throw new ErrorApi(401, 'CREDENCIALES_INVALIDAS', 'No se ha podido iniciar sesión.');
+                throw new ErrorDominio('CREDENCIALES_INVALIDAS', 'No se ha podido iniciar sesión.');
             }
             $token = bin2hex(random_bytes(32));
             $horas = max(1, min(168, (int)($this->config['session_hours'] ?? 24)));
@@ -97,12 +123,17 @@ final class LogicaNegocio
         }
     }
 
-    /** Diseño lógico: (token) -> autenticar -> usuario y sesión verificados.
-     * Descripción: Comprueba caducidad, cuenta y organización en cada petición. */
+
+
+    /** --------------------
+     * Diseño lógico: token: Text --> autenticar() -->
+     * [Dato] <--
+     * Descripción: Comprueba caducidad, cuenta y organización en cada petición
+     * -------------------- */
     public function autenticar(string $token): array
     {
         if (!preg_match('/^[a-f0-9]{64}$/D', $token)) {
-            throw new ErrorApi(401, 'SESION_INVALIDA', 'Inicia sesión de nuevo.');
+            throw new ErrorDominio('SESION_INVALIDA', 'Inicia sesión de nuevo.');
         }
         $usuario = $this->consulta('SELECT u.*, r.codigo AS rol, s.expira_en, s.token_hash FROM SESIONES s
             JOIN USUARIOS u ON u.id_usuario = s.id_usuario
@@ -111,75 +142,101 @@ final class LogicaNegocio
             WHERE s.token_hash = ? AND s.expira_en > UTC_TIMESTAMP(3) AND u.activo = 1
             AND (u.id_organizacion IS NULL OR o.estado = ?)', [hash('sha256', $token), 'activo'])->fetch();
         if (!$usuario) {
-            throw new ErrorApi(401, 'SESION_INVALIDA', 'Inicia sesión de nuevo.');
+            throw new ErrorDominio('SESION_INVALIDA', 'Inicia sesión de nuevo.');
         }
         return $usuario;
     }
 
-    /** Diseño lógico: (usuario autenticado) -> consultarSesion -> usuario y caducidad.
-     * Descripción: Devuelve el perfil actual sin volver a publicar el token. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato] --> consultarSesion() -->
+     * [Dato] <--
+     * Descripción: Devuelve el perfil actual sin volver a publicar el token
+     * -------------------- */
     public function consultarSesion(array $usuario): array
     {
         return ['usuario' => $this->usuarioPublico($usuario), 'expira_en' => fechaJson($usuario['expira_en'])];
     }
 
-    /** Diseño lógico: (usuario autenticado) -> cerrarSesion -> confirmación.
-     * Descripción: Elimina solo la sesión presentada por el cliente. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato] --> cerrarSesion() -->
+     * [Dato] <--
+     * Descripción: Elimina solo la sesión presentada por el cliente
+     * -------------------- */
     public function cerrarSesion(array $usuario): array
     {
         $this->consulta('DELETE FROM SESIONES WHERE token_hash = ?', [$usuario['token_hash']]);
         return ['cerrado' => true];
     }
 
-    /** Diseño lógico: (usuario, rol) -> exigirRol -> vacío o error 403.
-     * Descripción: Restringe operaciones de jefe o trabajador antes de consultar recursos. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], rol: Text --> exigirRol() -->
+     * Descripción: Restringe operaciones de jefe o trabajador antes de consultar recursos
+     * -------------------- */
     private function exigirRol(array $usuario, string $rol): void
     {
         if ($usuario['rol'] !== $rol) {
-            throw new ErrorApi(403, 'SIN_PERMISO', 'No tienes permiso para esta operación.');
+            throw new ErrorDominio('SIN_PERMISO', 'No tienes permiso para esta operación.');
         }
     }
 
     /** Foto JPEG normalizada por Android, validada y guardada en la cuenta autenticada. */
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], datos: [Dato] --> actualizarFotoPerfil() -->
+     * [Dato] <--
+     * Descripción: Actualizar Foto Perfil. Aplica reglas de cuentas, asignación, mediciones y recuperación
+     * -------------------- */
     public function actualizarFotoPerfil(array $usuario, array $datos): array
     {
         exigirCampos($datos, ['foto_perfil']);
         $foto = $datos['foto_perfil'];
         if ($foto !== null) {
             if (!is_string($foto) || !str_starts_with($foto, 'data:image/jpeg;base64,'))
-                throw new ErrorApi(422, 'FOTO_INVALIDA', 'Selecciona una fotografía JPEG válida.');
+                throw new ErrorDominio('FOTO_INVALIDA', 'Selecciona una fotografía JPEG válida.');
             $binario = base64_decode(substr($foto, 23), true);
             $imagen = $binario === false ? false : @getimagesizefromstring($binario);
             if (!$imagen || strlen($binario) > 100000 || $imagen[2] !== IMAGETYPE_JPEG
                 || $imagen[0] > 512 || $imagen[1] > 512)
-                throw new ErrorApi(422, 'FOTO_INVALIDA', 'La fotografía supera el tamaño permitido.');
+                throw new ErrorDominio('FOTO_INVALIDA', 'La fotografía supera el tamaño permitido.');
         }
         $this->consulta('UPDATE USUARIOS SET foto_perfil=? WHERE id_usuario=?', [$foto, $usuario['id_usuario']]);
         return ['foto_perfil' => $foto];
     }
 
     /** Serializa la asignación por trabajador y llavero para evitar dobles vinculaciones. */
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], datos: [Dato] --> vincularLlavero() -->
+     * [Dato] <--
+     * Descripción: Vincular Llavero. Aplica reglas de cuentas, asignación, mediciones y recuperación
+     * -------------------- */
     public function vincularLlavero(array $usuario, array $datos): array
     {
         $this->exigirRol($usuario, 'trabajador');
         exigirCampos($datos, ['nombre_micro']);
         if (!is_string($datos['nombre_micro']) || !preg_match('/^S-[0-9]{3,6}$/D', $datos['nombre_micro']))
-            throw new ErrorApi(422, 'LLAVERO_INVALIDO', 'El código del llavero no es válido.');
+            throw new ErrorDominio('LLAVERO_INVALIDO', 'El código del llavero no es válido.');
         $this->db->beginTransaction();
         try {
             $this->consulta('SELECT id_usuario FROM USUARIOS WHERE id_usuario=? FOR UPDATE', [$usuario['id_usuario']]);
             $actual = $this->consulta('SELECT identificador_ble FROM LLAVEROS WHERE id_usuario=? FOR UPDATE',
                 [$usuario['id_usuario']])->fetchColumn();
             if ($actual && $actual !== $datos['nombre_micro'])
-                throw new ErrorApi(409, 'YA_TIENE_LLAVERO', 'Desvincula tu llavero actual antes de vincular otro.');
+                throw new ErrorDominio('YA_TIENE_LLAVERO', 'Desvincula tu llavero actual antes de vincular otro.');
             $llavero = $this->consulta('SELECT * FROM LLAVEROS WHERE identificador_ble=? FOR UPDATE',
                 [$datos['nombre_micro']])->fetch();
             if (!$llavero || !(bool)$llavero['estado']
                 || (int)$llavero['id_parque'] !== (int)$usuario['id_parque']
                 || (int)$llavero['id_organizacion'] !== (int)$usuario['id_organizacion'])
-                throw new ErrorApi(404, 'LLAVERO_NO_DISPONIBLE', 'El llavero no existe o no está disponible en tu parque.');
+                throw new ErrorDominio('LLAVERO_NO_DISPONIBLE', 'El llavero no existe o no está disponible en tu parque.');
             if ($llavero['id_usuario'] !== null && (int)$llavero['id_usuario'] !== (int)$usuario['id_usuario'])
-                throw new ErrorApi(409, 'LLAVERO_OCUPADO', 'Este llavero ya está vinculado a otra persona.');
+                throw new ErrorDominio('LLAVERO_OCUPADO', 'Este llavero ya está vinculado a otra persona.');
             $this->consulta('UPDATE LLAVEROS SET id_usuario=? WHERE id_llavero=?',
                 [$usuario['id_usuario'], $llavero['id_llavero']]);
             $this->db->commit();
@@ -187,6 +244,12 @@ final class LogicaNegocio
         } catch (Throwable $error) { $this->db->rollBack(); throw $error; }
     }
 
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato] --> desvincularLlavero() -->
+     * [Dato] <--
+     * Descripción: Desvincular Llavero. Aplica reglas de cuentas, asignación, mediciones y recuperación
+     * -------------------- */
     public function desvincularLlavero(array $usuario): array
     {
         $this->exigirRol($usuario, 'trabajador');
@@ -199,8 +262,13 @@ final class LogicaNegocio
         } catch (Throwable $error) { $this->db->rollBack(); throw $error; }
     }
 
-    /** Diseño lógico: (usuario, lectura) -> guardarMedicion -> identidad y duplicada.
-     * Descripción: Autoriza el llavero y guarda una sola vez la captura en su parque histórico. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], datos: [Dato] --> guardarMedicion() -->
+     * [Dato] <--
+     * Descripción: Autoriza el llavero y guarda una sola vez la captura en su parque histórico
+     * -------------------- */
     public function guardarMedicion(array $usuario, array $datos): array
     {
         $this->exigirRol($usuario, 'trabajador');
@@ -213,7 +281,7 @@ final class LogicaNegocio
             if (!$llavero || !(bool)$llavero['estado'] || (int)$llavero['id_usuario'] !== (int)$usuario['id_usuario']
                 || (int)$llavero['id_parque'] !== (int)$usuario['id_parque']
                 || (int)$llavero['id_organizacion'] !== (int)$usuario['id_organizacion']) {
-                throw new ErrorApi(403, 'LLAVERO_NO_AUTORIZADO', 'El llavero no está autorizado para tu cuenta.');
+                throw new ErrorDominio('LLAVERO_NO_AUTORIZADO', 'El llavero no está autorizado para tu cuenta.');
             }
             $existente = $this->consulta('SELECT * FROM MEDICIONES WHERE fecha_hora = ? AND id_llavero = ? AND tipo = ?',
                 [$datos['fecha_sql'], $llavero['id_llavero'], $datos['tipo']])->fetch();
@@ -231,7 +299,7 @@ final class LogicaNegocio
                             && (float)$existente['longitud'] === (float)$datos['longitud']))
                     && (bool)$existente['simulada'] === $datos['simulada'];
                 if (!$igual) {
-                    throw new ErrorApi(409, 'MEDICION_EN_CONFLICTO', 'Existe otra lectura con la misma identidad.');
+                    throw new ErrorDominio('MEDICION_EN_CONFLICTO', 'Existe otra lectura con la misma identidad.');
                 }
             } else {
                 $this->consulta('INSERT INTO MEDICIONES
@@ -253,6 +321,12 @@ final class LogicaNegocio
     }
 
     /** Historial propio por clave estable: nuevas capturas no desplazan las páginas ya vistas. */
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], cursor: Dato --> historialMediciones() -->
+     * [Dato] <--
+     * Descripción: Historial Mediciones. Aplica reglas de cuentas, asignación, mediciones y recuperación
+     * -------------------- */
     public function historialMediciones(array $usuario, mixed $cursor = null): array
     {
         $this->exigirRol($usuario, 'trabajador');
@@ -260,13 +334,13 @@ final class LogicaNegocio
         $continuacion = '';
         if ($cursor !== null) {
             if (!is_string($cursor) || strlen($cursor) > 1024) {
-                throw new ErrorApi(422, 'CURSOR_INVALIDO', 'Actualiza el historial para comenzar de nuevo.');
+                throw new ErrorDominio('CURSOR_INVALIDO', 'Actualiza el historial para comenzar de nuevo.');
             }
             $clave = json_decode(base64_decode($cursor, true) ?: '', true);
             if (!is_array($clave) || count($clave) !== 2 || !isset($clave[0], $clave[1])
                 || !is_string($clave[0]) || !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/D', $clave[0])
                 || !is_string($clave[1]) || strlen($clave[1]) < 1 || strlen($clave[1]) > 100) {
-                throw new ErrorApi(422, 'CURSOR_INVALIDO', 'Actualiza el historial para comenzar de nuevo.');
+                throw new ErrorDominio('CURSOR_INVALIDO', 'Actualiza el historial para comenzar de nuevo.');
             }
             $continuacion = ' AND (fecha_hora < ? OR (fecha_hora = ? AND id_llavero < ?))';
             array_push($parametros, $clave[0], $clave[0], $clave[1]);
@@ -288,13 +362,18 @@ final class LogicaNegocio
         return ['mediciones' => $mediciones, 'siguiente' => $siguiente];
     }
 
-    /** Diseño lógico: (jefe, parque) -> ultimaMedicion -> medición o null.
-     * Descripción: Consulta por fecha de captura entre todos los llaveros del parque autorizado. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], parque: Z --> ultimaMedicion() -->
+     * [Dato] <--
+     * Descripción: Consulta por fecha de captura entre todos los llaveros del parque autorizado
+     * -------------------- */
     public function ultimaMedicion(array $usuario, int $parque): array
     {
         $this->exigirRol($usuario, 'jefe_parque');
         if ($parque !== (int)$usuario['id_parque']) {
-            throw new ErrorApi(404, 'PARQUE_NO_DISPONIBLE', 'Parque no disponible.');
+            throw new ErrorDominio('PARQUE_NO_DISPONIBLE', 'Parque no disponible.');
         }
         $fila = $this->consulta('SELECT * FROM MEDICIONES WHERE id_parque = ? AND tipo = \'O3\'
             ORDER BY fecha_hora DESC, nombre_micro ASC, id_llavero ASC LIMIT 1', [$parque])->fetch();
@@ -308,8 +387,12 @@ final class LogicaNegocio
         return ['id_parque' => $parque, 'medicion' => $medicion];
     }
 
-    /** Diseño lógico: (usuario, finalidad) -> prepararEnlace -> vacío.
-     * Descripción: Guarda el hash y encola un correo dentro de la transacción del llamador. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], finalidad: Text --> prepararEnlace() -->
+     * Descripción: Guarda el hash y encola un correo dentro de la transacción del llamador
+     * -------------------- */
     private function prepararEnlace(array $usuario, string $finalidad): void
     {
         $token = bin2hex(random_bytes(32));
@@ -323,8 +406,13 @@ final class LogicaNegocio
                 "Abre este enlace para establecer tu contraseña. Caduca en 30 minutos y solo puede usarse una vez.\n\n$enlace\n\nSi no lo has solicitado, ignora este correo."]);
     }
 
-    /** Diseño lógico: (jefe, nombre, correo, contraseña inicial) -> registrarTrabajador -> usuario creado.
-     * Descripción: Guarda el hash inicial y exige al trabajador cambiarlo antes de operar. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], datos: [Dato] --> registrarTrabajador() -->
+     * [Dato] <--
+     * Descripción: Guarda el hash inicial y exige al trabajador cambiarlo antes de operar
+     * -------------------- */
     public function registrarTrabajador(array $usuario, array $datos): array
     {
         $this->exigirRol($usuario, 'jefe_parque');
@@ -332,7 +420,7 @@ final class LogicaNegocio
         $correo = validarCorreo($datos['correo']);
         $contrasena = validarContrasena($datos['contrasena_inicial']);
         if (!is_string($datos['nombre']) || trim($datos['nombre']) === '' || mb_strlen(trim($datos['nombre']), 'UTF-8') > 100) {
-            throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Introduce un nombre de hasta 100 caracteres.');
+            throw new ErrorDominio('DATOS_INVALIDOS', 'Introduce un nombre de hasta 100 caracteres.');
         }
         $this->db->beginTransaction();
         try {
@@ -347,34 +435,39 @@ final class LogicaNegocio
         } catch (Throwable $error) {
             $this->db->rollBack();
             if ($error instanceof PDOException && ($error->errorInfo[1] ?? 0) === 1062) {
-                throw new ErrorApi(409, 'ALTA_NO_DISPONIBLE', 'Ya existe una cuenta con ese correo electrónico. Utiliza otro.',
+                throw new ErrorDominio('ALTA_NO_DISPONIBLE', 'Ya existe una cuenta con ese correo electrónico. Utiliza otro.',
                     ['correo' => 'Este correo ya está registrado.']);
             }
             throw $error;
         }
     }
 
-    /** Diseño lógico: (usuario, contraseña actual y nueva) -> cambiarContrasena -> confirmación.
-     * Descripción: Cambia la contraseña propia, elimina la obligación inicial y revoca sesiones y enlaces. */
+
+
+    /** --------------------
+     * Diseño lógico: usuario: [Dato], datos: [Dato] --> cambiarContrasena() -->
+     * [Dato] <--
+     * Descripción: Cambia la contraseña propia, elimina la obligación inicial y revoca sesiones y enlaces
+     * -------------------- */
     public function cambiarContrasena(array $usuario, array $datos): array
     {
         exigirCampos($datos, ['contrasena_actual', 'contrasena_nueva']);
         $nueva = validarContrasena($datos['contrasena_nueva']);
         $actual = $datos['contrasena_actual'];
         if (!is_string($actual) || strlen($actual) > 72 || str_contains($actual, "\0")) {
-            throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Introduce la contraseña actual.');
+            throw new ErrorDominio('DATOS_INVALIDOS', 'Introduce la contraseña actual.');
         }
         $this->db->beginTransaction();
         try {
             $cuenta = $this->consulta('SELECT u.* FROM USUARIOS u JOIN SESIONES s ON s.id_usuario = u.id_usuario
                 WHERE u.id_usuario = ? AND s.token_hash = ? AND s.expira_en > UTC_TIMESTAMP(3)
                 AND u.activo = 1 FOR UPDATE', [$usuario['id_usuario'], $usuario['token_hash']])->fetch();
-            if (!$cuenta) throw new ErrorApi(401, 'SESION_INVALIDA', 'Inicia sesión de nuevo.');
+            if (!$cuenta) throw new ErrorDominio('SESION_INVALIDA', 'Inicia sesión de nuevo.');
             if (!$cuenta['password_hash'] || !password_verify($actual, $cuenta['password_hash'])) {
-                throw new ErrorApi(403, 'CONTRASENA_ACTUAL_INVALIDA', 'La contraseña actual no es correcta.');
+                throw new ErrorDominio('CONTRASENA_ACTUAL_INVALIDA', 'La contraseña actual no es correcta.');
             }
             if (password_verify($nueva, $cuenta['password_hash'])) {
-                throw new ErrorApi(422, 'DATOS_INVALIDOS', 'La contraseña nueva debe ser diferente de la inicial o actual.');
+                throw new ErrorDominio('DATOS_INVALIDOS', 'La contraseña nueva debe ser diferente de la inicial o actual.');
             }
             $this->consulta('UPDATE USUARIOS SET password_hash = ?, debe_cambiar_contrasena = 0 WHERE id_usuario = ?',
                 [password_hash($nueva, PASSWORD_BCRYPT), $cuenta['id_usuario']]);
@@ -388,8 +481,13 @@ final class LogicaNegocio
         }
     }
 
-    /** Diseño lógico: (correo) -> solicitarRecuperacion -> mensaje genérico.
-     * Descripción: Encola el correo solo para una cuenta activa sin revelar si existe. */
+
+
+    /** --------------------
+     * Diseño lógico: datos: [Dato] --> solicitarRecuperacion() -->
+     * [Dato] <--
+     * Descripción: Encola el correo solo para una cuenta activa sin revelar si existe
+     * -------------------- */
     public function solicitarRecuperacion(array $datos): array
     {
         exigirCampos($datos, ['correo']);
@@ -411,8 +509,13 @@ final class LogicaNegocio
         return ['mensaje' => 'Si la cuenta permite recuperar el acceso, recibirás un enlace por correo.'];
     }
 
-    /** Diseño lógico: (datos de contacto) -> registrarSolicitud -> confirmación de recepción.
-     * Descripción: Guarda una solicitud pública sin crear una cuenta ni enviar correos en su nombre. */
+
+
+    /** --------------------
+     * Diseño lógico: datos: [Dato] --> registrarSolicitud() -->
+     * [Dato] <--
+     * Descripción: Guarda una solicitud pública sin crear una cuenta ni enviar correos en su nombre
+     * -------------------- */
     public function registrarSolicitud(array $datos): array
     {
         exigirCampos($datos, ['nombre', 'correo', 'organizacion', 'mensaje']);
@@ -420,25 +523,30 @@ final class LogicaNegocio
         foreach (['nombre' => 100, 'organizacion' => 100, 'mensaje' => 4000] as $campo => $maximo) {
             if (!is_string($datos[$campo]) || trim($datos[$campo]) === ''
                 || mb_strlen(trim($datos[$campo]), 'UTF-8') > $maximo || str_contains($datos[$campo], "\0")) {
-                throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Revisa los datos de contacto.', [$campo => 'Campo obligatorio o demasiado largo.']);
+                throw new ErrorDominio('DATOS_INVALIDOS', 'Revisa los datos de contacto.', [$campo => 'Campo obligatorio o demasiado largo.']);
             }
         }
         if (mb_strlen(trim($datos['mensaje']), 'UTF-8') < 10) {
-            throw new ErrorApi(422, 'DATOS_INVALIDOS', 'Describe tu consulta con al menos 10 caracteres.');
+            throw new ErrorDominio('DATOS_INVALIDOS', 'Describe tu consulta con al menos 10 caracteres.');
         }
         $this->consulta('INSERT INTO SOLICITUDES_CONTACTO (nombre, correo, organizacion, mensaje) VALUES (?, ?, ?, ?)',
             [trim($datos['nombre']), $correo, trim($datos['organizacion']), trim($datos['mensaje'])]);
         return ['mensaje' => 'Hemos recibido tu solicitud de información sobre SENDA. Gracias por contarnos tu proyecto.'];
     }
 
-    /** Diseño lógico: (token, contraseña nueva) -> restablecerContrasena -> confirmación.
-     * Descripción: Actualiza contraseña, consume enlaces y revoca sesiones de forma atómica. */
+
+
+    /** --------------------
+     * Diseño lógico: datos: [Dato] --> restablecerContrasena() -->
+     * [Dato] <--
+     * Descripción: Actualiza contraseña, consume enlaces y revoca sesiones de forma atómica
+     * -------------------- */
     public function restablecerContrasena(array $datos): array
     {
         exigirCampos($datos, ['token', 'contrasena_nueva']);
         $contrasena = validarContrasena($datos['contrasena_nueva']);
         if (!is_string($datos['token']) || !preg_match('/^[a-f0-9]{64}$/D', $datos['token'])) {
-            throw new ErrorApi(422, 'ENLACE_INVALIDO', 'El enlace no es válido o ha caducado.');
+            throw new ErrorDominio('ENLACE_INVALIDO', 'El enlace no es válido o ha caducado.');
         }
         $hash = hash('sha256', $datos['token']);
         // Averiguar el usuario sin bloquear; después todas las operaciones bloquean usuario antes que token.
@@ -452,7 +560,7 @@ final class LogicaNegocio
             $token = $this->consulta('SELECT * FROM TOKENS_ACCESO WHERE token_hash = ?
                 AND usado_en IS NULL AND expira_en > UTC_TIMESTAMP(3) FOR UPDATE', [$hash])->fetch();
             if (!$usuario || !$token) {
-                throw new ErrorApi(422, 'ENLACE_INVALIDO', 'El enlace no es válido o ha caducado.');
+                throw new ErrorDominio('ENLACE_INVALIDO', 'El enlace no es válido o ha caducado.');
             }
             $this->consulta('UPDATE USUARIOS SET password_hash = ?, debe_cambiar_contrasena = 0 WHERE id_usuario = ?',
                 [password_hash($contrasena, PASSWORD_BCRYPT), $usuario['id_usuario']]);

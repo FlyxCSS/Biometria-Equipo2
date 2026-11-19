@@ -1,10 +1,10 @@
 /*
  * Nombre: RutaService.java
- * Descripción: Captura BLE/GPS durante un recorrido y solicita su sincronización.
+ * Descripción: Mantiene captura BLE/GPS y notificación durante el recorrido.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
- * Autor: Equipo Android y Julia (integración con asistencia de Codex).
- * Aportación: Mantener el guardado local antes del envío REST.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Mantiene captura BLE/GPS y notificación durante el recorrido.
  */
 package com.example.ozora.senda.routes;
 
@@ -30,7 +30,19 @@ public final class RutaService extends Service implements CapturaLlaveroControll
     private LocationTracker gps;
     private CapturaLlaveroController captura;
     private final Handler handler=new Handler(Looper.getMainLooper());
+
+    /** --------------------
+     * Diseño lógico: i: Navegacion --> onBind() -->
+     * IBinder <--
+     * Descripción: On Bind. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public IBinder onBind(Intent i) { return null; }
+
+    /** --------------------
+     * Diseño lógico: i: Navegacion, flags: Z, startId: Z --> onStartCommand() -->
+     * Z <--
+     * Descripción: On Start Command. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public int onStartCommand(Intent i,int flags,int startId) {
         com.example.ozora.senda.auth.SessionManager sesion=com.example.ozora.senda.auth.SessionManager.current();
         if(sesion==null) { stopSelf(); return START_NOT_STICKY; }
@@ -85,6 +97,11 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         if(!gps.iniciar()) { estado="Captura interrumpida. Revisa la ubicación y los permisos."; stopSelf(); }
         return START_NOT_STICKY;
     }
+
+    /** --------------------
+     * Diseño lógico: context: Entorno, routes: RouteManager, id: Z --> finalizar() --x
+     * Descripción: Finalizar. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     public static void finalizar(Context context, RouteManager routes, long id) {
         routes.finalizar(id);
         if (actual == id) {
@@ -93,15 +110,46 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         }
     }
 
+
+    /** --------------------
+     * Diseño lógico: caducada() -->
+     * B <--
+     * Descripción: Caducada. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     private boolean caducada() {
         if(actual==0) return true;
         if(System.currentTimeMillis()<vence) return false;
         rutas.finalizar(actual); actual=0; estado="La sesión ha caducado."; stopSelf(); return true;
     }
+
+    /** --------------------
+     * Diseño lógico: s: Text --> alCambiarEstado() -->
+     * Descripción: Al Cambiar Estado. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public void alCambiarEstado(String s) { if(actual!=0) estado=s; }
+
+    /** --------------------
+     * Diseño lógico: s: Text --> alOcurrirError() -->
+     * Descripción: Al Ocurrir Error. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public void alOcurrirError(String s) { alCambiarEstado(s); }
+
+    /** --------------------
+     * Diseño lógico: s: Text --> alDescartarMedicion() -->
+     * Descripción: Al Descartar Medicion. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public void alDescartarMedicion(String s) { alCambiarEstado(s); }
+
+    /** --------------------
+     * Diseño lógico: alRecibirAnuncio() -->
+     * Descripción: Al Recibir Anuncio. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public void alRecibirAnuncio() { if(actual!=0) ultimoAnuncio=SystemClock.elapsedRealtime(); }
+
+    /** --------------------
+     * Diseño lógico: p: Posicion --> alRecibirUbicacion() -->
+     * Descripción: Al Recibir Ubicacion. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public void alRecibirUbicacion(Location p) {
         if(caducada() || !RouteManager.util(p)) return;
         if(previa!=null && p.getElapsedRealtimeNanos()<=previa.getElapsedRealtimeNanos()) return;
@@ -109,6 +157,11 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         if(previa!=null && distancia<2) return;
         rutas.punto(actual,p,segmento,distancia); previa=new Location(p);
     }
+
+    /** --------------------
+     * Diseño lógico: m: MedicionAmbiental, rssi: Z --> alPrepararMedicion() -->
+     * Descripción: Al Preparar Medicion. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public void alPrepararMedicion(MedicionAmbiental m,int rssi) {
         if(!caducada()) {
             rutas.lectura(actual,m);
@@ -116,18 +169,33 @@ public final class RutaService extends Service implements CapturaLlaveroControll
             MeasurementSync.sincronizar(this);
         }
     }
+
+    /** --------------------
+     * Diseño lógico: medicion: MedicionTemperatura --> alPrepararTemperatura() -->
+     * Descripción: Al Preparar Temperatura. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public void alPrepararTemperatura(MedicionTemperatura medicion) {
         if (!caducada()) {
             rutas.temperatura(actual, medicion);
             MeasurementSync.sincronizar(this);
         }
     }
+
+    /** --------------------
+     * Diseño lógico: detenerSensores() -->
+     * Descripción: Detener Sensores. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     private void detenerSensores() {
         handler.removeCallbacksAndMessages(null);
         if(captura!=null) captura.detener();
         if(gps!=null) gps.detener();
         captura=null; gps=null; previa=null;
     }
+
+    /** --------------------
+     * Diseño lógico: onDestroy() -->
+     * Descripción: On Destroy. Mantiene captura BLE/GPS y notificación durante el recorrido
+     * -------------------- */
     @Override public void onDestroy() {
         detenerSensores();
         if(rutas!=null) rutas.close();

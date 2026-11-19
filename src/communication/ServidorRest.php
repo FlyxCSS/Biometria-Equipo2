@@ -1,17 +1,24 @@
 <?php
 /*
  * Nombre: ServidorRest.php
- * Descripción: Entrada HTTP de la API REST v1 de SENDA.
+ * Descripción: Valida y enruta peticiones, autentica y traduce errores de dominio.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: Julia (con asistencia de Codex).
- * Aportación: Enrutado, JSON, códigos HTTP, autenticación y errores públicos.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Valida y enruta peticiones, autentica y traduce errores de dominio.
  */
+
+
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/business_logic/LogicaNegocio.php';
+require_once __DIR__ . '/ContextoWeb.php';
 
-/** Diseño lógico: (estado, contenido) -> responderJson -> respuesta HTTP y fin.
- * Descripción: Envía JSON uniforme sin permitir que se almacenen credenciales en caché. */
+
+
+/** --------------------
+ * Diseño lógico: estado: Z, contenido: [Dato] --> responderJson() -->
+ * Descripción: Envía JSON uniforme sin permitir que se almacenen credenciales en caché
+ * -------------------- */
 function responderJson(int $estado, array $contenido): never
 {
     http_response_code($estado);
@@ -21,8 +28,13 @@ function responderJson(int $estado, array $contenido): never
     exit;
 }
 
-/** Diseño lógico: () -> leerJson -> objeto como array.
- * Descripción: Exige JSON pequeño y válido; no acepta listas como cuerpo de una operación. */
+
+
+/** --------------------
+ * Diseño lógico: maximo: Z --> leerJson() -->
+ * [Dato] <--
+ * Descripción: Exige JSON pequeño y válido; no acepta listas como cuerpo de una operación
+ * -------------------- */
 function leerJson(int $maximo = 16384): array
 {
     $tipo = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
@@ -44,8 +56,12 @@ function leerJson(int $maximo = 16384): array
     return (array)$objeto;
 }
 
-/** Diseño lógico: () -> atenderApi -> respuesta HTTP.
- * Descripción: Despacha solo las rutas conocidas con su método y permisos. */
+
+
+/** --------------------
+ * Diseño lógico: atenderApi() -->
+ * Descripción: Despacha solo las rutas conocidas con su método y permisos
+ * -------------------- */
 function atenderApi(): never
 {
     try {
@@ -135,6 +151,12 @@ function atenderApi(): never
             }
         }
         responderJson($estado, ['ok' => true, 'data' => $resultado]);
+    } catch (ErrorDominio $error) {
+        $estado = estadoErrorDominio($error);
+        if ($estado === 429) header('Retry-After: 900');
+        $detalle = ['codigo' => $error->codigo, 'mensaje' => $error->getMessage()];
+        if ($error->campos) $detalle['campos'] = $error->campos;
+        responderJson($estado, ['ok' => false, 'error' => $detalle]);
     } catch (ErrorApi $error) {
         if ($error->estado === 429) {
             header('Retry-After: 900');

@@ -1,10 +1,10 @@
 /*
  * Nombre: LocationTracker.java
- * Descripción: Recibe posiciones mediante GPS y red, sin registrar trayectos.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Solicita posiciones recientes aunque el teléfono permanezca quieto.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ...
- * Aportación: Ubicación Android reutilizable por el módulo de rutas.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Solicita posiciones recientes aunque el teléfono permanezca quieto.
  */
 package com.example.ozora.senda.location;
 
@@ -20,8 +20,18 @@ import android.os.Looper;
 public final class LocationTracker implements LocationListener {
     public interface Oyente {
         // Diseño lógico: (Location) -> alRecibirUbicacion() -> (void)
+
+        /** --------------------
+         * Diseño lógico: ubicacion: Posicion --> alRecibirUbicacion() -->
+         * Descripción: Al Recibir Ubicacion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         void alRecibirUbicacion(Location ubicacion);
         // Diseño lógico: (String) -> alOcurrirError() -> (void)
+
+        /** --------------------
+         * Diseño lógico: mensaje: Text --> alOcurrirError() -->
+         * Descripción: Al Ocurrir Error. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         void alOcurrirError(String mensaje);
     }
 
@@ -31,6 +41,12 @@ public final class LocationTracker implements LocationListener {
     private boolean activo;
 
     // Diseño lógico: (Context, Oyente) -> LocationTracker() -> (LocationTracker)
+
+    /** --------------------
+     * Diseño lógico: contexto: Entorno, oyente: Oyente --> LocationTracker() -->
+     * LocationTracker <--
+     * Descripción: Construye LocationTracker. Solicita posiciones recientes aunque el teléfono permanezca quieto
+     * -------------------- */
     public LocationTracker(Context contexto, Oyente oyente) {
         this.contexto = contexto.getApplicationContext();
         this.oyente = oyente;
@@ -39,6 +55,12 @@ public final class LocationTracker implements LocationListener {
 
     // Diseño lógico: () -> iniciar() -> (boolean)
     // Descripción: Escucha ubicaciones nuevas mediante GPS y red, si están habilitados.
+
+    /** --------------------
+     * Diseño lógico: iniciar() -->
+     * B <--
+     * Descripción: Iniciar. Solicita posiciones recientes aunque el teléfono permanezca quieto
+     * -------------------- */
     public boolean iniciar() {
         if (activo) return true;
         if (gestor == null) {
@@ -85,6 +107,11 @@ public final class LocationTracker implements LocationListener {
 
     // Diseño lógico: () -> detener() -> (void)
     // Descripción: Deja de recibir actualizaciones de todos los proveedores.
+
+    /** --------------------
+     * Diseño lógico: detener() -->
+     * Descripción: Detener. Solicita posiciones recientes aunque el teléfono permanezca quieto
+     * -------------------- */
     public void detener() {
         if (gestor != null) {
             try { gestor.removeUpdates(this); }
@@ -95,12 +122,22 @@ public final class LocationTracker implements LocationListener {
 
     // Diseño lógico: (Location) -> onLocationChanged() -> (void)
     // Descripción: Entrega ubicaciones nuevas sin simular ni reutilizar posiciones antiguas.
+
+    /** --------------------
+     * Diseño lógico: ubicacion: Posicion --> onLocationChanged() -->
+     * Descripción: On Location Changed. Solicita posiciones recientes aunque el teléfono permanezca quieto
+     * -------------------- */
     @Override public void onLocationChanged(Location ubicacion) {
         if (activo && ubicacion != null) oyente.alRecibirUbicacion(ubicacion);
     }
 
     // Diseño lógico: (String) -> onProviderDisabled() -> (void)
     // Descripción: Informa cuando ambos proveedores dejan de estar disponibles.
+
+    /** --------------------
+     * Diseño lógico: proveedor: Text --> onProviderDisabled() -->
+     * Descripción: On Provider Disabled. Solicita posiciones recientes aunque el teléfono permanezca quieto
+     * -------------------- */
     @Override public void onProviderDisabled(String proveedor) {
         boolean gps = gestor.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean red = gestor.isProviderEnabled(LocationManager.NETWORK_PROVIDER);

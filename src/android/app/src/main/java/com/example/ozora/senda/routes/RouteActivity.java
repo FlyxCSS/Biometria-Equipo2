@@ -1,3 +1,11 @@
+/*
+ * Nombre: RouteActivity.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda.routes;
 
 import android.app.AlertDialog;
@@ -33,6 +41,11 @@ import java.util.Locale;
 public final class RouteActivity extends RouteScreen {
     private final Handler clock = new Handler(Looper.getMainLooper());
     private final Runnable tick = new Runnable() {
+
+        /** --------------------
+         * Diseño lógico: run() -->
+         * Descripción: Run. Aplicación de campo: acceso, captura, recorridos y presentación Android
+         * -------------------- */
         @Override public void run() {
             if (refresh()) clock.postDelayed(this, 1000);
         }
@@ -46,6 +59,11 @@ public final class RouteActivity extends RouteScreen {
     private TextView signal, duration, count, lastOzone, recording;
 
 
+
+    /** --------------------
+     * Diseño lógico: state: EstadoVista --> onCreate() -->
+     * Descripción: On Create. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         session = SessionManager.current();
@@ -60,6 +78,11 @@ public final class RouteActivity extends RouteScreen {
         buildScreen(route);
     }
 
+
+    /** --------------------
+     * Diseño lógico: route: Route --> buildScreen() -->
+     * Descripción: Build Screen. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void buildScreen(Route route) {
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(SAGE);
@@ -148,6 +171,12 @@ public final class RouteActivity extends RouteScreen {
         protegerBarras(root);
     }
 
+
+    /** --------------------
+     * Diseño lógico: parent: LinearLayout, name: Z, margin: Z --> metric() -->
+     * Text <--
+     * Descripción: Metric. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private TextView metric(LinearLayout parent, int name, int margin) {
         LinearLayout card = column();
         card.setBackgroundResource(R.drawable.s_stat_tile);
@@ -166,6 +195,12 @@ public final class RouteActivity extends RouteScreen {
         return value;
     }
 
+
+    /** --------------------
+     * Diseño lógico: refresh() -->
+     * B <--
+     * Descripción: Refresh. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private boolean refresh() {
         if (map == null || isFinishing()) return false;
         if (SessionManager.current() != session) { finish(); return false; }
@@ -209,6 +244,11 @@ public final class RouteActivity extends RouteScreen {
         return true;
     }
 
+
+    /** --------------------
+     * Diseño lógico: confirmFinish() -->
+     * Descripción: Confirm Finish. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void confirmFinish() {
         new AlertDialog.Builder(this).setTitle(R.string.route_confirm_finish)
                 .setMessage(R.string.route_confirm_message)
@@ -220,22 +260,42 @@ public final class RouteActivity extends RouteScreen {
                 .setNegativeButton(R.string.route_keep_running, null).show();
     }
 
+
+    /** --------------------
+     * Diseño lógico: showSummary() -->
+     * Descripción: Show Summary. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void showSummary() {
         startActivity(new Intent(this, SummaryActivity.class).putExtra(MainActivity.EXTRA_ROUTE_ID, id));
         finish();
     }
 
+
+    /** --------------------
+     * Diseño lógico: onStart() -->
+     * Descripción: On Start. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onStart() {
         super.onStart();
         if (map != null) header.post(tick);
     }
 
+
+    /** --------------------
+     * Diseño lógico: onStop() -->
+     * Descripción: On Stop. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onStop() {
         if (header != null) header.removeCallbacks(tick);
         clock.removeCallbacks(tick);
         super.onStop();
     }
 
+
+    /** --------------------
+     * Diseño lógico: onDestroy() -->
+     * Descripción: On Destroy. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onDestroy() {
         if (map != null) map.destroy();
         if (manager != null) manager.close();

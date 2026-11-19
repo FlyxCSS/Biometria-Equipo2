@@ -1,9 +1,23 @@
+/*
+ * Nombre: logica-fake.test.cjs
+ * Descripción: Comprobación automática de contratos, límites y aislamiento.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Comprobación automática de contratos, límites y aislamiento.
+ */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { runInNewContext } = require('node:vm');
 const { resolve } = require('node:path');
 
+
+/** --------------------
+ * Diseño lógico: responder: Dato --> cliente() -->
+ * Dato <--
+ * Descripción: Cliente. Comprobación automática de contratos, límites y aislamiento
+ * -------------------- */
 function cliente(responder) {
     const peticiones = [];
     const LogicaFake = runInNewContext(readFileSync(resolve(__dirname,

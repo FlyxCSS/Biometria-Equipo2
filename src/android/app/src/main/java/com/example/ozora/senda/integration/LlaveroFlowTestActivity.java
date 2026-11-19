@@ -1,10 +1,10 @@
 /*
  * Nombre: LlaveroFlowTestActivity.java
- * Descripción: Pantalla de diagnóstico ordenada para QR, BLE y ubicación.
- * Copyright (c) 2026 - Equipo 2 - SENDA / OZORA
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 02/11/2026
- * Autor: ...
- * Aportación: UI de prueba desacoplada mediante CapturaLlaveroController.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
  */
 package com.example.ozora.senda.integration;
 
@@ -29,7 +29,12 @@ public final class LlaveroFlowTestActivity extends Activity implements CapturaLl
     private TextView estado, llavero, lectura, gps;
     private CapturaLlaveroController controlador;
 
-    /** Diseño lógico: (Bundle) -> onCreate() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: b: EstadoVista --> onCreate() -->
+     * Descripción: On Create. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_llavero_flow_test);
@@ -43,7 +48,12 @@ public final class LlaveroFlowTestActivity extends Activity implements CapturaLl
         findViewById(R.id.sendaDetener).setOnClickListener(v -> detener());
         estado.setText("Preparado. Escanea el QR de un llavero SENDA.");
     }
-    /** Diseño lógico: () -> leerQr() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: leerQr() -->
+     * Descripción: Leer Qr. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void leerQr() {
         GmsBarcodeScannerOptions op = new GmsBarcodeScannerOptions.Builder()
                 .setBarcodeFormats(Barcode.FORMAT_QR_CODE).build();
@@ -59,7 +69,12 @@ public final class LlaveroFlowTestActivity extends Activity implements CapturaLl
             .addOnCanceledListener(() -> estado.setText("Lectura de QR cancelada."))
             .addOnFailureListener(e -> estado.setText("No se pudo leer el QR: " + e.getMessage()));
     }
-    /** Diseño lógico: () -> solicitarEIniciar() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: solicitarEIniciar() -->
+     * Descripción: Solicitar EIniciar. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void solicitarEIniciar() {
         if (controlador.getLlaveroSeleccionado() == null) {
             estado.setText("Escanea primero un QR válido."); return;
@@ -74,11 +89,21 @@ public final class LlaveroFlowTestActivity extends Activity implements CapturaLl
         gps.setText("Buscando una ubicación precisa y reciente...");
         if (!controlador.iniciar()) gps.setText("No se pudo iniciar. Revisa los ajustes del móvil.");
     }
-    /** Diseño lógico: (List<String>, String) -> siFalta() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: f: [Dato], permiso: Text --> siFalta() -->
+     * Descripción: Si Falta. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void siFalta(List<String> f, String permiso) {
         if (checkSelfPermission(permiso) != PackageManager.PERMISSION_GRANTED) f.add(permiso);
     }
-    /** Diseño lógico: (int, String[], int[]) -> onRequestPermissionsResult() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: request: Z, p: [Dato], res: [Dato] --> onRequestPermissionsResult() -->
+     * Descripción: On Request Permissions Result. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override public void onRequestPermissionsResult(int request, String[] p, int[] res) {
         super.onRequestPermissionsResult(request, p, res);
         if (request != SOLICITUD) return;
@@ -88,26 +113,56 @@ public final class LlaveroFlowTestActivity extends Activity implements CapturaLl
         }
         solicitarEIniciar();
     }
-    /** Diseño lógico: (String) -> alCambiarEstado() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: texto: Text --> alCambiarEstado() -->
+     * Descripción: Al Cambiar Estado. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override public void alCambiarEstado(String texto) { runOnUiThread(() -> estado.setText(texto)); }
-    /** Diseño lógico: (Location) -> alRecibirUbicacion() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: loc: Posicion --> alRecibirUbicacion() -->
+     * Descripción: Al Recibir Ubicacion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override public void alRecibirUbicacion(Location loc) {
         gps.setText(String.format(Locale.ROOT,
            "%s  ·  %.6f, %.6f\nPrecisión estimada: ±%.1f m",
            loc.getProvider() == null ? "Ubicación" : loc.getProvider().toUpperCase(Locale.ROOT),
            loc.getLatitude(), loc.getLongitude(), loc.getAccuracy()));
     }
-    /** Diseño lógico: (MedicionAmbiental, int) -> alPrepararMedicion() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: m: MedicionAmbiental, rssi: Z --> alPrepararMedicion() -->
+     * Descripción: Al Preparar Medicion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override public void alPrepararMedicion(MedicionAmbiental m, int rssi) {
         lectura.setText(String.format(Locale.ROOT,
                 "%d ppb  ·  %.3f ppm\nLlavero: %s  ·  Contador: %d  ·  RSSI: %d dBm\nUbicación: %.6f, %.6f  ·  ±%.1f m\nUTC: %s\nNO ENVIADA",
                 m.valorPpb, m.convertirAPpm(), m.idLlavero, m.contador, rssi,
                 m.latitud, m.longitud, m.precisionMetros, m.fechaIso8601));
     }
-    /** Diseño lógico: (String) -> alDescartarMedicion() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: motivo: Text --> alDescartarMedicion() -->
+     * Descripción: Al Descartar Medicion. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override public void alDescartarMedicion(String motivo) { lectura.setText("Esperando medición válida: " + motivo); }
-    /** Diseño lógico: () -> detener() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: detener() -->
+     * Descripción: Detener. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void detener() { controlador.detener(); estado.setText("Captura detenida."); }
-    /** Diseño lógico: () -> onStop() -> (void). */
+
+
+    /** --------------------
+     * Diseño lógico: onStop() -->
+     * Descripción: On Stop. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Override protected void onStop() { controlador.detener(); super.onStop(); }
 }

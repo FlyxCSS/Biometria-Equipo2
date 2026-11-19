@@ -1,10 +1,10 @@
 /*
  * Nombre: SessionManager.java
- * Descripción: Sesión persistente cifrada compartida entre interfaz y sincronización.
+ * Descripción: Restaura y protege la sesión persistente con caducidad.
  * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
  * Fecha: 03/11/2026.
- * Autor: Equipo Android y Julia (integración con asistencia de Codex).
- * Aportación: Publicar de forma segura cambios de sesión a los envíos en segundo plano.
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Restaura y protege la sesión persistente con caducidad.
  */
 package com.example.ozora.senda.auth;
 
@@ -33,26 +33,53 @@ public final class SessionManager {
     public final long expiresAt;
     public final String token;
 
+
+    /** --------------------
+     * Diseño lógico: worker: Worker, expiresAt: Z, token: Text --> SessionManager() -->
+     * SessionManager <--
+     * Descripción: Construye SessionManager. Restaura y protege la sesión persistente con caducidad
+     * -------------------- */
     private SessionManager(Worker worker, long expiresAt, String token) {
         this.worker = worker;
         this.expiresAt = expiresAt;
         this.token = token;
     }
+
+    /** --------------------
+     * Diseño lógico: worker: Worker, expiresAt: Z, token: Text --> open() --x
+     * Descripción: Open. Restaura y protege la sesión persistente con caducidad
+     * -------------------- */
     public static synchronized void open(Worker worker, long expiresAt, String token) {
         if (token == null || token.trim().isEmpty() || worker.id <= 0 || worker.parkId <= 0)
             throw new IllegalArgumentException("La sesión requiere un trabajador y una credencial del servidor.");
         current = new SessionManager(worker, expiresAt, token);
         guardar();
     }
+
+    /** --------------------
+     * Diseño lógico: current() --x
+     * SessionManager <--
+     * Descripción: Current. Restaura y protege la sesión persistente con caducidad
+     * -------------------- */
     public static SessionManager current() {
         SessionManager session = current;
         return session != null && System.currentTimeMillis() < session.expiresAt ? session : null;
     }
+
+    /** --------------------
+     * Diseño lógico: clear() --x
+     * Descripción: Clear. Restaura y protege la sesión persistente con caducidad
+     * -------------------- */
     public static synchronized void clear() {
         current = null;
         if (preferences != null) preferences.edit().clear().commit();
     }
 
+
+    /** --------------------
+     * Diseño lógico: context: Entorno --> initialize() --x
+     * Descripción: Initialize. Restaura y protege la sesión persistente con caducidad
+     * -------------------- */
     public static synchronized void initialize(Context context) {
         preferences = context.getSharedPreferences("sesion_cifrada", Context.MODE_PRIVATE);
         current = null;
@@ -71,8 +98,19 @@ public final class SessionManager {
         } catch (Exception error) { clear(); }
     }
 
+
+    /** --------------------
+     * Diseño lógico: cipher() --x
+     * Cipher <--
+     * Descripción: Cipher. Restaura y protege la sesión persistente con caducidad
+     * -------------------- */
     private static Cipher cipher() throws Exception { return Cipher.getInstance("AES/GCM/NoPadding"); }
 
+
+    /** --------------------
+     * Diseño lógico: guardar() --x
+     * Descripción: Guardar. Restaura y protege la sesión persistente con caducidad
+     * -------------------- */
     private static void guardar() {
         if (preferences == null) return; // Las pruebas JVM no inicializan Android.
         try {
@@ -98,6 +136,12 @@ public final class SessionManager {
             throw new IllegalStateException("No se pudo guardar la sesión de forma segura.", error);
         }
     }
+
+    /** --------------------
+     * Diseño lógico: iso: Text --> instante() --x
+     * Z <--
+     * Descripción: Instante. Restaura y protege la sesión persistente con caducidad
+     * -------------------- */
     public static long instante(String iso) throws ParseException {
         SimpleDateFormat f=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",Locale.ROOT);
         f.setTimeZone(TimeZone.getTimeZone("UTC")); return f.parse(iso).getTime();

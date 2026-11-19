@@ -1,3 +1,11 @@
+<!--
+Nombre: keyring_device.xml
+Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+Fecha: 19/11/2026
+Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+Aportación: Recursos y configuración del componente android.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="104dp" android:height="128dp" android:viewportWidth="104" android:viewportHeight="128">
 <path android:fillColor="#1D4032" android:pathData="M59,5C63,0 74,1 80,5L86,9C94,15 91,27 87,30C102,44 101,59 95,74L80,111C75,126 58,130 43,124L17,114C2,108 0,92 5,78L22,36C27,22 43,16 57,20C54,15 56,9 59,5Z"/>
 <path android:strokeColor="#FFFFFF" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M70,14L79,18"/>

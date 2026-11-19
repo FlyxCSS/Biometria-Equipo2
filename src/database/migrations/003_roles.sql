@@ -1,9 +1,9 @@
 -- Nombre: 003_roles.sql
--- Descripción: Normaliza los roles de instalaciones anteriores sin eliminar usuarios.
+-- Descripción: Esquema relacional, integridad y evolución de datos.
 -- Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
--- Fecha: 03/11/2026.
--- Autor: Julia (con asistencia de Codex).
--- Aportación: Catálogo de roles y migración de la relación de cada cuenta.
+-- Fecha: 19/11/2026
+-- Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+-- Aportación: Recursos y configuración del componente database.
 -- Ejecutar por consola con src/tools/gestionar.php actualizar-roles, con copia previa.
 -- No importar este archivo completo con phpMyAdmin: su analizador puede cambiar
 -- el contexto a information_schema al inspeccionar las restricciones antiguas.

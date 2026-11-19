@@ -1,3 +1,11 @@
+/*
+ * Nombre: AccountScreensTest.java
+ * Descripción: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ * Copyright: (c) 2026 Equipo 2 - SENDA / OZORA.
+ * Fecha: 19/11/2026
+ * Autores: Fabián Andrés Useche Rivera; Élia Garcia Pons; Judith Civico Aporta; Julia Valen de Oliveira; Soufiane Belfquih El Khalfi
+ * Aportación: Aplicación de campo: acceso, captura, recorridos y presentación Android.
+ */
 package com.example.ozora.senda;
 
 import android.content.Context;
@@ -25,9 +33,31 @@ import static org.hamcrest.Matchers.not;
 public class AccountScreensTest {
     private final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
     private final Worker worker = new Worker(2147478000, 2147478000, "Trabajadora de prueba");
+
+    /** --------------------
+     * Diseño lógico: prefs() -->
+     * Preferencias <--
+     * Descripción: Prefs. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private SharedPreferences prefs() { return context.getSharedPreferences("campo-" + worker.id + "-" + worker.parkId, Context.MODE_PRIVATE); }
+
+    /** --------------------
+     * Diseño lógico: open() -->
+     * Descripción: Open. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void open() { SessionManager.open(worker, Long.MAX_VALUE, "solo-prueba-local"); }
+
+    /** --------------------
+     * Diseño lógico: tab: Z --> section() -->
+     * Navegacion <--
+     * Descripción: Section. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private Intent section(int tab) { return new Intent(context, MainActivity.class).putExtra(MainActivity.EXTRA_SECTION, tab); }
+
+    /** --------------------
+     * Diseño lógico: llaveroSinVincularDesvinculacionYAjustesDelPerfil() -->
+     * Descripción: Llavero Sin Vincular Desvinculacion YAjustes Del Perfil. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void llaveroSinVincularDesvinculacionYAjustesDelPerfil() throws Exception {
         prefs().edit().clear().commit();
         open();
@@ -67,6 +97,11 @@ public class AccountScreensTest {
             }
         } finally { prefs().edit().clear().commit(); SessionManager.clear(); }
     }
+
+    /** --------------------
+     * Diseño lógico: unRecorridoActivoImpideDesvincularYLaRecepcionCaduca() -->
+     * Descripción: Un Recorrido Activo Impide Desvincular YLa Recepcion Caduca. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     @Test public void unRecorridoActivoImpideDesvincularYLaRecepcionCaduca() throws Exception {
         open();
         prefs().edit().putString("sensor", "S-001").commit();
@@ -88,6 +123,11 @@ public class AccountScreensTest {
             }
         }
     }
+
+    /** --------------------
+     * Diseño lógico: name: Text --> capture() -->
+     * Descripción: Capture. Aplicación de campo: acceso, captura, recorridos y presentación Android
+     * -------------------- */
     private void capture(String name) throws Exception {
         android.app.Instrumentation i = InstrumentationRegistry.getInstrumentation();
         i.waitForIdleSync();
