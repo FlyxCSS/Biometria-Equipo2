@@ -29,9 +29,10 @@ $archivos = ['/js/LogicaFake.js' => ['LogicaFake.js', 'text/javascript'], '/' =>
     '/js/publica.js' => ['js/publica.js', 'text/javascript'], '/css/publica.css' => ['css/publica.css', 'text/css'],
     '/css/estilos.css' => ['css/estilos.css', 'text/css']];
 // El nombre debe ser un archivo simple existente, sin segmentos de directorio del solicitante.
-if ($ruta !== null && preg_match('~^/assets/([a-z0-9-]+\.(svg|png))$~D', $ruta, $recurso)) {
+if ($ruta !== null && preg_match('~^/assets/([a-z0-9-]+\.(svg|png|jpg))$~D', $ruta, $recurso)) {
     $archivo = 'assets/' . $recurso[1];
-    if (is_file(__DIR__ . '/' . $archivo)) $archivos[$ruta] = [$archivo, $recurso[2] === 'svg' ? 'image/svg+xml' : 'image/png'];
+    $tiposImagen = ['svg' => 'image/svg+xml', 'png' => 'image/png', 'jpg' => 'image/jpeg'];
+    if (is_file(__DIR__ . '/' . $archivo)) $archivos[$ruta] = [$archivo, $tiposImagen[$recurso[2]]];
 }
 if ($ruta !== null && preg_match('~^/assets/fonts/(sora|manrope)\.ttf$~D', $ruta, $fuente)) {
     $archivos[$ruta] = ['assets/fonts/' . $fuente[1] . '.ttf', 'font/ttf'];
