@@ -122,10 +122,18 @@ function validarMedicion(array $datos): array
     if (!is_string($datos['nombre_micro']) || !preg_match('/^S-[0-9]{3,6}$/D', $datos['nombre_micro'])) {
         $errores['nombre_micro'] = 'Identificador inválido.';
     }
-    if ($datos['tipo'] !== 'O3' || $datos['unidad'] !== 'ppb') {
-        $errores['tipo'] = 'Esta versión admite O3 en ppb.';
+    $temperatura = $datos['tipo'] === 'TEMPERATURA';
+    if (!(($datos['tipo'] === 'O3' && $datos['unidad'] === 'ppb')
+        || ($temperatura && $datos['unidad'] === 'C'))) {
+        $errores['tipo'] = 'Se admite O3 en ppb o TEMPERATURA en C.';
     }
-    if (!is_int($datos['valor']) || $datos['valor'] < 0 || $datos['valor'] > 65535) {
+    if ($temperatura) {
+        if ((!is_int($datos['valor']) && !is_float($datos['valor']))
+            || !is_finite((float)$datos['valor']) || $datos['valor'] < -40 || $datos['valor'] > 50
+            || abs($datos['valor'] * 100 - round($datos['valor'] * 100)) > 0.000001) {
+            $errores['valor'] = 'Temperatura entre -40 y 50 C, con hasta dos decimales.';
+        }
+    } elseif (!is_int($datos['valor']) || $datos['valor'] < 0 || $datos['valor'] > 65535) {
         $errores['valor'] = 'Debe ser un entero entre 0 y 65535.';
     }
     foreach (['latitud' => 90, 'longitud' => 180] as $campo => $limite) {

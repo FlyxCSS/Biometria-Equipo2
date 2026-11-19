@@ -1,6 +1,7 @@
 package com.example.ozora.senda.network;
 
 import com.example.ozora.senda.model.MedicionAmbiental;
+import com.example.ozora.senda.model.MedicionTemperatura;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.BufferedInputStream;
@@ -155,6 +156,23 @@ public class LogicaFakeTest {
         logica.desvincularLlavero("token-test");
         comprobar("DELETE", "/llaveros/actual", "token-test");
         assertEquals("", cuerpo);
+    }
+
+    @Test public void temperaturaUsaElEndpointAutenticadoYExigeConfirmacion() throws Exception {
+        MedicionTemperatura m=new MedicionTemperatura("S-001",2939,"2026-11-19T10:00:00.000Z",39.123456789,-0.376312345);
+        assertTrue(logica.guardarTemperatura("token-test",m).getBoolean("guardada"));
+        comprobar("POST","/mediciones","token-test");
+        JSONObject json=new JSONObject(cuerpo);
+        assertEquals(29.39,json.getDouble("valor"),0.000001);
+        assertEquals("TEMPERATURA",json.getString("tipo"));
+        assertEquals(39.123456789,json.getDouble("latitud"),0);
+        respuesta="{\"ok\":true,\"data\":{\"guardada\":false}}";
+        try {
+            logica.guardarTemperatura("token-test",m);
+            fail("Sin confirmación la temperatura debe seguir pendiente");
+        } catch (IOException esperado) {
+            assertTrue(esperado.getMessage().contains("no ha confirmado"));
+        }
     }
 
     private void comprobar(String esperado, String destino, String token) {

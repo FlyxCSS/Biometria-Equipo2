@@ -21,7 +21,7 @@ import java.util.List;
 
 public final class RouteManager extends SQLiteOpenHelper {
     public RouteManager(Context context) { this(context, "recorridos.db"); }
-    public RouteManager(Context context,String archivo) { super(context,archivo,null,2); }
+    public RouteManager(Context context,String archivo) { super(context,archivo,null,5); }
     @Override public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE ruta(id INTEGER PRIMARY KEY, usuario INTEGER NOT NULL, parque INTEGER NOT NULL, sensor TEXT, inicio INTEGER NOT NULL, fin INTEGER, metros REAL DEFAULT 0)");
         db.execSQL("CREATE UNIQUE INDEX ruta_activa ON ruta(usuario) WHERE fin IS NULL");
@@ -29,17 +29,44 @@ public final class RouteManager extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX puntos_ruta ON punto(ruta,id)");
         db.execSQL("CREATE TABLE lectura(id INTEGER PRIMARY KEY, ruta INTEGER, ppb INTEGER, fecha TEXT, lat REAL, lon REAL, contador INTEGER, nombre_micro TEXT, enviado INTEGER NOT NULL DEFAULT 0, error_envio TEXT)");
         db.execSQL("CREATE INDEX lecturas_ruta ON lectura(ruta,id)");
+        crearTemperaturas(db);
     }
     /** Diseño lógico: (SQLite, versión anterior, versión nueva) -> onUpgrade -> vacío.
      * Descripción: Conserva el histórico; las lecturas antiguas sin identidad no se envían automáticamente. */
     @Override public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion) {
+        if(oldVersion<3) crearTemperaturas(db);
         if(oldVersion<2) {
             db.execSQL("ALTER TABLE lectura ADD COLUMN nombre_micro TEXT");
             db.execSQL("ALTER TABLE lectura ADD COLUMN enviado INTEGER NOT NULL DEFAULT 0");
             db.execSQL("ALTER TABLE lectura ADD COLUMN error_envio TEXT");
         }
+        if(oldVersion>=3 && oldVersion<4) {
+            db.execSQL("ALTER TABLE temperatura ADD COLUMN nombre_micro TEXT");
+            db.execSQL("ALTER TABLE temperatura ADD COLUMN enviado INTEGER NOT NULL DEFAULT 0");
+            db.execSQL("ALTER TABLE temperatura ADD COLUMN error_envio TEXT");
+        }
+        if(oldVersion>=3 && oldVersion<5) {
+            db.execSQL("ALTER TABLE temperatura ADD COLUMN lat REAL");
+            db.execSQL("ALTER TABLE temperatura ADD COLUMN lon REAL");
+        }
     }
 
+    private void crearTemperaturas(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE temperatura(id INTEGER PRIMARY KEY, ruta INTEGER NOT NULL, valor INTEGER NOT NULL, fecha TEXT NOT NULL, lat REAL, lon REAL, nombre_micro TEXT, enviado INTEGER NOT NULL DEFAULT 0, error_envio TEXT)");
+        db.execSQL("CREATE INDEX temperaturas_ruta ON temperatura(ruta,id)");
+    }
+    public void temperatura(long ruta, MedicionTemperatura m) {
+        if (m.centesimas < -4000 || m.centesimas > 5000
+                || !Double.isFinite(m.latitud) || !Double.isFinite(m.longitud)
+                || Math.abs(m.latitud)>90 || Math.abs(m.longitud)>180)
+            throw new IllegalArgumentException("Temperatura o coordenadas inválidas");
+        getWritableDatabase().execSQL("INSERT INTO temperatura(ruta,valor,fecha,nombre_micro,lat,lon) VALUES (?,?,?,?,?,?)",
+                new Object[]{ruta,m.centesimas,m.fechaIso8601,m.idLlavero,m.latitud,m.longitud});
+    }
+    public Cursor temperaturasRuta(Worker worker,long ruta,int limite,int offset) {
+        return getReadableDatabase().rawQuery("SELECT t.valor,t.fecha,t.lat,t.lon FROM temperatura t JOIN ruta r ON r.id=t.ruta WHERE r.usuario=? AND r.parque=? AND r.id=? ORDER BY t.id LIMIT ? OFFSET ?",
+            new String[]{""+worker.id,""+worker.parkId,""+ruta,""+limite,""+offset});
+    }
     public long iniciar(int usuario,int parque,String sensor) {
         ContentValues v = new ContentValues();
         v.put("usuario",usuario); v.put("parque",parque); v.put("sensor",sensor);
@@ -86,7 +113,7 @@ public final class RouteManager extends SQLiteOpenHelper {
      * Descripción: Cuenta solo lecturas con identidad del usuario y parque actuales. */
     public String estadoEnvios(Worker trabajador) {
         try(Cursor c=getReadableDatabase().rawQuery("SELECT SUM(CASE WHEN l.enviado=0 THEN 1 ELSE 0 END),"
-                + "SUM(CASE WHEN l.enviado=2 THEN 1 ELSE 0 END) FROM lectura l JOIN ruta r ON r.id=l.ruta "
+                + "SUM(CASE WHEN l.enviado=2 THEN 1 ELSE 0 END) FROM (SELECT ruta,nombre_micro,enviado FROM lectura UNION ALL SELECT ruta,nombre_micro,enviado FROM temperatura WHERE lat IS NOT NULL AND lon IS NOT NULL) l JOIN ruta r ON r.id=l.ruta "
                 + "WHERE r.usuario=? AND r.parque=? AND l.nombre_micro IS NOT NULL",
                 new String[]{String.valueOf(trabajador.id),String.valueOf(trabajador.parkId)})) {
             c.moveToFirst();
@@ -97,6 +124,9 @@ public final class RouteManager extends SQLiteOpenHelper {
      * Descripción: Recupera rechazos de su propia cola tras corregir asignación o datos. */
     public void reintentarEnvios(Worker trabajador) {
         getWritableDatabase().execSQL("UPDATE lectura SET enviado=0,error_envio=NULL WHERE enviado=2 "
+                + "AND ruta IN (SELECT id FROM ruta WHERE usuario=? AND parque=?)",
+                new Object[]{trabajador.id,trabajador.parkId});
+        getWritableDatabase().execSQL("UPDATE temperatura SET enviado=0,error_envio=NULL WHERE enviado=2 "
                 + "AND ruta IN (SELECT id FROM ruta WHERE usuario=? AND parque=?)",
                 new Object[]{trabajador.id,trabajador.parkId});
     }

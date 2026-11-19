@@ -16,6 +16,7 @@ import android.os.*;
 import com.example.ozora.senda.integration.CapturaLlaveroController;
 import com.example.ozora.senda.location.LocationTracker;
 import com.example.ozora.senda.model.MedicionAmbiental;
+import com.example.ozora.senda.model.MedicionTemperatura;
 import com.example.ozora.senda.network.MeasurementSync;
 
 /** Mantiene la captura si el trabajador bloquea la pantalla durante el recorrido. */
@@ -97,6 +98,12 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         if(!caducada()) {
             rutas.lectura(actual,m);
             estado="GPS y lectura guardados en el móvil";
+            MeasurementSync.sincronizar(this);
+        }
+    }
+    @Override public void alPrepararTemperatura(MedicionTemperatura medicion) {
+        if (!caducada()) {
+            rutas.temperatura(actual, medicion);
             MeasurementSync.sincronizar(this);
         }
     }

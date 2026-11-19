@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import com.example.ozora.senda.auth.SessionManager;
 import com.example.ozora.senda.model.MedicionAmbiental;
+import com.example.ozora.senda.model.MedicionTemperatura;
 import com.example.ozora.senda.routes.RouteManager;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,40 +40,53 @@ public final class MeasurementSync {
         try(RouteManager rutas = new RouteManager(contexto,"recorridos.db")) {
             SQLiteDatabase db = rutas.getWritableDatabase();
             LogicaFake logica = new LogicaFake(contexto);
-            try(Cursor filas = db.rawQuery("SELECT l.id,l.ppb,l.fecha,l.lat,l.lon,l.nombre_micro FROM lectura l "
+            if (!enviarLote(db, logica, sesion, false)) return;
+            enviarLote(db, logica, sesion, true);
+        } catch(Exception error) {
+            estado="No se pudo abrir la cola local. Vuelve a entrar para reintentar.";
+        } finally { EN_CURSO.set(false); }
+    }
+
+    private static boolean enviarLote(SQLiteDatabase db, LogicaFake logica,
+                                      SessionManager sesion, boolean temperatura) throws Exception {
+        // Los nombres de tabla/columna son constantes internas, nunca datos recibidos.
+        String tabla = temperatura ? "temperatura" : "lectura";
+        String campos = temperatura ? "l.id,l.valor,l.fecha,l.lat,l.lon,l.nombre_micro"
+                : "l.id,l.ppb,l.fecha,l.lat,l.lon,l.nombre_micro";
+            try(Cursor filas = db.rawQuery("SELECT " + campos + " FROM " + tabla + " l "
                     + "JOIN ruta r ON r.id=l.ruta WHERE r.usuario=? AND r.parque=? AND l.enviado=0 "
-                    + "AND l.nombre_micro IS NOT NULL ORDER BY l.id LIMIT 50",
+                    + "AND l.nombre_micro IS NOT NULL " + (temperatura ? "AND l.lat IS NOT NULL AND l.lon IS NOT NULL " : "") + "ORDER BY l.id LIMIT 50",
                     new String[]{String.valueOf(sesion.worker.id),String.valueOf(sesion.worker.parkId)})) {
                 while(filas.moveToNext()) {
-                    if(SessionManager.current()!=sesion) return; // No reutilizar el token de otra cuenta.
+                    if(SessionManager.current()!=sesion) return false; // No reutilizar el token de otra cuenta.
                     long id = filas.getLong(0);
-                    MedicionAmbiental m = new MedicionAmbiental(filas.getString(5),filas.getInt(1),
-                            filas.getDouble(3),filas.getDouble(4),0,filas.getString(2),0);
                     try {
-                        logica.guardarMedicion(sesion.token,m);
-                        db.execSQL("UPDATE lectura SET enviado=1,error_envio=NULL WHERE id=?",new Object[]{id});
+                        if (temperatura) logica.guardarTemperatura(sesion.token,
+                                new MedicionTemperatura(filas.getString(5),filas.getInt(1),filas.getString(2),filas.getDouble(3),filas.getDouble(4)));
+                        else logica.guardarMedicion(sesion.token,
+                                new MedicionAmbiental(filas.getString(5),filas.getInt(1),
+                                        filas.getDouble(3),filas.getDouble(4),0,filas.getString(2),0));
+                        db.execSQL("UPDATE " + tabla + " SET enviado=1,error_envio=NULL WHERE id=?",new Object[]{id});
                         estado = "Medición confirmada por el servidor.";
                     } catch(ApiClient.Error error) {
                         if(error.status==401) {
                             estado="Sesión caducada. Las mediciones siguen guardadas en el móvil.";
                             if(SessionManager.current()==sesion) SessionManager.clear();
-                            return;
+                            return false;
                         }
                         if(error.status==403 || error.status==409 || error.status==422) {
-                            db.execSQL("UPDATE lectura SET enviado=2,error_envio=? WHERE id=?",new Object[]{error.getMessage(),id});
+                            db.execSQL("UPDATE " + tabla + " SET enviado=2,error_envio=? WHERE id=?",new Object[]{error.getMessage(),id});
                             estado="Lectura conservada en el móvil; servidor: "+error.getMessage();
                             continue;
                         }
                         estado="Envío pendiente. Se reintentará al recuperar la conexión.";
-                        return;
+                        return false;
                     } catch(Exception error) {
                         estado="Envío pendiente. La lectura está guardada en el móvil.";
-                        return;
+                        return false;
                     }
                 }
             }
-        } catch(Exception error) {
-            estado="No se pudo abrir la cola local. Vuelve a entrar para reintentar.";
-        } finally { EN_CURSO.set(false); }
+        return true;
     }
 }

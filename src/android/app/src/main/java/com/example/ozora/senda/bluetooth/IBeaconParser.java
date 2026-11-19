@@ -23,6 +23,8 @@ public final class IBeaconParser {
     public static final int COMPANY_ID_APPLE = 0x004C;
     public static final int TIPO_O3 = 11;
     public static final int TIPO_TEMPERATURA = 12;
+    public static final int TIPO_BATERIA = 14;
+    public static final int NO_DISPONIBLE = 0xFFFF;
     public static final String UUID_PROYECTO = "4F5A4F52-412D-4754-492D-33412D42494F";
     private static final int LONGITUD_IBEACON = 23;
 
@@ -55,8 +57,11 @@ public final class IBeaconParser {
 
         int major = leerUint16(datosFabricante, 18);
         int minor = leerUint16(datosFabricante, 20);
-        int tipo = (major >>> 8) & 0xFF;
-        int contador = major & 0xFF;
+        // Formato nuevo: Major completo = tipo. Mantener lectura de llaveros antiguos.
+        boolean directo = major == TIPO_O3 || major == TIPO_TEMPERATURA || major == TIPO_BATERIA;
+        int tipo = directo ? major : (major >>> 8) & 0xFF;
+        int contador = directo ? -1 : major & 0xFF;
+        if (tipo != TIPO_O3 && tipo != TIPO_TEMPERATURA && tipo != TIPO_BATERIA) return null;
         int potenciaReferencia = datosFabricante[22];
 
         return new Resultado(uuid, nombreBle, major, minor, tipo,
@@ -116,6 +121,16 @@ public final class IBeaconParser {
          * Diseño lógico: () -> esOzono() -> (boolean)
          * Descripción: Indica si la medición codificada corresponde al tipo O3.
          */
+        public boolean esTemperatura() { return tipo == TIPO_TEMPERATURA; }
+        public boolean esBateria() { return tipo == TIPO_BATERIA; }
+        public Double obtenerTemperaturaC() {
+            if (!esTemperatura() || minor == 0x8000) return null;
+            double grados = ((short) minor) / 100.0;
+            return grados >= -40 && grados <= 50 ? grados : null;
+        }
+        public Integer obtenerBateriaPorcentaje() {
+            return esBateria() && minor <= 100 ? minor : null;
+        }
         public boolean esOzono() {
             return tipo == TIPO_O3;
         }
@@ -125,7 +140,7 @@ public final class IBeaconParser {
          * Descripción: Devuelve Minor como ppb solo si la trama es de ozono.
          */
         public Integer obtenerOzonoPpb() {
-            return esOzono() ? minor : null;
+            return esOzono() && minor != NO_DISPONIBLE ? minor : null;
         }
 
         /**
@@ -133,7 +148,8 @@ public final class IBeaconParser {
          * Descripción: Convierte el valor de ozono de ppb a ppm.
          */
         public Double obtenerOzonoPpm() {
-            return esOzono() ? minor / 1000.0 : null;
+            Integer ppb = obtenerOzonoPpb();
+            return ppb == null ? null : ppb / 1000.0;
         }
     }
 }

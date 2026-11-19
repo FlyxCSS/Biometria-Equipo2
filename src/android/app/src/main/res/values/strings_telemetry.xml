@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="keyring_battery_percent">%1$d %% aprox.</string>
+    <string name="keyring_temperature_unknown">Temperatura: no disponible</string>
+    <string name="keyring_temperature_value">Temperatura: %1$s °C</string>
+    <string name="keyring_test_ble">Comprobar recepción Bluetooth</string>
+</resources>

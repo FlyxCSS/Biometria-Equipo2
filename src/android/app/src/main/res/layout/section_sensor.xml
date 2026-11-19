@@ -18,16 +18,18 @@
 </LinearLayout>
 <LinearLayout style="@style/AccountCard" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="6dp" android:minHeight="100dp">
 <TextView style="@style/SendaSectionLabel" android:text="@string/keyring_battery"/>
-<TextView style="@style/SendaSectionText" android:text="@string/keyring_battery_unknown" android:textSize="16sp"/>
+<TextView android:id="@+id/keyring_battery_value" style="@style/SendaSectionText" android:text="@string/keyring_battery_unknown" android:textSize="16sp"/>
 </LinearLayout>
 </LinearLayout>
 <LinearLayout android:id="@+id/keyring_details" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 <TextView android:id="@+id/text_device" style="@style/AccountDetail"/>
 <TextView android:id="@+id/text_last_o3" style="@style/AccountDetail"/>
+<TextView android:id="@+id/keyring_temperature_value" style="@style/AccountDetail"/>
 <TextView android:id="@+id/keyring_link_date" style="@style/AccountDetail"/>
 <TextView style="@style/AccountDetail" android:text="@string/keyring_firmware"/>
 </LinearLayout>
 <TextView android:id="@+id/keyring_hint" style="@style/SendaSectionText" android:gravity="center" android:paddingTop="20dp" android:paddingBottom="16dp"/>
 <com.google.android.material.button.MaterialButton android:id="@+id/button_select_sensor" style="@style/AuthButton" android:text="@string/keyring_scan"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/button_test_ble" style="@style/AuthButton" android:layout_marginTop="12dp" android:text="@string/keyring_test_ble"/>
 <TextView style="@style/SendaSectionText" android:text="@string/keyring_local_hint" android:textSize="12sp" android:gravity="center" android:paddingTop="12dp"/>
 </LinearLayout>

@@ -68,6 +68,7 @@ public final class BleTestActivity extends Activity implements BleScanner.Oyente
             anadirSiFalta(pendientes, Manifest.permission.BLUETOOTH_SCAN);
             anadirSiFalta(pendientes, Manifest.permission.BLUETOOTH_CONNECT);
         }
+        anadirSiFalta(pendientes, Manifest.permission.ACCESS_COARSE_LOCATION);
         anadirSiFalta(pendientes, Manifest.permission.ACCESS_FINE_LOCATION);
         if (!pendientes.isEmpty()) {
             requestPermissions(pendientes.toArray(new String[0]), SOLICITUD_PERMISOS);
@@ -125,15 +126,19 @@ public final class BleTestActivity extends Activity implements BleScanner.Oyente
     @Override
     public void alRecibirTrama(IBeaconParser.Resultado medida, String direccionMac) {
         runOnUiThread(() -> {
-            String valor = medida.esOzono()
-                    ? String.format(Locale.ROOT, "%d ppb (%.3f ppm)", medida.minor, medida.minor / 1000.0)
-                    : "Tipo " + medida.tipo + "; Minor: " + medida.minor;
+            String valor;
+            if (medida.esOzono()) valor = medida.obtenerOzonoPpb() == null ? "O3: no disponible"
+                    : String.format(Locale.ROOT, "O3: %d ppb (%.3f ppm)", medida.minor, medida.minor / 1000.0);
+            else if (medida.esTemperatura()) valor = medida.obtenerTemperaturaC() == null ? "Temperatura: no disponible"
+                    : String.format(Locale.ROOT, "Temperatura: %.2f °C", medida.obtenerTemperaturaC());
+            else valor = medida.obtenerBateriaPorcentaje() == null ? "Bateria: no disponible"
+                    : "Bateria: " + medida.obtenerBateriaPorcentaje() + " % aprox.";
             textoMedida.setText("Llavero: " + (medida.nombreBle == null ? "nombre no anunciado" : medida.nombreBle)
                     + "\nMAC: " + direccionMac
                     + "\nUUID: " + medida.uuid
-                    + "\nMajor: " + medida.major + " / Contador: " + medida.contador
+                    + "\nMajor: " + medida.major + " / Contador: " + (medida.contador < 0 ? "sin contador BLE" : medida.contador)
                     + "\nMinor: " + medida.minor
-                    + "\nO3: " + valor
+                    + "\n" + valor
                     + "\nRSSI: " + medida.rssi + " dBm");
             mostrarEstado("Trama SENDA recibida correctamente.");
         });

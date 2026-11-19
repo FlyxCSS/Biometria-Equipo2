@@ -2,6 +2,7 @@ package com.example.ozora.senda.network;
 
 import android.content.Context;
 import com.example.ozora.senda.model.MedicionAmbiental;
+import com.example.ozora.senda.model.MedicionTemperatura;
 import org.json.JSONObject;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -50,12 +51,37 @@ public final class LogicaFake {
     }
 
     public JSONObject guardarMedicion(String token, MedicionAmbiental medicion) throws Exception {
-        JSONObject respuesta = transporte.pedir("POST", "/mediciones", token,
-                new JSONObject(datosMedicion(medicion)));
+        return guardarDatos(token, datosMedicion(medicion));
+    }
+
+    public JSONObject guardarTemperatura(String token, MedicionTemperatura medicion) throws Exception {
+        return guardarDatos(token, datosTemperatura(medicion));
+    }
+
+    private JSONObject guardarDatos(String token, Map<String,Object> datos) throws Exception {
+        JSONObject respuesta = transporte.pedir("POST", "/mediciones", token, new JSONObject(datos));
         if (!Boolean.TRUE.equals(respuesta.opt("guardada"))) {
             throw new IOException("El servidor no ha confirmado el guardado de la medición.");
         }
         return respuesta;
+    }
+
+    static Map<String,Object> datosTemperatura(MedicionTemperatura m) {
+        if (m == null || m.idLlavero == null || m.fechaIso8601 == null
+                || m.centesimas < -4000 || m.centesimas > 5000
+                || !Double.isFinite(m.latitud) || !Double.isFinite(m.longitud)
+                || Math.abs(m.latitud) > 90 || Math.abs(m.longitud) > 180)
+            throw new IllegalArgumentException("Temperatura inválida para enviar.");
+        Map<String,Object> datos = new LinkedHashMap<>();
+        datos.put("nombre_micro", m.idLlavero);
+        datos.put("tipo", "TEMPERATURA");
+        datos.put("valor", m.centesimas / 100.0);
+        datos.put("unidad", "C");
+        datos.put("latitud", m.latitud);
+        datos.put("longitud", m.longitud);
+        datos.put("fecha_hora", m.fechaIso8601);
+        datos.put("simulada", false);
+        return datos;
     }
 
     public JSONObject cambiarContrasena(String token, JSONObject datos) throws Exception {

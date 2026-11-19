@@ -1,6 +1,9 @@
 package com.example.ozora.senda.ui;
 
 import android.content.Context;
+import android.os.SystemClock;
+import com.example.ozora.senda.bluetooth.EstadoLlavero;
+import java.util.Locale;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
@@ -24,6 +27,14 @@ public final class KeyringScreen {
     public void refresh(SessionManager session, RouteManager routes, SharedPreferences prefs,
                         String sensor, boolean active, boolean receiving, String state) {
         boolean selected = sensor != null;
+        long ahora = SystemClock.elapsedRealtime();
+        Integer bateria = EstadoLlavero.COMPARTIDO.bateria(sensor, ahora);
+        Double temperatura = EstadoLlavero.COMPARTIDO.temperatura(sensor, ahora);
+        text(R.id.keyring_battery_value, bateria == null ? context.getString(R.string.keyring_battery_unknown)
+                : context.getString(R.string.keyring_battery_percent, bateria));
+        text(R.id.keyring_temperature_value, temperatura == null
+                ? context.getString(R.string.keyring_temperature_unknown)
+                : context.getString(R.string.keyring_temperature_value, String.format(Locale.getDefault(), "%.2f", temperatura)));
         text(R.id.keyring_id, selected ? sensor : "—");
         text(R.id.keyring_park, context.getString(R.string.home_park, session.worker.parkId));
         text(R.id.keyring_status, context.getString(!selected ? R.string.keyring_none
