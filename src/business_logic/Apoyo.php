@@ -44,7 +44,20 @@ function rutaPeticionAplicacion(): ?string
  * Descripción: Lee la configuración privada local, nunca servida por HTTP. */
 function configuracion(): array
 {
-    $archivo = getenv('SENDA_CONFIG') ?: dirname(__DIR__) . '/config/local.php';
+    $archivo = getenv('SENDA_CONFIG');
+    if (!$archivo) {
+        $candidatos = [
+            dirname(__DIR__) . '/config/local.php',
+            dirname(__DIR__, 2) . '/config/local.php',
+        ];
+        foreach ($candidatos as $c) {
+            if (is_file($c)) {
+                $archivo = $c;
+                break;
+            }
+        }
+        $archivo ??= $candidatos[0];
+    }
     if (!is_file($archivo)) {
         throw new RuntimeException('Falta src/config/local.php');
     }
