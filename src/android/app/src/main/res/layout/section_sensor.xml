@@ -1,33 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="12dp">
-<TextView style="@style/AccountTitle" android:text="@string/keyring_title"/>
-<TextView style="@style/AccountSubtitle" android:text="@string/keyring_subtitle"/>
-<LinearLayout style="@style/AccountCard" android:orientation="horizontal" android:gravity="center_vertical" android:paddingTop="24dp" android:paddingBottom="24dp">
-<ImageView android:layout_width="88dp" android:layout_height="112dp" android:src="@drawable/keyring_device" android:importantForAccessibility="no"/>
-<View android:layout_width="1dp" android:layout_height="100dp" android:layout_marginHorizontal="14dp" android:background="#DCD6C5"/>
-<LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-<TextView android:id="@+id/keyring_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="10dp" android:paddingVertical="7dp" android:textSize="11sp" android:textStyle="bold" android:textColor="#1D4032" android:accessibilityLiveRegion="polite"/>
-<TextView android:id="@+id/keyring_id" style="@style/SendaSectionLabel" android:textSize="25sp" android:paddingTop="8dp" android:breakStrategy="simple"/>
-<TextView android:id="@+id/keyring_park" style="@style/SendaSectionText" android:textSize="14sp"/>
-</LinearLayout>
-</LinearLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="6dp" android:paddingBottom="20dp">
+<TextView style="@style/AccountTitle" android:text="@string/keyring_title" android:textSize="34sp" android:textColor="#1D4032" android:paddingTop="22dp"/>
+<TextView style="@style/AccountSubtitle" android:text="Tu conexión con el entorno" android:textColor="#536A5B"/>
+<FrameLayout android:layout_width="match_parent" android:layout_height="220dp" android:layout_marginTop="4dp" android:layout_marginBottom="14dp">
+<View android:layout_width="208dp" android:layout_height="208dp" android:layout_gravity="center" android:background="@drawable/keyring_halo"/>
+<ImageView android:layout_width="146dp" android:layout_height="184dp" android:layout_gravity="center" android:rotation="12" android:src="@drawable/keyring_device" android:importantForAccessibility="no"/>
+</FrameLayout>
+<TextView android:id="@+id/keyring_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_horizontal" android:paddingHorizontal="18dp" android:paddingVertical="8dp" android:textSize="13sp" android:textStyle="bold" android:textColor="#1D4032" android:accessibilityLiveRegion="polite"/>
+<TextView android:id="@+id/keyring_id" style="@style/SendaSectionLabel" android:textSize="30sp" android:gravity="center" android:paddingTop="14dp" android:paddingBottom="4dp" android:breakStrategy="simple"/>
+<TextView android:id="@+id/keyring_park" style="@style/SendaSectionText" android:textSize="16sp" android:gravity="center" android:paddingBottom="26dp" android:textColor="#536A5B"/>
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
-<LinearLayout style="@style/AccountCard" android:layout_width="0dp" android:layout_weight="1" android:layout_marginEnd="6dp" android:minHeight="100dp">
-<TextView style="@style/SendaSectionLabel" android:text="Bluetooth" android:drawableStart="@drawable/home_sensor" android:drawablePadding="6dp"/>
-<TextView android:id="@+id/keyring_reception" style="@style/SendaSectionText" android:textStyle="bold" android:textSize="16sp"/>
+<LinearLayout style="@style/KeyringCard" android:layout_width="0dp" android:layout_weight="1" android:layout_marginEnd="6dp" android:minHeight="106dp" android:gravity="center_vertical">
+<TextView style="@style/SendaSectionText" android:text="Señal BLE" android:textSize="14sp" android:drawableStart="@drawable/home_sensor" android:drawablePadding="8dp"/>
+<TextView android:id="@+id/keyring_reception" style="@style/SendaSectionText" android:textStyle="bold" android:textSize="17sp"/>
 </LinearLayout>
-<LinearLayout style="@style/AccountCard" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="6dp" android:minHeight="100dp">
-<TextView style="@style/SendaSectionLabel" android:text="@string/keyring_battery"/>
-<TextView style="@style/SendaSectionText" android:text="@string/keyring_battery_unknown" android:textSize="16sp"/>
+<LinearLayout style="@style/KeyringCard" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="6dp" android:minHeight="106dp" android:gravity="center_vertical">
+<TextView style="@style/SendaSectionText" android:text="@string/keyring_battery" android:textSize="14sp"/>
+<TextView style="@style/SendaSectionText" android:text="No disponible" android:textStyle="bold" android:textSize="17sp"/>
+</LinearLayout></LinearLayout>
+<LinearLayout android:id="@+id/keyring_details" style="@style/KeyringCard" android:paddingTop="2dp" android:paddingBottom="2dp">
+<TextView android:id="@+id/text_device" style="@style/KeyringValue"/>
+<View style="@style/KeyringDivider"/>
+<TextView android:id="@+id/text_last_o3" style="@style/KeyringValue"/>
+<View style="@style/KeyringDivider"/>
+<TextView android:id="@+id/keyring_link_date" style="@style/KeyringValue"/>
+<View style="@style/KeyringDivider"/>
+<TextView style="@style/KeyringValue" android:text="Firmware · No disponible"/>
 </LinearLayout>
-</LinearLayout>
-<LinearLayout android:id="@+id/keyring_details" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-<TextView android:id="@+id/text_device" style="@style/AccountDetail"/>
-<TextView android:id="@+id/text_last_o3" style="@style/AccountDetail"/>
-<TextView android:id="@+id/keyring_link_date" style="@style/AccountDetail"/>
-<TextView style="@style/AccountDetail" android:text="@string/keyring_firmware"/>
-</LinearLayout>
-<TextView android:id="@+id/keyring_hint" style="@style/SendaSectionText" android:gravity="center" android:paddingTop="20dp" android:paddingBottom="16dp"/>
+<TextView android:id="@+id/keyring_hint" style="@style/SendaSectionText" android:gravity="center" android:textColor="#718276" android:textSize="13sp" android:paddingTop="8dp" android:paddingBottom="18dp"/>
 <com.google.android.material.button.MaterialButton android:id="@+id/button_select_sensor" style="@style/AuthButton" android:text="@string/keyring_scan"/>
-<TextView style="@style/SendaSectionText" android:text="@string/keyring_local_hint" android:textSize="12sp" android:gravity="center" android:paddingTop="12dp"/>
 </LinearLayout>
