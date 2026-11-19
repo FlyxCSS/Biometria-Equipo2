@@ -36,20 +36,15 @@
 <LinearLayout android:id="@+id/home_bottom_card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:layout_marginBottom="104dp" android:orientation="vertical" android:paddingStart="20dp" android:paddingEnd="20dp" android:paddingTop="20dp" android:paddingBottom="20dp" android:background="@drawable/s_sheet" android:elevation="6dp">
 <LinearLayout android:id="@+id/home_reading" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
-<TextView style="@style/OverlineText" android:layout_width="0dp" android:layout_weight="1" android:text="OZONO · O₃" android:textSize="14sp"/>
+<TextView style="@style/OverlineText" android:layout_width="0dp" android:layout_weight="1" android:text="ÚLTIMA MEDICIÓN · O₃" android:textSize="14sp"/>
 <TextView android:id="@+id/home_clock" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="15sp" android:textColor="@color/senda_muted" android:drawableStart="@drawable/ic_s_sun" android:drawablePadding="6dp" android:drawableTint="@color/senda_muted" android:gravity="center_vertical"/>
 </LinearLayout>
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginTop="2dp">
 <TextView android:id="@+id/text_last_o3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textSize="52sp" android:textStyle="bold" android:textFontWeight="800" android:fontFamily="@font/inter_heavy" app:fontFamily="@font/inter_heavy" android:letterSpacing="-0.03" android:textColor="@color/senda_ink" android:singleLine="true"/>
 <TextView android:id="@+id/home_level" style="@style/Chip" android:visibility="gone"/>
 </LinearLayout>
-<FrameLayout android:id="@+id/home_gauge" android:layout_width="match_parent" android:layout_height="24dp" android:layout_marginTop="6dp">
-<View android:layout_width="match_parent" android:layout_height="6dp" android:layout_gravity="center_vertical" android:background="@drawable/s_gradient_o3"/>
-<View android:id="@+id/home_gauge_thumb" android:layout_width="22dp" android:layout_height="22dp" android:layout_gravity="center_vertical" android:background="@drawable/s_thumb" android:visibility="invisible"/>
-</FrameLayout>
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginTop="8dp">
 <TextView android:id="@+id/home_last_detail" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textSize="15sp" android:textColor="@color/senda_muted" android:drawablePadding="8dp" android:gravity="center_vertical" android:maxLines="2"/>
-<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bueno · Alto" android:textSize="14sp" android:textColor="@color/senda_muted" android:layout_marginStart="8dp"/>
 </LinearLayout>
 <TextView android:id="@+id/text_o3_warning" style="@style/HomeText" android:textSize="13sp" android:textColor="@color/status_error" android:layout_marginTop="8dp" android:visibility="gone"/>
 </LinearLayout>

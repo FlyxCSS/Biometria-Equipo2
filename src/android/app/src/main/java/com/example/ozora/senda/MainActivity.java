@@ -382,7 +382,6 @@ public final class      MainActivity extends FieldScreen {
             connection.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
                     getColor(receiving ? R.color.status_connected_surface : R.color.status_neutral_surface)));
             connection.setContentDescription(receiving ? "Llavero conectado por Bluetooth" : "Sin conexión Bluetooth con el llavero");
-            textoEn(R.id.home_clock, new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(new Date()));
             if (homeMap != null) homeMap.refresh(false);
         }
         if (tab == R.id.tab_inicio) {
@@ -485,6 +484,7 @@ public final class      MainActivity extends FieldScreen {
                 if (c.moveToFirst()) {
                     value = c.getInt(0);
                     sent = c.getInt(3);
+                    textoEn(R.id.home_clock, horaLectura(c.getString(1)));
                     detail = sent == 1 ? "Medición enviada" : sent == 2 ? "Envío rechazado" : "Guardada en el móvil";
                     aviso = EnvironmentalAssessment.aviso(value, ajustes().getInt("umbral", 60));
                 }
@@ -535,12 +535,10 @@ public final class      MainActivity extends FieldScreen {
     /** Nivel orientativo respecto al umbral configurado y posición en la barra 0–120 ppb. */
     private void mostrarNivel(int value) {
         TextView level = section.findViewById(R.id.home_level);
-        View thumb = section.findViewById(R.id.home_gauge_thumb);
-        View gauge = section.findViewById(R.id.home_gauge);
-        if (value < 0) { level.setVisibility(View.GONE); thumb.setVisibility(View.INVISIBLE); return; }
+        if (value < 0) { level.setVisibility(View.GONE); return; }
         int umbral = ajustes().getInt("umbral", 60);
         boolean high = value >= umbral * 1.25f, moderate = !high && value >= umbral * 0.75f;
-        textoEn(R.id.home_level, high ? "Alto" : moderate ? "Moderado" : "Bueno");
+        textoEn(R.id.home_level, high ? "Mala calidad" : moderate ? "Calidad moderada" : "Buena calidad");
         int tone = getColor(high ? R.color.status_error : moderate ? R.color.senda_moderate : R.color.status_success);
         int surface = getColor(high ? R.color.status_error_surface : moderate ? R.color.senda_moderate_surface : R.color.status_success_surface);
         int dot = high ? getColor(R.color.status_error_strong) : moderate ? 0xffd99a2b : getColor(R.color.status_success);
@@ -549,11 +547,18 @@ public final class      MainActivity extends FieldScreen {
         level.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_s_dot_ring, 0, 0, 0);
         level.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(dot));
         level.setVisibility(View.VISIBLE);
-        float fraction = Math.max(0f, Math.min(1f, value / 120f));
-        gauge.post(() -> {
-            thumb.setTranslationX((gauge.getWidth() - thumb.getWidth()) * fraction);
-            thumb.setVisibility(View.VISIBLE);
-        });
+    }
+
+    /** Hora de la última lectura: "12:46" si es de hoy, "18/11 · 12:46" si no. */
+    private String horaLectura(String iso) {
+        try {
+            long instant = SessionManager.instante(iso);
+            java.util.Calendar now = java.util.Calendar.getInstance(), when = java.util.Calendar.getInstance();
+            when.setTimeInMillis(instant);
+            boolean today = now.get(java.util.Calendar.YEAR) == when.get(java.util.Calendar.YEAR)
+                    && now.get(java.util.Calendar.DAY_OF_YEAR) == when.get(java.util.Calendar.DAY_OF_YEAR);
+            return new java.text.SimpleDateFormat(today ? "HH:mm" : "dd/MM · HH:mm", java.util.Locale.getDefault()).format(new Date(instant));
+        } catch (ParseException e) { return ""; }
     }
 
     private static String iniciales(String name, int max) {

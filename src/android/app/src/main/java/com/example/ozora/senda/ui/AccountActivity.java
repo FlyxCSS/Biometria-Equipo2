@@ -26,7 +26,49 @@ public final class AccountActivity extends FieldScreen {
     private String photo;
     private boolean busy;
     private final ActivityResultLauncher<String[]> picker = registerForActivityResult(
-            new ActivityResultContracts.OpenDocument(), uri -> {
+            new ActivityResultContracts.OpenDocument(), this::procesarFoto);
+    /** Foto tomada con la cámara del móvil; se guarda en un archivo temporal privado de la app. */
+    private Uri cameraUri;
+    private final ActivityResultLauncher<Uri> camera = registerForActivityResult(
+            new ActivityResultContracts.TakePicture(), ok -> {
+                if (Boolean.TRUE.equals(ok) && cameraUri != null) procesarFoto(cameraUri);
+            });
+
+    private void abrirCamara() {
+        if (busy) return;
+        try {
+            java.io.File dir = new java.io.File(getCacheDir(), "fotos");
+            if (!dir.isDirectory() && !dir.mkdirs()) throw new java.io.IOException();
+            java.io.File file = new java.io.File(dir, "perfil.jpg");
+            cameraUri = androidx.core.content.FileProvider.getUriForFile(this, getPackageName() + ".fotos", file);
+            camera.launch(cameraUri);
+        } catch (Exception error) {
+            ((TextView) findViewById(R.id.profile_feedback)).setText("No se pudo abrir la cámara. Elige una foto de la galería.");
+            picker.launch(new String[]{"image/*"});
+        }
+    }
+
+    private void elegirFoto() {
+        if (busy) return;
+        new android.app.AlertDialog.Builder(this).setTitle("Cambiar foto")
+                .setItems(new String[]{"Hacer una foto", "Elegir de la galería"}, (d, which) -> {
+                    if (which == 0) abrirCamara(); else picker.launch(new String[]{"image/*"});
+                }).show();
+    }
+
+    /** Rotación EXIF de las fotos de cámara, para que el avatar no salga girado. */
+    private int rotacion(Uri uri) {
+        try (java.io.InputStream input = getContentResolver().openInputStream(uri)) {
+            if (input == null) return 0;
+            int o = new android.media.ExifInterface(input).getAttributeInt(
+                    android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_NORMAL);
+            return o == android.media.ExifInterface.ORIENTATION_ROTATE_90 ? 90
+                    : o == android.media.ExifInterface.ORIENTATION_ROTATE_180 ? 180
+                    : o == android.media.ExifInterface.ORIENTATION_ROTATE_270 ? 270 : 0;
+        } catch (Exception ignored) { return 0; }
+    }
+
+    private void procesarFoto(Uri uri) {
                 if (uri == null || session == null || busy) return;
                 busy = true;
                 findViewById(R.id.profile_save).setEnabled(false);
@@ -48,6 +90,15 @@ public final class AccountActivity extends FieldScreen {
                             bitmap = android.graphics.BitmapFactory.decodeStream(input, null, options);
                         }
                         if (bitmap == null) throw new java.io.IOException();
+                        int grados = rotacion(uri);
+                        if (grados != 0) {
+                            android.graphics.Matrix giro = new android.graphics.Matrix();
+                            giro.postRotate(grados);
+                            android.graphics.Bitmap girada = android.graphics.Bitmap.createBitmap(
+                                    bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), giro, true);
+                            if (girada != bitmap) bitmap.recycle();
+                            bitmap = girada;
+                        }
                         java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
                         bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, output);
                         bitmap.recycle();
@@ -66,7 +117,7 @@ public final class AccountActivity extends FieldScreen {
                         } });
                     }
                 }, "senda-foto").start();
-            });
+    }
     public static SharedPreferences preferences(android.content.Context context, SessionManager session) {
         return context.getSharedPreferences("campo-" + session.worker.id + "-" + session.worker.parkId,
                 MODE_PRIVATE);
@@ -87,9 +138,8 @@ public final class AccountActivity extends FieldScreen {
         ((TextView)findViewById(R.id.profile_park)).setText(getString(R.string.home_park, session.worker.parkId));
         photo = state != null ? state.getString("photo") : prefs.getString("profile_photo", null);
         showPhoto();
-        findViewById(R.id.profile_change_photo).setOnClickListener(v -> {
-            if (!busy) picker.launch(new String[]{"image/*"});
-        });
+        findViewById(R.id.profile_change_photo).setOnClickListener(v -> elegirFoto());
+        findViewById(R.id.profile_camera).setOnClickListener(v -> abrirCamara());
         findViewById(R.id.profile_remove_photo).setOnClickListener(v -> {
             if (busy) return;
             new android.app.AlertDialog.Builder(this)
