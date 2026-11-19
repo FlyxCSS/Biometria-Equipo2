@@ -121,7 +121,13 @@ public final class AccountActivity extends FieldScreen {
         TextView eliminar = findViewById(R.id.profile_remove_photo);
         boolean tieneFoto = photo != null && !photo.isEmpty();
         eliminar.setEnabled(tieneFoto);
-        eliminar.setTextColor(tieneFoto ? getColor(R.color.status_error) : 0xff9a9e9a);
+        eliminar.setVisibility(tieneFoto ? android.view.View.VISIBLE : android.view.View.GONE);
+        TextView initials = findViewById(R.id.profile_initials);
+        initials.setVisibility(tieneFoto ? android.view.View.GONE : android.view.View.VISIBLE);
+        StringBuilder letters = new StringBuilder();
+        for (String part : prefs.getString("profile_name", session.worker.name).trim().split("\\s+"))
+            if (!part.isEmpty() && letters.length() < 2) letters.appendCodePoint(Character.toUpperCase(part.codePointAt(0)));
+        initials.setText(letters);
     }
 
     public static void mostrarFoto(ImageView view, String foto) {

@@ -1,35 +1,62 @@
 <resources>
     <style name="AccountTitle" parent="SendaSectionTitle">
-        <item name="android:textSize">30sp</item><item name="android:textColor">#111612</item>
-        <item name="android:paddingTop">20dp</item><item name="android:paddingBottom">6dp</item>
+        <item name="android:textSize">34sp</item><item name="android:textColor">@color/senda_ink</item>
+        <item name="android:letterSpacing">-0.02</item><item name="android:textFontWeight">800</item><item name="android:fontFamily">@font/inter_heavy</item><item name="fontFamily">@font/inter_heavy</item>
+        <item name="android:paddingTop">28dp</item><item name="android:paddingBottom">2dp</item>
     </style>
     <style name="AccountSubtitle" parent="SendaSectionText">
-        <item name="android:textSize">16sp</item><item name="android:paddingBottom">18dp</item>
+        <item name="android:textSize">16sp</item><item name="android:textColor">@color/senda_muted</item><item name="android:paddingBottom">18dp</item>
     </style>
     <style name="AccountCard">
         <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginBottom">12dp</item><item name="android:padding">18dp</item>
-        <item name="android:background">@drawable/account_card</item><item name="android:elevation">3dp</item>
+        <item name="android:layout_marginBottom">16dp</item><item name="android:padding">16dp</item>
+        <item name="android:background">@drawable/s_card</item><item name="android:elevation">1dp</item>
         <item name="android:orientation">vertical</item>
     </style>
     <style name="AccountRow" parent="Widget.Material3.Button.TextButton">
         <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
-        <item name="android:minHeight">60dp</item><item name="android:layout_marginBottom">10dp</item>
+        <item name="android:minHeight">58dp</item>
         <item name="android:textAllCaps">false</item><item name="android:textSize">17sp</item>
-        <item name="android:textStyle">bold</item><item name="android:textColor">#1D4032</item>
-        <item name="android:gravity">start|center_vertical</item><item name="android:paddingStart">18dp</item>
-        <item name="android:paddingEnd">18dp</item><item name="android:paddingTop">16dp</item>
-        <item name="android:paddingBottom">16dp</item><item name="backgroundTint">#FFFFFF</item>
-        <item name="cornerRadius">20dp</item><item name="android:elevation">3dp</item>
-        <item name="android:insetTop">0dp</item><item name="android:insetBottom">0dp</item>
+        <item name="android:textColor">@color/senda_ink</item>
+        <item name="android:gravity">start|center_vertical</item><item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item><item name="backgroundTint">#00FFFFFF</item>
+        <item name="cornerRadius">0dp</item><item name="android:insetTop">0dp</item><item name="android:insetBottom">0dp</item>
+        <item name="icon">@drawable/ic_s_chevron</item><item name="iconGravity">end</item><item name="iconTint">@color/senda_muted</item><item name="iconSize">20dp</item>
     </style>
     <style name="AccountDivider">
         <item name="android:layout_width">match_parent</item><item name="android:layout_height">1dp</item>
-        <item name="android:background">#DCD6C5</item><item name="android:layout_marginTop">10dp</item>
-        <item name="android:layout_marginBottom">18dp</item>
+        <item name="android:background">@color/senda_divider</item>
     </style>
     <style name="AccountAvatarShape"><item name="cornerFamily">rounded</item><item name="cornerSize">50%</item></style>
-<style name="AccountDetail" parent="SendaSectionText">
-<item name="android:layout_marginBottom">12dp</item><item name="android:padding">18dp</item>
-<item name="android:background">@drawable/account_card</item><item name="android:elevation">3dp</item>
-</style><style name="AccountInput" parent="AuthEdit"><item name="android:background">@drawable/account_input</item></style></resources>
+    <style name="AccountDetail" parent="SendaSectionText">
+        <item name="android:layout_marginBottom">16dp</item><item name="android:padding">16dp</item>
+        <item name="android:textSize">14sp</item><item name="android:textColor">@color/senda_muted</item>
+        <item name="android:background">@drawable/s_card</item>
+    </style>
+    <style name="AccountInput" parent="AuthEdit"/>
+    <style name="SettingsRow">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">66dp</item><item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item><item name="android:paddingStart">16dp</item><item name="android:paddingEnd">16dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item><item name="android:clickable">true</item><item name="android:focusable">true</item>
+    </style>
+    <style name="SettingsIcon">
+        <item name="android:layout_width">40dp</item><item name="android:layout_height">40dp</item>
+        <item name="android:padding">9dp</item><item name="android:background">@drawable/s_tile</item>
+        <item name="android:importantForAccessibility">no</item><item name="tint">@color/senda_ink</item>
+    </style>
+    <style name="SettingsLabel">
+        <item name="android:layout_width">0dp</item><item name="android:layout_weight">1</item><item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">14dp</item><item name="android:textSize">17sp</item><item name="android:textColor">@color/senda_ink</item>
+    </style>
+    <style name="SettingsChevron">
+        <item name="android:layout_width">20dp</item><item name="android:layout_height">20dp</item>
+        <item name="android:src">@drawable/ic_s_chevron</item><item name="tint">@color/senda_muted</item><item name="android:importantForAccessibility">no</item>
+    </style>
+    <style name="SettingsDivider" parent="AccountDivider"><item name="android:layout_marginStart">16dp</item><item name="android:layout_marginEnd">16dp</item></style>
+    <style name="SettingsGroup">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item><item name="android:background">@drawable/s_card</item>
+        <item name="android:layout_marginBottom">16dp</item><item name="android:elevation">1dp</item>
+    </style>
+</resources>

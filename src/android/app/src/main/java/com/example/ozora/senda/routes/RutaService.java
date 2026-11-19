@@ -9,6 +9,7 @@
 package com.example.ozora.senda.routes;
 
 import com.example.ozora.senda.MainActivity;
+import com.example.ozora.senda.R;
 import android.app.*;
 import android.content.*;
 import android.location.Location;
@@ -37,18 +38,32 @@ public final class RutaService extends Service implements CapturaLlaveroControll
             if(actual!=i.getLongExtra("ruta",0) || !i.getBooleanExtra("reanudar",false)) return START_NOT_STICKY;
             detenerSensores();
         }
-        if(Build.VERSION.SDK_INT>=26) getSystemService(NotificationManager.class).createNotificationChannel(
-                new NotificationChannel("campo","Recorrido en curso",NotificationManager.IMPORTANCE_LOW));
-        Notification.Builder n=Build.VERSION.SDK_INT>=26 ? new Notification.Builder(this,"campo") : new Notification.Builder(this);
+        // Canal visible (icono en la barra de estado) pero silencioso; el antiguo de baja importancia se retira.
+        if(Build.VERSION.SDK_INT>=26) {
+            NotificationManager manager=getSystemService(NotificationManager.class);
+            manager.deleteNotificationChannel("campo");
+            NotificationChannel canal=new NotificationChannel("recorrido","Recorrido en curso",NotificationManager.IMPORTANCE_DEFAULT);
+            canal.setDescription("Aviso fijo mientras SENDA registra un recorrido.");
+            canal.setSound(null,null); canal.enableVibration(false); canal.setShowBadge(false);
+            manager.createNotificationChannel(canal);
+        }
+        Notification.Builder n=Build.VERSION.SDK_INT>=26 ? new Notification.Builder(this,"recorrido") : new Notification.Builder(this);
         Intent home=new Intent(this,MainActivity.class).putExtra(MainActivity.EXTRA_SHOW_ROUTES, true)
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent verRecorrido = PendingIntent.getActivity(this, 0, home,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        try { startForeground(31,n.setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle("SENDA · Recorrido en curso")
-            .setContentText("Abre la app para ver o finalizar el recorrido.").setOngoing(true)
+        String llavero=i.getStringExtra("sensor");
+        n.setSmallIcon(R.drawable.ic_s_notification).setColor(0xff1f3d2f)
+            .setContentTitle("Recorrido en curso")
+            .setContentText(llavero==null ? "En curso · Solo GPS" : "En curso · Llavero "+llavero)
+            .setSubText("SENDA")
+            .setWhen(System.currentTimeMillis()).setShowWhen(true).setUsesChronometer(true)
+            .setOngoing(true).setOnlyAlertOnce(true).setCategory(Notification.CATEGORY_SERVICE)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setContentIntent(verRecorrido)
-            .addAction(new Notification.Action.Builder(android.R.drawable.ic_menu_mylocation,
-                    "Ver recorrido", verRecorrido).build()).build());
+            .addAction(new Notification.Action.Builder(R.drawable.ic_s_notification, "Ver recorrido", verRecorrido).build());
+        if(Build.VERSION.SDK_INT>=31) n.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        try { startForeground(31,n.build());
         } catch(SecurityException ex) {
             estado="Captura interrumpida. Concede ubicación precisa y reanuda desde la app.";
             stopSelf(); return START_NOT_STICKY;

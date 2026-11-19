@@ -1,14 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.SENDA" parent="Theme.Material3.Light.NoActionBar">
-        <item name="colorPrimary">#234D39</item>
+        <item name="colorPrimary">@color/senda_ink</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondaryContainer">@color/senda_nav_indicator</item>
+        <item name="colorSurface">@color/senda_surface</item>
         <item name="colorError">@color/status_error</item>
         <item name="colorErrorContainer">@color/status_error_surface</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:textViewStyle">@style/SendaTextView</item>
+        <item name="popupMenuStyle">@style/SendaPopup</item>
+        <item name="android:popupMenuStyle">@style/SendaPopup</item>
+        <item name="android:windowBackground">@color/senda_surface</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:statusBarColor">#F8F6EB</item>
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:statusBarColor">@color/senda_surface</item>
     </style>
-
     <style name="Theme.SENDA" parent="Base.Theme.SENDA" />
+    <style name="SendaTextView" parent="android:Widget.TextView"><item name="android:fontFamily">@font/inter</item></style>
+    <style name="SendaPopup" parent="Widget.Material3.PopupMenu"><item name="android:popupBackground">@drawable/s_popup</item></style>
 </resources>

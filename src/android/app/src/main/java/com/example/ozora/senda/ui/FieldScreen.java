@@ -51,6 +51,13 @@ public abstract class FieldScreen extends AppCompatActivity {
         cerrarAviso();
         super.onStop();
     }
+    /** Inter incluida en la app; el peso no depende de la fuente del fabricante. */
+    public static Typeface inter(android.content.Context context, boolean bold) {
+        Typeface base = androidx.core.content.res.ResourcesCompat.getFont(context, com.example.ozora.senda.R.font.inter);
+        if (base == null) return bold ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT;
+        if (android.os.Build.VERSION.SDK_INT >= 28) return Typeface.create(base, bold ? 700 : 400, false);
+        return Typeface.create(base, bold ? Typeface.BOLD : Typeface.NORMAL);
+    }
     protected int dp(int n) { return Math.round(n*getResources().getDisplayMetrics().density); }
     /** Una sola aplicación de insets por ventana, también para recortes laterales e IME. */
     protected void protegerBarras(View root) {
@@ -74,7 +81,7 @@ public abstract class FieldScreen extends AppCompatActivity {
     }
     protected TextView texto(String valor,int tam,boolean negrita) {
         TextView t=new TextView(this); t.setText(valor); t.setTextSize(tam); t.setTextColor(TEXTO);
-        t.setPadding(0,dp(6),0,dp(6)); if(negrita)t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        t.setPadding(0,dp(6),0,dp(6)); t.setTypeface(inter(this,negrita));
         contenido.addView(t); return t;
     }
     protected TextView tarjeta(String titulo,int tam) {

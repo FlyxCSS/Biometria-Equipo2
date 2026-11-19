@@ -42,6 +42,14 @@ public final class BiometricSetupActivity extends FieldScreen {
         ((TextView)findViewById(R.id.bio_description)).setText(bio.activo() ? R.string.bio_success : R.string.bio_description);
         ((TextView)findViewById(R.id.bio_activate)).setText(bio.activo() ? R.string.bio_disable
                 : bio.disponible() ? R.string.bio_enable : R.string.bio_android_settings);
+        com.google.android.material.button.MaterialButton action = findViewById(R.id.bio_activate);
+        boolean disable = bio.activo();
+        int fg = disable ? 0xffffffff : getColor(R.color.senda_ink);
+        action.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                getColor(disable ? R.color.status_error_strong : R.color.senda_mint)));
+        action.setTextColor(fg);
+        action.setIconResource(disable ? R.drawable.ic_s_logout : R.drawable.ic_s_check_circle);
+        action.setIconTint(android.content.res.ColorStateList.valueOf(fg));
         ((TextView)findViewById(R.id.bio_skip)).setText(fromLogin && !bio.activo() ? R.string.bio_skip : R.string.flow_back);
         feedback(!bio.activo() && !bio.disponible() ? getString(R.string.bio_unavailable) : "");
     }

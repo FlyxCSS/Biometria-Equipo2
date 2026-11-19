@@ -37,7 +37,8 @@ public final class HomeMapController implements LocationTracker.Oyente {
     private JSONArray points = new JSONArray();
     private int min, max;
     private long lastRefresh;
-    private com.google.android.material.bottomsheet.BottomSheetBehavior<View> sheet;
+    /** Capa elegida en el desplegable: ozono o temperatura. */
+    private boolean temperature;
 
     public HomeMapController(Activity activity, View root, SessionManager session, boolean enabled, boolean week) {
         this(activity, root, session, enabled, week, false);
@@ -92,25 +93,25 @@ public final class HomeMapController implements LocationTracker.Oyente {
         MaterialButtonToggleGroup periods = root.findViewById(R.id.home_period);
         periods.check(week ? R.id.home_week : R.id.home_today);
         periods.addOnButtonCheckedListener((group, id, checked) -> {
-            if (checked) { this.week = id == R.id.home_week; refresh(true); }
+            if (checked) { this.week = id == R.id.home_week; updateControls(); refresh(true); }
+        });
+        TextView layer = root.findViewById(R.id.home_layer_name);
+        layer.setOnClickListener(v -> {
+            android.widget.PopupMenu menu = new android.widget.PopupMenu(activity, v);
+            menu.getMenu().add(0, 1, 0, activity.getString(R.string.home_ozone));
+            menu.getMenu().add(0, 2, 1, "Temperatura");
+            menu.setOnMenuItemClickListener(item -> {
+                temperature = item.getItemId() == 2;
+                layer.setText(item.getTitle());
+                updateControls();
+                refresh(true);
+                return true;
+            });
+            menu.show();
         });
         if (!backdrop) {
             View panel = root.findViewById(R.id.home_bottom_card);
-            sheet = com.google.android.material.bottomsheet.BottomSheetBehavior.from(panel);
-            sheet.setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED);
-            sheet.addBottomSheetCallback(new com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback() {
-                @Override public void onStateChanged(View bottom, int state) {
-                    boolean open = state == com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED;
-                    ((TextView)root.findViewById(R.id.home_sheet_toggle)).setText(open ? "━  Ocultar detalles" : "━  Última lectura · Ver detalles");
-                    root.findViewById(R.id.home_sheet_toggle).setContentDescription(open ? "Recoger detalles de ozono" : "Expandir detalles de ozono");
-                    updateMapInset();
-                }
-                @Override public void onSlide(View bottom, float offset) { updateMapInset(); }
-            });
-            root.findViewById(R.id.home_sheet_toggle).setOnClickListener(v -> sheet.setState(
-                    sheet.getState() == com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-                    ? com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
-                    : com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED));
+            panel.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> { if (t != ot || b != ob) updateMapInset(); });
         } else root.findViewById(R.id.home_recenter).setVisibility(View.GONE);
         updateControls();
         refresh(true);
@@ -202,9 +203,18 @@ public final class HomeMapController implements LocationTracker.Oyente {
     private void updateControls() {
         root.findViewById(R.id.home_legend).setVisibility(enabled ? View.VISIBLE : View.GONE);
         root.findViewById(R.id.home_heat_filters).setVisibility(enabled ? View.VISIBLE : View.GONE);
+        View reading = root.findViewById(R.id.home_reading);
+        if (reading != null) reading.setVisibility(enabled ? View.GONE : View.VISIBLE);
+        TextView legendTitle = root.findViewById(R.id.home_legend_title);
+        if (legendTitle != null) legendTitle.setText((temperature ? "CAPA DE TEMPERATURA" : "CAPA DE OZONO")
+                + (week ? " · 7 DÍAS" : " · HOY"));
+        TextView unit = root.findViewById(R.id.home_legend_unit);
+        if (unit != null) unit.setText(temperature ? "°C" : "ppb");
         MaterialButton button = root.findViewById(R.id.home_heat_toggle);
         button.setChecked(enabled);
-        button.setIconResource(enabled ? R.drawable.home_eye_off : R.drawable.home_eye);
+        int ink = activity.getColor(R.color.senda_ink);
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(enabled ? ink : 0x00ffffff));
+        button.setIconTint(android.content.res.ColorStateList.valueOf(enabled ? 0xffffffff : ink));
         button.setContentDescription(activity.getString(enabled ? R.string.home_heat_hide : R.string.home_heat_show));
         render();
         showStatus();
@@ -225,6 +235,15 @@ public final class HomeMapController implements LocationTracker.Oyente {
         if (disposed || (!force && now - lastRefresh < 15000)) return;
         lastRefresh = now;
         boolean requestedWeek = week;
+        if (temperature) {
+            // El llavero actual no mide temperatura: la capa se muestra vacía, sin datos inventados.
+            points = new JSONArray(); min = 0; max = 0;
+            ((TextView) root.findViewById(R.id.home_min)).setText("—");
+            ((TextView) root.findViewById(R.id.home_mid)).setText("");
+            ((TextView) root.findViewById(R.id.home_max)).setText("—");
+            render(); showStatus();
+            return;
+        }
         Calendar start = Calendar.getInstance();
         start.set(Calendar.HOUR_OF_DAY, 0); start.set(Calendar.MINUTE, 0);
         start.set(Calendar.SECOND, 0); start.set(Calendar.MILLISECOND, 0);
@@ -251,10 +270,12 @@ public final class HomeMapController implements LocationTracker.Oyente {
             int low = minimum == Integer.MAX_VALUE ? 0 : minimum;
             int high = maximum == Integer.MIN_VALUE ? 0 : maximum;
             activity.runOnUiThread(() -> {
-                if (disposed || requestedWeek != week || SessionManager.current() != session) return;
+                if (disposed || requestedWeek != week || temperature || SessionManager.current() != session) return;
                 points = result; min = low; max = high;
                 ((TextView) root.findViewById(R.id.home_min)).setText(points.length() == 0 ? "—" : min + " ppb");
                 ((TextView) root.findViewById(R.id.home_max)).setText(points.length() == 0 ? "—" : max + " ppb");
+                TextView mid = root.findViewById(R.id.home_mid);
+                if (mid != null) mid.setText(points.length() == 0 || max == min ? "" : Math.round((min + max) / 2f) + " ppb");
                 render(); showStatus();
             });
         });
@@ -268,7 +289,8 @@ public final class HomeMapController implements LocationTracker.Oyente {
     private void showStatus() {
         if (mapUnavailable) { status(activity.getString(R.string.home_map_offline)); return; }
         if (last == null) return;
-        String message = enabled ? activity.getString(points.length() == 0 ? R.string.home_no_heat : R.string.home_heat_note) : "";
+        String message = !enabled ? "" : temperature ? "Sin mediciones de temperatura: el llavero actual solo mide ozono."
+                : activity.getString(points.length() == 0 ? R.string.home_no_heat : R.string.home_heat_note);
         if (enabled && points.length() >= 1500) message += " · Últimas 1500 ubicaciones";
         status(message);
     }

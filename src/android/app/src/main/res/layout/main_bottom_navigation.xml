@@ -1,1 +1,10 @@
-<com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottom_navigation" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/home_card" app:itemIconTint="#1D4032" app:itemTextColor="#1D4032" app:itemActiveIndicatorStyle="@style/HomeNavigationIndicator" app:itemHorizontalTranslationEnabled="false" app:labelVisibilityMode="labeled" app:menu="@menu/main_navigation"/>
+<com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottom_navigation" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginTop="8dp" android:layout_marginBottom="12dp"
+    android:paddingStart="6dp" android:paddingEnd="6dp" android:minHeight="72dp"
+    android:background="@drawable/s_nav_bg" android:elevation="6dp"
+    app:backgroundTint="@null" app:elevation="6dp"
+    app:itemIconTint="@color/s_nav_item" app:itemTextColor="@color/s_nav_item" app:itemIconSize="26dp"
+    app:itemTextAppearanceInactive="@style/NavLabel" app:itemTextAppearanceActive="@style/NavLabelActive"
+    app:itemActiveIndicatorStyle="@style/HomeNavigationIndicator" app:itemPaddingTop="12dp" app:itemPaddingBottom="12dp"
+    app:itemHorizontalTranslationEnabled="false" app:labelVisibilityMode="labeled" app:menu="@menu/main_navigation"/>

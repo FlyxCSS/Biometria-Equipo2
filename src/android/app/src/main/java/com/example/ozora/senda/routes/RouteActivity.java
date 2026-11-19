@@ -43,7 +43,7 @@ public final class RouteActivity extends RouteScreen {
     private long id;
     private int silenceSeconds;
     private LinearLayout header, controls;
-    private TextView signal, duration, count;
+    private TextView signal, duration, count, lastOzone, recording;
 
 
     @Override protected void onCreate(Bundle state) {
@@ -68,29 +68,32 @@ public final class RouteActivity extends RouteScreen {
         root.addView(web, new FrameLayout.LayoutParams(-1, -1));
 
         header = column();
-        header.setPadding(dp(16), dp(12), dp(16), 0);
+        header.setPadding(dp(16), dp(16), dp(16), 0);
         LinearLayout heading = new LinearLayout(this);
-        heading.addView(backButton(), new LinearLayout.LayoutParams(dp(48), dp(48)));
+        heading.setGravity(Gravity.CENTER_VERTICAL);
+        heading.setBackgroundResource(R.drawable.s_card_glass);
+        heading.setElevation(dp(3));
+        heading.setPadding(dp(12), dp(12), dp(14), dp(12));
+        heading.addView(backButton(), new LinearLayout.LayoutParams(dp(44), dp(44)));
         LinearLayout info = column();
-        card(info);
-        info.setPadding(dp(14), dp(12), dp(14), dp(12));
         LinearLayout.LayoutParams infoSize = new LinearLayout.LayoutParams(0, -2, 1);
-        infoSize.setMarginStart(dp(8));
+        infoSize.setMarginStart(dp(12));
         heading.addView(info, infoSize);
-        TextView title = label(getString(R.string.route_live), 20, true);
+        TextView title = label(getString(R.string.route_live), 19, true);
+        title.setSingleLine(true);
         info.addView(title);
-        String start = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date(route.start));
-        info.addView(label(getString(R.string.route_started, start), 14, false));
-        signal = label("", 13, true);
-        signal.setPadding(dp(8), dp(3), dp(8), dp(3));
-        LinearLayout.LayoutParams signalSize = new LinearLayout.LayoutParams(-2, -2);
-        signalSize.topMargin = dp(6);
-        info.addView(signal, signalSize);
+        String start = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date(route.start));
+        TextView started = label("Inicio · " + start, 15, false);
+        started.setTextColor(MUTED);
+        info.addView(started);
+        signal = chip("", 0xff2b6fd6, 0xffe3edfb, R.drawable.ic_s_dot_ring);
+        signal.setTextSize(13);
+        heading.addView(signal, new LinearLayout.LayoutParams(-2, -2));
         header.addView(heading);
 
         TextView status = label("", 13, true);
-        status.setBackgroundResource(R.drawable.home_card);
-        status.setPadding(dp(10), dp(5), dp(10), dp(5));
+        status.setBackgroundResource(R.drawable.s_card_glass);
+        status.setPadding(dp(14), dp(7), dp(14), dp(7));
         LinearLayout.LayoutParams statusSize = new LinearLayout.LayoutParams(-2, -2);
         statusSize.gravity = Gravity.CENTER_HORIZONTAL;
         statusSize.topMargin = dp(6);
@@ -99,21 +102,47 @@ public final class RouteActivity extends RouteScreen {
         map = new RouteMap(this, web, status, true);
 
         controls = column();
-        controls.setPadding(dp(16), 0, dp(16), dp(24));
+        controls.setBackgroundResource(R.drawable.s_sheet);
+        controls.setElevation(dp(6));
+        controls.setPadding(dp(18), dp(18), dp(18), dp(18));
+        LinearLayout top = new LinearLayout(this);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        recording = label(getString(R.string.route_recording), 16, true);
+        recording.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_s_dot_ring, 0, 0, 0);
+        recording.setCompoundDrawablePadding(dp(8));
+        recording.setCompoundDrawableTintList(ColorStateList.valueOf(0xff3e9b5a));
+        top.addView(recording, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView keyring = label(route.sensor == null ? getString(R.string.route_gps_only) : "Llavero " + route.sensor, 15, false);
+        keyring.setTextColor(route.sensor == null ? MUTED : 0xff2b6fd6);
+        keyring.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_s_bluetooth, 0, 0, 0);
+        keyring.setCompoundDrawablePadding(dp(6));
+        keyring.setCompoundDrawableTintList(ColorStateList.valueOf(route.sensor == null ? MUTED : 0xff2b6fd6));
+        keyring.setGravity(Gravity.CENTER_VERTICAL);
+        top.addView(keyring);
+        controls.addView(top);
         LinearLayout stats = new LinearLayout(this);
         duration = metric(stats, R.string.route_duration, 0);
         count = metric(stats, R.string.route_measurements, 8);
-        controls.addView(stats);
+        lastOzone = metric(stats, R.string.route_last_o3, 8);
+        addWithTopMargin(controls, stats, 14);
         MaterialButton finishRoute = new MaterialButton(this);
         finishRoute.setAllCaps(false);
         finishRoute.setText(R.string.main_finish);
-        finishRoute.setTextSize(17);
+        finishRoute.setTextSize(18);
+        finishRoute.setTypeface(com.example.ozora.senda.ui.FieldScreen.inter(this, true));
         finishRoute.setMinHeight(dp(56));
-        finishRoute.setCornerRadius(dp(18));
-        finishRoute.setBackgroundTintList(ColorStateList.valueOf(INK));
+        finishRoute.setInsetTop(0);
+        finishRoute.setInsetBottom(0);
+        finishRoute.setCornerRadius(dp(20));
+        finishRoute.setIconResource(R.drawable.ic_s_stop);
+        finishRoute.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);
+        finishRoute.setIconPadding(dp(14));
+        finishRoute.setBackgroundTintList(ColorStateList.valueOf(0xffd23b2f));
         finishRoute.setOnClickListener(view -> confirmFinish());
-        addWithTopMargin(controls, finishRoute, 8);
-        root.addView(controls, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
+        addWithTopMargin(controls, finishRoute, 14);
+        FrameLayout.LayoutParams controlsSize = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
+        controlsSize.setMargins(dp(12), 0, dp(12), dp(16));
+        root.addView(controls, controlsSize);
 
         setContentView(root);
         protegerBarras(root);
@@ -121,11 +150,16 @@ public final class RouteActivity extends RouteScreen {
 
     private TextView metric(LinearLayout parent, int name, int margin) {
         LinearLayout card = column();
-        card(card);
-        card.setPadding(dp(12), dp(12), dp(12), dp(12));
-        card.addView(label(getString(name), 13, true));
-        TextView value = label("", 23, true);
-        card.addView(value);
+        card.setBackgroundResource(R.drawable.s_stat_tile);
+        card.setPadding(dp(12), dp(12), dp(10), dp(12));
+        TextView title = label(getString(name), 14, false);
+        title.setTextColor(MUTED);
+        title.setSingleLine(true);
+        card.addView(title);
+        TextView value = label("", 21, true);
+        value.setMaxLines(1);
+        value.setAutoSizeTextTypeUniformWithConfiguration(11, 21, 1, android.util.TypedValue.COMPLEX_UNIT_SP);
+        card.addView(value, new LinearLayout.LayoutParams(-1, dp(34)));
         LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(0, -2, 1);
         size.setMarginStart(dp(margin));
         parent.addView(card, size);
@@ -146,8 +180,15 @@ public final class RouteActivity extends RouteScreen {
                 : receiving ? R.string.route_receiving : R.string.route_no_signal;
         if (!getString(status).contentEquals(signal.getText())) {
             signal.setText(status);
-            signal.setBackgroundResource(R.drawable.home_card);
-            signal.setBackgroundTintList(ColorStateList.valueOf(receiving ? SAGE : 0xfff4ebd7));
+            int tone = receiving ? 0xff2b6fd6 : !running ? 0xffb3261e : MUTED;
+            signal.setTextColor(tone);
+            signal.setCompoundDrawableTintList(ColorStateList.valueOf(tone));
+            signal.setBackgroundTintList(ColorStateList.valueOf(receiving ? 0xffe3edfb : !running ? 0xfffbe7e4 : 0xffefece5));
+            recording.setText(running ? R.string.route_recording : R.string.route_paused);
+            recording.setCompoundDrawableTintList(ColorStateList.valueOf(running ? 0xff3e9b5a : 0xffd23b2f));
+        }
+        try (android.database.Cursor last = manager.ultima(id)) {
+            lastOzone.setText(last.moveToFirst() ? valueWithUnit(String.valueOf(last.getInt(0)), "ppb") : "—");
         }
         long seconds = Math.max(0, System.currentTimeMillis() - route.start) / 1000;
         duration.setText(String.format(Locale.getDefault(), "%02d:%02d:%02d",

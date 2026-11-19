@@ -175,6 +175,14 @@ public final class RouteManager extends SQLiteOpenHelper {
                 : new String[]{usuario, parque, sensor, max, offset});
     }
 
+    /** Lecturas locales de la cuenta desde un instante UTC ISO, para el gráfico del historial. */
+    public Cursor lecturasDesde(Worker worker, String since) {
+        return getReadableDatabase().rawQuery(
+                "SELECT l.ppb,l.fecha FROM lectura l JOIN ruta r ON r.id=l.ruta"
+                + " WHERE r.usuario=? AND r.parque=? AND l.fecha>=? ORDER BY l.fecha LIMIT 20000",
+                new String[]{String.valueOf(worker.id), String.valueOf(worker.parkId), since});
+    }
+
     public Cursor lecturasRuta(Worker worker, long id, int limite, int desplazamiento) {
         return getReadableDatabase().rawQuery(
                 "SELECT l.ppb,l.fecha,l.lat,l.lon FROM lectura l JOIN ruta r ON r.id=l.ruta"

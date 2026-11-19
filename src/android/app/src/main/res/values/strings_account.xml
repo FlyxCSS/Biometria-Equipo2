@@ -1,7 +1,7 @@
 <resources>
 <string name="keyring_title">Mi llavero</string><string name="keyring_subtitle">Sensor de tu recorrido</string>
-<string name="keyring_none">NO VINCULADO</string><string name="keyring_receiving">RECIBIENDO</string><string name="keyring_silent">VINCULADO</string>
-<string name="keyring_scan">Escanear QR llavero</string><string name="keyring_unlink">Desvincular llavero</string>
+<string name="keyring_none">No conectado</string><string name="keyring_receiving">Conectado</string><string name="keyring_silent">Vinculado</string>
+<string name="keyring_scan">Escanear QR del llavero</string><string name="keyring_unlink">Desvincular llavero</string>
 <string name="keyring_hint">Escanea el QR para comprobar y vincular el llavero con tu cuenta.</string>
 <string name="keyring_active_hint">Finaliza el recorrido para cambiar o desvincular el llavero.</string>
 <string name="keyring_local_hint">La vinculación se comprueba con el servidor. Al desvincularlo quedará libre para otro trabajador del parque.</string>
@@ -23,8 +23,8 @@
 <string name="account_profile_subtitle">Información personal del trabajador</string>
 <string name="account_local_note">La foto se guarda en tu cuenta del servidor. El nombre visible y el teléfono se guardan en este dispositivo. El correo de acceso y el parque los gestiona el responsable del parque.</string>
 <string name="account_name">Nombre</string><string name="account_email">Correo electrónico</string>
-<string name="account_phone">Número de teléfono</string><string name="account_park">Parque asignado</string>
-<string name="account_photo">Cambiar foto del perfil</string><string name="account_update">Actualizar</string>
+<string name="account_phone">Teléfono</string><string name="account_park">Parque asignado</string>
+<string name="account_photo">Cambiar foto</string><string name="account_update">Guardar cambios</string>
 <string name="account_saved">Perfil actualizado en este dispositivo.</string>
 <string name="account_no_email">No disponible en esta sesión</string>
 </resources>
