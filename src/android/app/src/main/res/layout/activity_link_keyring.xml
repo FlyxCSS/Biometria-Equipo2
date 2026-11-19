@@ -1,6 +1,6 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/qr_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/senda_surface">
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="24dp" android:paddingBottom="28dp">
-<com.google.android.material.button.MaterialButton android:id="@+id/qr_back" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/flow_back" android:textAllCaps="false"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/qr_back" style="@style/SendaBack" android:text="Llavero" android:contentDescription="Volver"/>
 <TextView style="@style/FlowTitle" android:text="@string/qr_title"/>
 <TextView style="@style/AccountSubtitle" android:text="@string/qr_subtitle" android:textColor="#536A5B"/>
 <LinearLayout android:id="@+id/qr_camera_panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:padding="24dp" android:background="@drawable/qr_panel">

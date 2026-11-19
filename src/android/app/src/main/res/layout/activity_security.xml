@@ -1,0 +1,22 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/security_root" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/senda_surface">
+<LinearLayout android:id="@+id/security_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="22dp" android:orientation="vertical">
+    <com.google.android.material.button.MaterialButton android:id="@+id/security_back" style="@style/SendaBack" android:text="Ajustes" android:contentDescription="Volver a Ajustes"/>
+    <TextView style="@style/AccountTitle" android:text="Contraseña y seguridad"/>
+    <TextView style="@style/AccountSubtitle" android:text="Cuida el acceso a tu cuenta"/>
+    <View style="@style/AccountDivider"/>
+    <LinearLayout style="@style/AccountCard">
+        <TextView style="@style/SendaSectionLabel" android:text="Cambiar contraseña" android:textSize="20sp"/>
+        <TextView style="@style/SendaSectionText" android:text="Elige una contraseña distinta de la actual, de al menos 12 caracteres ASCII. Con acentos o símbolos, el límite se calcula en bytes (12–72)." android:layout_marginBottom="16dp"/>
+        <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Contraseña actual" app:endIconMode="password_toggle">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/security_current" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:singleLine="true" android:saveEnabled="false" android:autofillHints="password"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:hint="Nueva contraseña" app:endIconMode="password_toggle">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/security_next" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:singleLine="true" android:saveEnabled="false" android:autofillHints="newPassword"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:hint="Repetir nueva contraseña" app:endIconMode="password_toggle">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/security_confirm" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:singleLine="true" android:saveEnabled="false" android:autofillHints="newPassword" android:imeOptions="actionDone"/>
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+    <TextView style="@style/AccountDetail" android:text="Al guardar, se cerrarán las sesiones de tu cuenta. Podrás volver a activar la biometría después de iniciar sesión con la nueva contraseña."/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/security_submit" style="@style/AuthButton" android:text="Actualizar contraseña" android:tag="submit"/>
+</LinearLayout></ScrollView>

@@ -1,7 +1,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/auth_landscape">
 <ScrollView android:id="@+id/bio_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="24dp" android:paddingBottom="28dp">
-<com.google.android.material.button.MaterialButton android:id="@+id/bio_back" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/flow_back" android:textAllCaps="false"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/bio_back" style="@style/SendaBack" android:text="Volver" android:contentDescription="Volver"/>
 <TextView style="@style/FlowTitle" android:text="@string/bio_title"/>
 <ImageView android:layout_width="176dp" android:layout_height="176dp" android:layout_gravity="center_horizontal" android:layout_marginVertical="20dp" android:src="@drawable/bio_fingerprint" android:importantForAccessibility="no"/>
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp" android:background="@drawable/auth_card">

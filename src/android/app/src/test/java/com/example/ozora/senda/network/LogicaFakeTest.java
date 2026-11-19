@@ -78,6 +78,14 @@ public class LogicaFakeTest {
         return bytes.toString(StandardCharsets.US_ASCII.name());
     }
 
+    @Test public void historialAutenticadoConservaCursorSinAlterarlo() throws Exception {
+        respuesta = "{\"ok\":true,\"data\":{\"mediciones\":[],\"siguiente\":null}}";
+        assertEquals(0, logica.historialMediciones("token-test", null).getJSONArray("mediciones").length());
+        comprobar("GET", "/usuarios/actual/mediciones", "token-test");
+        logica.historialMediciones("token-test", "a+b/c==");
+        comprobar("GET", "/usuarios/actual/mediciones?cursor=a%2Bb%2Fc%3D%3D", "token-test");
+    }
+
     @Test public void guardarMedicionConservaContratoYConfirmacion() throws Exception {
         MedicionAmbiental m = new MedicionAmbiental("S-001", 2, 39, -0.1, 5,
                 "2026-11-18T10:00:00.000Z", 8);

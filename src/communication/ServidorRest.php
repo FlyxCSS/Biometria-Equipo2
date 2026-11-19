@@ -56,6 +56,7 @@ function atenderApi(): never
             '/api/v1/sesiones/actual' => ['GET', 'DELETE'],
             '/api/v1/usuarios/actual/contrasena' => ['POST'],
             '/api/v1/mediciones' => ['POST'],
+            '/api/v1/usuarios/actual/mediciones' => ['GET'],
             '/api/v1/usuarios/actual/foto' => ['POST'],
             '/api/v1/llaveros/actual' => ['POST', 'DELETE'],
             '/api/v1/trabajadores' => ['POST'],
@@ -121,6 +122,8 @@ function atenderApi(): never
             } elseif ($ruta === '/api/v1/llaveros/actual') {
                 $resultado = $metodo === 'POST' ? $logica->vincularLlavero($usuario, $datos)
                     : $logica->desvincularLlavero($usuario);
+            } elseif ($ruta === '/api/v1/usuarios/actual/mediciones') {
+                $resultado = $logica->historialMediciones($usuario, $_GET['cursor'] ?? null);
             } elseif ($ruta === '/api/v1/mediciones') {
                 $resultado = $logica->guardarMedicion($usuario, $datos);
                 $estado = $resultado['duplicada'] ? 200 : 201;

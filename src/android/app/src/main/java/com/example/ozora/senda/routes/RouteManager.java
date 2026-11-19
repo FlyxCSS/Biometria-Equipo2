@@ -165,7 +165,7 @@ public final class RouteManager extends SQLiteOpenHelper {
 
     public Cursor historial(Worker worker, String sensor, int limite, int desplazamiento) {
         String identidad = "COALESCE(l.nombre_micro,r.sensor)";
-        String sql = "SELECT l.ppb,l.fecha," + identidad + ",r.id FROM lectura l JOIN ruta r ON r.id=l.ruta"
+        String sql = "SELECT l.ppb,l.fecha," + identidad + ",r.id,l.enviado,l.error_envio,l.lat,l.lon FROM lectura l JOIN ruta r ON r.id=l.ruta"
                 + " WHERE r.usuario=? AND r.parque=?" + (sensor == null ? "" : " AND " + identidad + "=?")
                 + " ORDER BY l.fecha DESC,l.id DESC LIMIT ? OFFSET ?";
         String usuario = String.valueOf(worker.id), parque = String.valueOf(worker.parkId);

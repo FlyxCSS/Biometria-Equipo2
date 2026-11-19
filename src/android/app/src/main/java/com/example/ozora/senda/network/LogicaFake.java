@@ -62,6 +62,11 @@ public final class LogicaFake {
         return transporte.pedir("POST", "/usuarios/actual/contrasena", token, datos);
     }
 
+    public JSONObject historialMediciones(String token, String cursor) throws Exception {
+        return transporte.pedir("GET", "/usuarios/actual/mediciones" + (cursor == null ? ""
+                : "?cursor=" + java.net.URLEncoder.encode(cursor, "UTF-8")), token, null);
+    }
+
     public JSONObject solicitarRecuperacion(JSONObject datos) throws Exception {
         return transporte.pedir("POST", "/recuperaciones", null, datos);
     }

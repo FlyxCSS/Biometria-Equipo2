@@ -1,6 +1,6 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/account_root" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/senda_surface" android:fillViewport="true">
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="22dp" android:orientation="vertical">
-<com.google.android.material.button.MaterialButton android:id="@+id/account_back" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="‹  Volver a Ajustes" android:textAllCaps="false"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/account_back" style="@style/SendaBack" android:text="Ajustes" android:contentDescription="Volver a Ajustes"/>
 <TextView style="@style/AccountTitle" android:text="@string/account_profile"/>
 <TextView style="@style/AccountSubtitle" android:text="@string/account_profile_subtitle"/>
 <View style="@style/AccountDivider"/>

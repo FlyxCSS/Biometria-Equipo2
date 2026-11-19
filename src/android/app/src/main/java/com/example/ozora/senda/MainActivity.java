@@ -88,6 +88,7 @@ public final class      MainActivity extends FieldScreen {
     private String sensorRuta;
     private long ultimoEnvio;
     private HomeMapController homeMap;
+    private com.example.ozora.senda.ui.HistoryScreen history;
     private boolean heatEnabled = true, heatWeek, mapPermissionAsked;
     private boolean operacionLlavero;
     private static final java.util.concurrent.ExecutorService REMOTO = java.util.concurrent.Executors.newSingleThreadExecutor();
@@ -188,7 +189,7 @@ public final class      MainActivity extends FieldScreen {
             if (homeMap != null) homeMap.start();
             actualizar();
             actualizarRemoto();
-            if (tab == R.id.tab_rutas || tab == R.id.tab_historial) cargarPagina(false);
+            if (tab == R.id.tab_rutas) cargarPagina(false);
             reloj.post(tick);
         }
     }
@@ -202,11 +203,13 @@ public final class      MainActivity extends FieldScreen {
     @Override protected void onDestroy() {
         if (bio != null) bio.cancelar();
         if (homeMap != null) homeMap.destroy();
+        if (history != null) history.close();
         if (rutas != null) rutas.close();
         super.onDestroy();
     }
 
     private void mostrar(int destino) {
+        if (history != null) { history.close(); history = null; }
         int layout = R.layout.section_inicio;
         if (destino == R.id.tab_rutas) layout = R.layout.section_rutas;
         else if (destino == R.id.tab_historial) layout = R.layout.section_historial;
@@ -262,7 +265,7 @@ public final class      MainActivity extends FieldScreen {
             accion(R.id.button_route_map, () -> abrirRuta(RouteActivity.class, id));
             accion(R.id.button_route_summary, () -> abrirRuta(SummaryActivity.class, id));
         } else if (destino == R.id.tab_historial) {
-            accion(R.id.button_refresh_history, () -> { historyPage = 0; cargarPagina(true); });
+            history = new com.example.ozora.senda.ui.HistoryScreen(this, section, session);
         } else if (destino == R.id.tab_sensor) {
             accion(R.id.button_select_sensor, this::gestionarLlavero);
         } else if (destino == R.id.tab_mas) {
@@ -275,16 +278,15 @@ public final class      MainActivity extends FieldScreen {
             accion(R.id.button_notifications, this::abrirNotificaciones);
             accion(R.id.button_help, this::mostrarAyuda);
             accion(R.id.button_settings, this::configurar);
-            accion(R.id.button_permissions, () -> startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", getPackageName(), null))));
+            accion(R.id.button_permissions, () -> startActivity(new Intent(this, com.example.ozora.senda.ui.PermissionsActivity.class)));
             accion(R.id.button_retry_sync, () -> {
-                rutas.reintentarEnvios(session.worker);
-                MeasurementSync.sincronizar(this);
+                if (MeasurementSync.reintentar(this)) aviso("Reintentando los envíos pendientes…", true);
+                else aviso("Ya hay un envío en curso.", false);
                 actualizar();
             });
             accion(R.id.button_logout, this::confirmarSalida);
         }
-        if (destino == R.id.tab_rutas || destino == R.id.tab_historial) {
+        if (destino == R.id.tab_rutas) {
             accion(R.id.button_previous, () -> cambiarPagina(-1));
             accion(R.id.button_next, () -> cambiarPagina(1));
             cargarPagina(false);
@@ -386,7 +388,8 @@ public final class      MainActivity extends FieldScreen {
                 AccountActivity.mostrarFoto(avatar, photo);
                 avatar.setTag(photo);
             }
-            textoEn(R.id.text_sync, rutas.estadoEnvios(session.worker) + "\n" + MeasurementSync.estado);
+            textoEn(R.id.text_sync, rutas.estadoEnvios(session.worker) + "\n" + MeasurementSync.estado(session));
+            section.findViewById(R.id.button_retry_sync).setEnabled(!MeasurementSync.enCurso());
         }
     }
 
@@ -618,15 +621,9 @@ public final class      MainActivity extends FieldScreen {
     }
 
     private void abrirNotificaciones() {
-        if (Build.VERSION.SDK_INT >= 33 && !permiso(Manifest.permission.POST_NOTIFICATIONS)) {
-            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 22);
-            return;
-        }
-        Intent intent = Build.VERSION.SDK_INT >= 26
-                ? new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName())
-                : new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null));
-        startActivity(intent);
+        startActivity(new Intent(this, com.example.ozora.senda.ui.PermissionsActivity.class).putExtra("notifications", true));
     }
+
     private void mostrarAyuda() {
         new AlertDialog.Builder(this).setTitle(R.string.account_help)
                 .setMessage("Llavero: escanea su QR y comienza un recorrido para recibir lecturas por Bluetooth. La batería y el firmware no están disponibles con el protocolo actual.\n\nUbicación: permite la ubicación precisa y los dispositivos cercanos para registrar el recorrido.\n\nPerfil: la foto se guarda en tu cuenta del servidor; el nombre visible y el teléfono se guardan en este móvil. Para cambiar el correo o el parque, contacta con tu responsable.\n\nEnvíos: si falla la conexión, las lecturas se conservan en el móvil. Puedes reintentarlas desde Ajustes.")
