@@ -106,9 +106,10 @@ public final class AccountActivity extends FieldScreen {
                         String encoded = "data:image/jpeg;base64," + android.util.Base64.encodeToString(
                                 output.toByteArray(), android.util.Base64.NO_WRAP);
                         runOnUiThread(() -> { if (!isDestroyed() && SessionManager.current() == session) {
-                            photo = encoded; showPhoto(); busy = false;
-                            findViewById(R.id.profile_save).setEnabled(true);
+                            photo = encoded; showPhoto();
+                            ((TextView)findViewById(R.id.profile_feedback)).setText("Guardando la foto en tu cuenta…");
                         } });
+                        subirFoto(encoded);
                     } catch (Exception error) {
                         runOnUiThread(() -> { if (!isDestroyed()) {
                             busy = false; findViewById(R.id.profile_save).setEnabled(true);
@@ -118,6 +119,37 @@ public final class AccountActivity extends FieldScreen {
                     }
                 }, "senda-foto").start();
     }
+    /** Sube la foto al servidor (USUARIOS.foto_perfil) en cuanto se elige; solo se da por guardada si responde OK. */
+    private void subirFoto(String encoded) {
+        try {
+            org.json.JSONObject respuesta = new LogicaFake(this).actualizarFotoPerfil(session.token, encoded);
+            boolean coincide = encoded.equals(respuesta.optString("foto_perfil", null));
+            android.util.Log.i("SendaPerfil", "Foto subida: " + (encoded.length() / 1024) + " KB, confirmada=" + coincide);
+            runOnUiThread(() -> {
+                busy = false;
+                if (isDestroyed()) return;
+                findViewById(R.id.profile_save).setEnabled(true);
+                if (SessionManager.current() != session) return;
+                prefs.edit().putString("profile_photo", encoded).apply();
+                ((TextView)findViewById(R.id.profile_feedback)).setText(coincide
+                        ? "Foto guardada en tu cuenta." : "Foto enviada; el servidor no la ha devuelto igual.");
+            });
+        } catch (Exception error) {
+            int status = error instanceof ApiClient.Error ? ((ApiClient.Error) error).status : 0;
+            android.util.Log.w("SendaPerfil", "No se pudo subir la foto: " + status + " " + error.getMessage());
+            runOnUiThread(() -> {
+                busy = false;
+                if (isDestroyed()) return;
+                findViewById(R.id.profile_save).setEnabled(true);
+                photo = prefs.getString("profile_photo", null);
+                showPhoto();
+                ((TextView)findViewById(R.id.profile_feedback)).setText(error instanceof ApiClient.Error
+                        ? "No se guardó la foto: " + error.getMessage()
+                        : "No se guardó la foto. Comprueba la conexión e inténtalo de nuevo.");
+            });
+        }
+    }
+
     public static SharedPreferences preferences(android.content.Context context, SessionManager session) {
         return context.getSharedPreferences("campo-" + session.worker.id + "-" + session.worker.parkId,
                 MODE_PRIVATE);
