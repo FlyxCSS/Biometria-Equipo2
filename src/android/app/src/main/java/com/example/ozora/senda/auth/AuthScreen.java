@@ -38,6 +38,7 @@ public abstract class AuthScreen extends FieldScreen {
         hero.setLayoutParams(heroSize);
         email = findViewById(R.id.auth_email);
         password = findViewById(R.id.auth_password);
+        ojoContrasena(password);
         feedback = findViewById(R.id.auth_feedback);
     }
 

@@ -93,6 +93,29 @@ public abstract class FieldScreen extends AppCompatActivity {
      * Z <--
      * Descripción: Dp. Aplicación de campo: acceso, captura, recorridos y presentación Android
      * -------------------- */
+    /**
+     * Ojo para mostrar u ocultar una contraseña dentro de su TextInputLayout.
+     * Se gestiona a mano para que funcione aunque el campo tenga estilos propios (sin borde, una línea…).
+     */
+    public static void ojoContrasena(EditText campo) {
+        android.view.ViewParent padre = campo.getParent();
+        while (padre != null && !(padre instanceof com.google.android.material.textfield.TextInputLayout)) padre = padre.getParent();
+        if (padre == null) return;
+        com.google.android.material.textfield.TextInputLayout caja = (com.google.android.material.textfield.TextInputLayout) padre;
+        caja.setEndIconMode(com.google.android.material.textfield.TextInputLayout.END_ICON_CUSTOM);
+        caja.setEndIconDrawable(com.example.ozora.senda.R.drawable.ic_s_eye);
+        caja.setEndIconContentDescription("Mostrar contraseña");
+        caja.setEndIconOnClickListener(v -> {
+            boolean oculta = campo.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod;
+            int cursor = campo.getSelectionEnd();
+            campo.setTransformationMethod(oculta ? android.text.method.HideReturnsTransformationMethod.getInstance()
+                    : android.text.method.PasswordTransformationMethod.getInstance());
+            if (cursor >= 0) campo.setSelection(Math.min(cursor, campo.length()));
+            caja.setEndIconDrawable(oculta ? com.example.ozora.senda.R.drawable.ic_s_eye_off : com.example.ozora.senda.R.drawable.ic_s_eye);
+            caja.setEndIconContentDescription(oculta ? "Ocultar contraseña" : "Mostrar contraseña");
+        });
+    }
+
     protected int dp(int n) { return Math.round(n*getResources().getDisplayMetrics().density); }
     /** Una sola aplicación de insets por ventana, también para recortes laterales e IME. */
 

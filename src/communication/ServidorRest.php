@@ -12,6 +12,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/business_logic/LogicaNegocio.php';
 require_once __DIR__ . '/ContextoWeb.php';
+require_once dirname(__DIR__) . '/business_logic/Correo.php';
 
 
 
@@ -113,6 +114,13 @@ function atenderApi(): never
             } else {
                 $resultado = $logica->solicitarRecuperacion($datos);
                 $estado = 202;
+                // Enviar el enlace al momento, sin esperar a "gestionar.php correo". Si falla,
+                // el correo sigue en CORREOS_PENDIENTES y se reintenta con la herramienta.
+                try {
+                    entregarCorreos($db, $config);
+                } catch (Throwable $fallo) {
+                    error_log('SENDA: no se pudo entregar el correo de recuperación: ' . $fallo->getMessage());
+                }
             }
         } elseif ($ruta === '/api/v1/recuperaciones/confirmacion') {
             $logica->limitar($ruta, $_SERVER['REMOTE_ADDR'] ?? 'desconocida');

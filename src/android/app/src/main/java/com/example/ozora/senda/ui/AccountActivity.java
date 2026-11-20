@@ -361,6 +361,7 @@ public final class AccountActivity extends FieldScreen {
         EditText current = findViewById(R.id.security_current);
         EditText next = findViewById(R.id.security_next);
         EditText confirm = findViewById(R.id.security_confirm);
+        ojoContrasena(current); ojoContrasena(next); ojoContrasena(confirm);
         findViewById(R.id.security_submit).setOnClickListener(v -> changePassword(current, next, confirm));
         mensajes();
     }
