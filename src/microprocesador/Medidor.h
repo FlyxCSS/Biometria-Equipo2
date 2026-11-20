@@ -12,7 +12,7 @@
 #ifndef MEDIDOR_H_INCLUIDO
 #define MEDIDOR_H_INCLUIDO
 #include <math.h>
-
+ #include <cstdlib>
 // ------------------------------------------------------
 // Medidor para el sensor analogico SPEC ULPSM-O3 968-046
 // Vgas -> A3, Vref -> A4, Vtemp -> A5
@@ -63,15 +63,31 @@ public:
    * R <--
    * Descripción: Medida Fake O3. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
    * -------------------- */
-  float medidaFakeO3() const { return 0.033f; } // ppm: 33 ppb.
+ 
+float medidaFakeO3() const {
+    float min = 0.000f;
+    float max = 0.033f;
+
+    // Genera un número entre 0.0 y 1.0, y lo escala al rango deseado
+    float escala = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    return min + escala * (max - min);
+}// ppm: 33 ppb.
 
   /** --------------------
    * Diseño lógico: medidaFakeTemperatura() -->
    * R <--
    * Descripción: Medida Fake Temperatura. Adquiere O3 y temperatura reales y ofrece valores ficticios explícitos
    * -------------------- */
-  float medidaFakeTemperatura() const { return 23.45f; } // grados C.
 
+
+float medidaFakeTemperatura() const {
+    float min = 20.0f;
+    float max = 26.0f;
+
+    // Genera un número entre 0.0 y 1.0, y lo escala al rango deseado
+    float escala = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    return min + escala * (max - min);
+}
 
 /** --------------------
  * Diseño lógico: Medidor() -->
