@@ -39,6 +39,7 @@ public final class RecoveryActivity extends FieldScreen {
         token = findViewById(R.id.recovery_token);
         next = findViewById(R.id.recovery_password);
         repeat = findViewById(R.id.recovery_repeat);
+        ojoContrasena(next); ojoContrasena(repeat);
         if (state == null) email.setText(getIntent().getStringExtra("correo"));
         model = new ViewModelProvider(this).get(RecoveryViewModel.class);
         findViewById(R.id.auth_back).setOnClickListener(v -> finish());

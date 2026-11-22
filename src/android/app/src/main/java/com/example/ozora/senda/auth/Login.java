@@ -9,6 +9,7 @@
 package com.example.ozora.senda.auth;
 
 import android.content.Intent;
+import android.view.View;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.EditText;
@@ -222,13 +223,31 @@ public final class Login extends AuthScreen {
      * Descripción: Solicita la clave actual y la nueva; el token temporal no abre recorridos ni biometría
      * -------------------- */
     private void primerAcceso(String correo) {
-        pagina("Cambia tu contraseña inicial");
-        texto("Antes de comenzar, elige una contraseña propia de 12 a 72 bytes UTF-8.",16,false);
-        EditText actual=campo("Contraseña inicial",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        EditText nueva=campo("Nueva contraseña",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        EditText repetir=campo("Repetir nueva contraseña",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        agregarClave(actual); agregarClave(nueva); agregarClave(repetir);
-        boton("Guardar nueva contraseña",()->{
+        // Misma estética que el resto del acceso: bosque, tarjeta blanca, campos con ojo y botón menta.
+        setContentView(R.layout.activity_first_password);
+        protegerBarras(findViewById(R.id.inicial_scroll));
+        EditText actual=findViewById(R.id.inicial_actual);
+        EditText nueva=findViewById(R.id.inicial_nueva);
+        EditText repetir=findViewById(R.id.inicial_repetir);
+        ojoContrasena(actual); ojoContrasena(nueva); ojoContrasena(repetir);
+        View progreso=findViewById(R.id.inicial_progreso);
+        View guardar=findViewById(R.id.inicial_guardar);
+        Runnable volver=()->{
+            if(ocupado) return;
+            String anterior=tokenInicial; tokenInicial=null;
+            if(anterior!=null) RED.execute(()->{
+                try { logica.cerrarSesion(anterior); }
+                catch(Exception ignorado) { /* El token sigue limitado por su caducidad en PHP. */ }
+            });
+            acceso();
+        };
+        findViewById(R.id.inicial_volver).setOnClickListener(v->volver.run());
+        findViewById(R.id.inicial_cancelar).setOnClickListener(v->volver.run());
+        repetir.setOnEditorActionListener((v,accion,evento)->{
+            if(accion!=EditorInfo.IME_ACTION_DONE) return false;
+            guardar.performClick(); return true;
+        });
+        guardar.setOnClickListener(v->{
             if(ocupado) return;
             String valor=nueva.getText().toString(), anterior=actual.getText().toString();
             int bytes=valor.getBytes(StandardCharsets.UTF_8).length;
@@ -240,8 +259,8 @@ public final class Login extends AuthScreen {
                 tokenInicial=null; acceso(); mensaje("La sesión ha caducado. Vuelve a entrar con tu contraseña inicial."); return;
             }
             ocupado=true;
+            progreso.setVisibility(View.VISIBLE); guardar.setEnabled(false);
             String token=tokenInicial;
-            mensaje("Guardando la nueva contraseña…");
             RED.execute(()->{
                 try {
                     logica.cambiarContrasena(token,new JSONObject()
@@ -256,6 +275,7 @@ public final class Login extends AuthScreen {
                     runOnUiThread(()->{
                         if(isDestroyed() || isFinishing()) return;
                         ocupado=false;
+                        progreso.setVisibility(View.GONE); guardar.setEnabled(true);
                         if(error instanceof ApiClient.Error && ((ApiClient.Error)error).status==401) {
                             tokenInicial=null; acceso();
                         }
@@ -264,15 +284,5 @@ public final class Login extends AuthScreen {
                 }
             });
         });
-        boton("Volver al acceso",()->{
-            if(ocupado) return;
-            String anterior=tokenInicial; tokenInicial=null;
-            if(anterior!=null) RED.execute(()->{
-                try { logica.cerrarSesion(anterior); }
-                catch(Exception ignorado) { /* El token sigue limitado por su caducidad en PHP. */ }
-            });
-            acceso();
-        });
-        mensajes();
     }
 }
