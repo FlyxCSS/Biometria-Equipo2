@@ -57,6 +57,17 @@ public final class RouteActivity extends RouteScreen {
     private int silenceSeconds;
     private LinearLayout header, controls;
     private TextView signal, duration, count, lastOzone, recording;
+    private com.example.ozora.senda.ui.CalidadAire calidadAvisada;
+    private int conteoAvisado = -1;
+
+    /** Vibración corta al entrar en una zona de mala calidad (si el móvil lo permite). */
+    private void vibrarAviso() {
+        android.os.Vibrator vibrador = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
+        if (vibrador == null || !vibrador.hasVibrator()) return;
+        if (android.os.Build.VERSION.SDK_INT >= 26)
+            vibrador.vibrate(android.os.VibrationEffect.createWaveform(new long[]{0, 180, 120, 180}, -1));
+        else vibrador.vibrate(new long[]{0, 180, 120, 180}, -1);
+    }
 
 
 
@@ -223,7 +234,23 @@ public final class RouteActivity extends RouteScreen {
             recording.setCompoundDrawableTintList(ColorStateList.valueOf(running ? 0xff3e9b5a : 0xffd23b2f));
         }
         try (android.database.Cursor last = manager.ultima(id)) {
-            lastOzone.setText(last.moveToFirst() ? valueWithUnit(String.valueOf(last.getInt(0)), "ppb") : "—");
+            boolean hay = last.moveToFirst();
+            lastOzone.setText(hay ? valueWithUnit(String.valueOf(last.getInt(0)), "ppb") : "—");
+            if (hay && route.count != conteoAvisado) {
+                // Aviso de calidad en directo: color del último valor y mensaje cuando la calidad cambia.
+                int ppb = last.getInt(0);
+                com.example.ozora.senda.ui.CalidadAire calidad =
+                        com.example.ozora.senda.ui.CalidadAire.de(ppb, com.example.ozora.senda.ui.CalidadAire.umbral(this, session));
+                ((android.view.View) lastOzone.getParent()).setBackgroundTintList(ColorStateList.valueOf(calidad.fondo));
+                lastOzone.setTextColor(calidad.texto);
+                if (calidad != calidadAvisada) {
+                    aviso(calidad.corta + " · " + ppb + " ppb. " + calidad.consejo(),
+                            calidad == com.example.ozora.senda.ui.CalidadAire.BUENA);
+                    if (calidad == com.example.ozora.senda.ui.CalidadAire.MALA) vibrarAviso();
+                    calidadAvisada = calidad;
+                }
+                conteoAvisado = route.count;
+            }
         }
         long seconds = Math.max(0, System.currentTimeMillis() - route.start) / 1000;
         duration.setText(String.format(Locale.getDefault(), "%02d:%02d:%02d",

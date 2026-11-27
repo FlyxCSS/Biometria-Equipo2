@@ -45,6 +45,7 @@ public final class SummaryActivity extends RouteScreen {
     private Route route;
     private RouteMap map;
     private LinearLayout rows;
+    private LineChartView chart;
     private MaterialButton all, more;
     private TextView average, maximum, minimum;
     private boolean temperature, expanded;
@@ -112,6 +113,14 @@ public final class SummaryActivity extends RouteScreen {
                 + new SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(new Date(route.start)), 16, false);
         subtitle.setTextColor(MUTED);
         addWithTopMargin(content, subtitle, 2);
+        if (route.count > 0) {
+            CalidadAire calidad = CalidadAire.de(route.mean, CalidadAire.umbral(this, session));
+            TextView chipCalidad = chip(calidad.etiqueta + " · media " + Math.round(route.mean) + " ppb", calidad.texto, calidad.fondo, R.drawable.ic_s_dot_ring);
+            chipCalidad.setCompoundDrawableTintList(ColorStateList.valueOf(calidad.punto));
+            LinearLayout.LayoutParams chipSize = new LinearLayout.LayoutParams(-2, -2);
+            chipSize.topMargin = dp(10);
+            content.addView(chipCalidad, chipSize);
+        }
         FrameLayout mapCard = new FrameLayout(this);
         mapCard.setBackgroundResource(R.drawable.s_card);
         mapCard.setClipToOutline(true);
@@ -178,6 +187,11 @@ public final class SummaryActivity extends RouteScreen {
         });
         row.addView(all);
         readings.addView(row);
+        // Gráfica con todas las mediciones; debajo, solo las primeras filas (y "Ver todos").
+        chart = new LineChartView(this, null);
+        LinearLayout.LayoutParams chartSize = new LinearLayout.LayoutParams(-1, dp(190));
+        chartSize.topMargin = dp(4); chartSize.bottomMargin = dp(8);
+        readings.addView(chart, chartSize);
         rows = column();
         readings.addView(rows);
         more = textButton();
@@ -273,7 +287,24 @@ public final class SummaryActivity extends RouteScreen {
      * Diseño lógico: refreshReadings() -->
      * Descripción: Refresh Readings. Presenta mapa, estadísticas y lecturas del recorrido
      * -------------------- */
+    /** Rellena la gráfica con todas las mediciones de la ruta (ozono en ppb o temperatura en °C). */
+    private void refreshChart() {
+        java.util.List<Float> valores = new java.util.ArrayList<>();
+        String primera = "", ultima = "";
+        try (Cursor c = readings(-1, 0)) {
+            while (c.moveToNext()) {
+                valores.add(temperature ? c.getInt(0) / 100f : c.getInt(0));
+                if (primera.isEmpty()) primera = readingTime(c.getString(1));
+                ultima = readingTime(c.getString(1));
+            }
+        }
+        chart.setDatos(valores, primera, ultima, temperature ? "°C" : "ppb",
+                temperature ? Float.NaN : CalidadAire.umbral(this, session), temperature,
+                getString(temperature ? R.string.route_no_temperature : R.string.main_no_readings));
+    }
+
     private void refreshReadings() {
+        refreshChart();
         if (temperature) {
             double total=0; int min=Integer.MAX_VALUE,max=Integer.MIN_VALUE; temperatureCount=0;
             try(Cursor c=readings(-1,0)) {

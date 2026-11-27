@@ -153,10 +153,29 @@ public final class RutaService extends Service implements CapturaLlaveroControll
     @Override public void alRecibirUbicacion(Location p) {
         if(caducada() || !RouteManager.util(p)) return;
         if(previa!=null && p.getElapsedRealtimeNanos()<=previa.getElapsedRealtimeNanos()) return;
+        boolean deGps=android.location.LocationManager.GPS_PROVIDER.equals(p.getProvider());
+        if(deGps) ultimoGps=p.getElapsedRealtimeNanos();
+        // 1. La red móvil es mucho menos precisa: solo se usa si el GPS lleva más de 15 s sin dar posición.
+        if(!deGps && ultimoGps>0 && p.getElapsedRealtimeNanos()-ultimoGps<15_000_000_000L) return;
+        // 2. El trazado solo admite posiciones con error de hasta 25 m.
+        if(p.getAccuracy()>PRECISION_TRAZADO_M) return;
         float distancia=previa==null ? 0 : previa.distanceTo(p);
-        if(previa!=null && distancia<2) return;
+        if(previa!=null) {
+            // 3. Parado, el GPS "baila" unos metros: no sumar movimientos menores que su propio error.
+            float minimo=Math.max(3f, Math.max(p.getAccuracy(), previa.getAccuracy())*0.6f);
+            if(distancia<minimo) return;
+            // 4. Saltos imposibles a pie (más de 10 m/s ≈ 36 km/h) son errores del receptor.
+            double segundos=(p.getElapsedRealtimeNanos()-previa.getElapsedRealtimeNanos())/1e9;
+            if(segundos>0 && segundos<60 && distancia/segundos>VELOCIDAD_MAXIMA_MS) return;
+        }
         rutas.punto(actual,p,segmento,distancia); previa=new Location(p);
     }
+
+    /** Error máximo (m) de una posición para dibujar el recorrido y sumar distancia. */
+    private static final float PRECISION_TRAZADO_M = 25f;
+    /** Velocidad máxima creíble de un guardabosques a pie o en carrera corta. */
+    private static final double VELOCIDAD_MAXIMA_MS = 10.0;
+    private long ultimoGps;
 
     /** --------------------
      * Diseño lógico: m: MedicionAmbiental, rssi: Z --> alPrepararMedicion() -->
@@ -189,7 +208,7 @@ public final class RutaService extends Service implements CapturaLlaveroControll
         handler.removeCallbacksAndMessages(null);
         if(captura!=null) captura.detener();
         if(gps!=null) gps.detener();
-        captura=null; gps=null; previa=null;
+        captura=null; gps=null; previa=null; ultimoGps=0;
     }
 
     /** --------------------

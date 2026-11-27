@@ -49,7 +49,7 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
 
     <section id="restablecer" class="tarjeta estrecha" hidden>
       <p class="ceja">Establecer contraseña</p><h1>Un nuevo comienzo.</h1>
-      <p>Usa una contraseña de entre 12 y 72 bytes UTF-8. Los caracteres acentuados pueden ocupar más de un byte.</p>
+      <p>Mínimo 12 caracteres, con mayúscula, minúscula, número y símbolo (! ? # . -). Evita tu nombre o secuencias como 1234.</p>
       <form id="form-restablecer">
         <label for="nueva">Nueva contraseña</label><input id="nueva" name="nueva" type="password" minlength="12" autocomplete="new-password" required>
         <label for="repetir">Repetir contraseña</label><input id="repetir" name="repetir" type="password" autocomplete="new-password" required>
@@ -61,7 +61,7 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
     <section id="cambio-inicial" class="tarjeta estrecha" hidden>
       <p class="ceja">Primer acceso</p><h1>Haz tuya la contraseña.</h1>
       <p>Tu cuenta tiene una contraseña inicial. Debes cambiarla antes de utilizarla. También podrás hacerlo desde la app Android cuando esté integrado este flujo.</p>
-      <p class="nota">La nueva contraseña debe tener al menos 12 caracteres y no superar 72 bytes UTF-8.</p>
+      <p class="nota">Mínimo 12 caracteres, con mayúscula, minúscula, número y símbolo (! ? # . -), distinta de la inicial.</p>
       <form id="form-cambio-inicial">
         <label for="actual-inicial">Contraseña inicial</label><input id="actual-inicial" name="actual" type="password" autocomplete="current-password" required>
         <label for="nueva-inicial">Nueva contraseña</label><input id="nueva-inicial" name="nueva" type="password" minlength="12" autocomplete="new-password" required>
@@ -79,7 +79,7 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
           <p class="nota">La lectura no constituye una evaluación oficial de la calidad del aire.</p>
         </section>
         <section id="alta-trabajador" class="tarjeta"><h2>Registrar trabajador</h2><p>La cuenta quedará asociada a este parque. Asigna una contraseña inicial; el trabajador deberá cambiarla en su primer acceso.</p>
-          <form id="form-alta"><label for="nombre-trabajador">Nombre</label><input id="nombre-trabajador" name="nombre" maxlength="100" autocomplete="name" required><label for="correo-trabajador">Correo electrónico</label><input id="correo-trabajador" name="correo" type="email" maxlength="100" autocomplete="email" required><label for="contrasena-trabajador">Contraseña inicial</label><input id="contrasena-trabajador" name="contrasena_inicial" type="password" minlength="12" autocomplete="new-password" required><p class="nota">Entre 12 y 72 bytes UTF-8. Comunícala al trabajador; no se podrá consultar después.</p><button type="submit">Crear cuenta</button></form>
+          <form id="form-alta"><label for="nombre-trabajador">Nombre</label><input id="nombre-trabajador" name="nombre" maxlength="100" autocomplete="name" required><label for="correo-trabajador">Correo electrónico</label><input id="correo-trabajador" name="correo" type="email" maxlength="100" autocomplete="email" required><label for="contrasena-trabajador">Contraseña inicial</label><input id="contrasena-trabajador" name="contrasena_inicial" type="password" minlength="12" autocomplete="new-password" required><p class="nota">Mínimo 12 caracteres, con mayúscula, minúscula, número y símbolo. Le llegará por correo junto a un aviso para cambiarla en su primer acceso.</p><button type="submit">Crear cuenta</button></form>
           <p class="nota">El alta no asigna un llavero. Esta web temporal no incluye toda la gestión de trabajadores.</p>
         </section>
       </div>

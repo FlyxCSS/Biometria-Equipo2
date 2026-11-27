@@ -46,6 +46,29 @@ function mensaje(texto, error = false, destino = 'mensaje') {
  * Dato <--
  * Descripción: Cambia de pantalla sin duplicar formularios
  * -------------------- */
+/** --------------------
+ * Diseño lógico: valor: Text, correo: Text --> problemaContrasena() -->
+ * Text | null <--
+ * Descripción: Mismas reglas de contraseña segura que el servidor (Apoyo.php::validarContrasena)
+ * -------------------- */
+function problemaContrasena(valor, correo) {
+    const bytes = new TextEncoder().encode(valor).length;
+    if (bytes < 12 || bytes > 72 || valor.includes('\0')) return 'La contraseña debe tener entre 12 y 72 caracteres.';
+    const faltan = [];
+    if (!/\p{Lu}/u.test(valor)) faltan.push('una mayúscula');
+    if (!/\p{Ll}/u.test(valor)) faltan.push('una minúscula');
+    if (!/\d/.test(valor)) faltan.push('un número');
+    if (!/[^\p{L}\d]/u.test(valor)) faltan.push('un símbolo (! ? # . -)');
+    if (faltan.length) return `La contraseña no es segura: le falta ${faltan.join(', ')}.`;
+    const minusculas = valor.toLowerCase();
+    const partes = (correo.split('@')[0] || '').toLowerCase().split(/[._+\-\d]+/);
+    if (partes.some(parte => parte.length >= 4 && minusculas.includes(parte)) || /(.)\1{3,}/u.test(valor)
+        || /(1234|2345|3456|4567|5678|6789|abcd|qwer|asdf|password|contrase|senda|ozora)/u.test(minusculas)) {
+        return 'La contraseña es fácil de adivinar: evita tu correo, el nombre de la app, secuencias (1234, abcd) o caracteres repetidos.';
+    }
+    return null;
+}
+
 function mostrar(seccion) {
     // Al cambiar de pantalla, todas las claves vuelven a quedar ocultas.
     ocultarContrasenas();
@@ -232,8 +255,8 @@ async function registrarTrabajador(evento) {
     await ejecutarFormulario(evento, async function realizarAlta() {
         // Diseño lógico: () -> realizarAlta -> promesa vacía. Descripción: Envía los datos del alta al servidor.
         const contrasena = elemento('contrasena-trabajador').value;
-        const longitud = new TextEncoder().encode(contrasena).length;
-        if (longitud < 12 || longitud > 72) throw new Error('La contraseña inicial debe ocupar entre 12 y 72 bytes UTF-8.');
+        const problema = problemaContrasena(contrasena, elemento('correo-trabajador').value);
+        if (problema) throw new Error(problema);
         const datos = await conSesion(() => logica.registrarTrabajador(tokenSesion, { nombre: elemento('nombre-trabajador').value,
             correo: elemento('correo-trabajador').value, contrasena_inicial: contrasena }));
         elemento('form-alta').reset();
@@ -269,8 +292,8 @@ async function restablecerContrasena(evento) {
         // Diseño lógico: () -> realizarCambio -> promesa vacía. Descripción: Cambia la contraseña y vuelve al acceso.
         const nueva = elemento('nueva').value;
         if (nueva !== elemento('repetir').value) throw new Error('Las contraseñas no coinciden.');
-        const longitud = new TextEncoder().encode(nueva).length;
-        if (longitud < 12 || longitud > 72) throw new Error('La contraseña debe ocupar entre 12 y 72 bytes UTF-8.');
+        const problema = problemaContrasena(nueva, usuarioActual?.email || '');
+        if (problema) throw new Error(problema);
         await logica.restablecerContrasena({ token: tokenRecuperacion, contrasena_nueva: nueva });
         tokenRecuperacion = '';
         tokenSesion = '';
@@ -293,8 +316,8 @@ async function cambiarContrasenaInicial(evento) {
         // Diseño lógico: () -> realizarCambioInicial -> promesa vacía. Descripción: Cambia la clave propia y solicita un login nuevo.
         const nueva = elemento('nueva-inicial').value;
         if (nueva !== elemento('repetir-inicial').value) throw new Error('Las contraseñas no coinciden.');
-        const longitud = new TextEncoder().encode(nueva).length;
-        if (longitud < 12 || longitud > 72) throw new Error('La contraseña debe ocupar entre 12 y 72 bytes UTF-8.');
+        const problema = problemaContrasena(nueva, usuarioActual?.email || '');
+        if (problema) throw new Error(problema);
         await conSesion(() => logica.cambiarContrasena(tokenSesion, {
             contrasena_actual: elemento('actual-inicial').value, contrasena_nueva: nueva,
         }));

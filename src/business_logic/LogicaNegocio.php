@@ -48,7 +48,7 @@ final class LogicaNegocio
      * -------------------- */
     private function usuarioPublico(array $usuario): array
     {
-        return ['id_usuario' => (int)$usuario['id_usuario'], 'nombre' => $usuario['nombre'],
+        return ['id_usuario' => (int)$usuario['id_usuario'], 'nombre' => $usuario['nombre'], 'email' => $usuario['email'] ?? null,
             'rol' => $usuario['rol'], 'id_parque' => $usuario['id_parque'] === null ? null : (int)$usuario['id_parque'],
             'debe_cambiar_contrasena' => (bool)($usuario['debe_cambiar_contrasena'] ?? false),
             'foto_perfil' => $usuario['foto_perfil'] ?? null,
@@ -104,9 +104,17 @@ final class LogicaNegocio
             // Hash ficticio válido para realizar también el trabajo de verificación si no existe cuenta.
             $hash = $usuario['password_hash'] ?? '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
             $valida = password_verify($datos['contrasena'], $hash);
-            if (!$usuario || !$valida || !(bool)$usuario['activo'] || !$usuario['password_hash']
-                || ($usuario['id_organizacion'] !== null && $usuario['estado_organizacion'] !== 'activo')) {
-                throw new ErrorDominio('CREDENCIALES_INVALIDAS', 'No se ha podido iniciar sesión.');
+            // Mensajes concretos para quien inicia sesión (el límite de intentos frena la enumeración de cuentas).
+            if (!$usuario) {
+                throw new ErrorDominio('CUENTA_NO_EXISTE', 'No existe ninguna cuenta con ese correo. Revisa que esté bien escrito.',
+                    ['correo' => 'No hay ninguna cuenta con este correo.']);
+            }
+            if (!(bool)$usuario['activo'] || ($usuario['id_organizacion'] !== null && $usuario['estado_organizacion'] !== 'activo')) {
+                throw new ErrorDominio('CUENTA_DESACTIVADA', 'Esta cuenta está desactivada. Contacta con el responsable de tu parque.');
+            }
+            if (!$usuario['password_hash'] || !$valida) {
+                throw new ErrorDominio('CONTRASENA_INCORRECTA', 'La contraseña no es correcta. Inténtalo de nuevo o recupérala.',
+                    ['contrasena' => 'Contraseña incorrecta.']);
             }
             $token = bin2hex(random_bytes(32));
             $horas = max(1, min(168, (int)($this->config['session_hours'] ?? 24)));
@@ -418,7 +426,8 @@ final class LogicaNegocio
         $this->exigirRol($usuario, 'jefe_parque');
         exigirCampos($datos, ['nombre', 'correo', 'contrasena_inicial']);
         $correo = validarCorreo($datos['correo']);
-        $contrasena = validarContrasena($datos['contrasena_inicial']);
+        $contrasena = validarContrasena($datos['contrasena_inicial'], $correo);
+        validarCorreoEntregable($correo);
         if (!is_string($datos['nombre']) || trim($datos['nombre']) === '' || mb_strlen(trim($datos['nombre']), 'UTF-8') > 100) {
             throw new ErrorDominio('DATOS_INVALIDOS', 'Introduce un nombre de hasta 100 caracteres.');
         }
@@ -429,9 +438,19 @@ final class LogicaNegocio
                     'trabajador', $usuario['id_parque'], $usuario['id_organizacion']]);
             $nuevo = ['id_usuario' => (int)$this->db->lastInsertId(), 'nombre' => trim($datos['nombre']),
                 'email' => $correo, 'rol' => 'trabajador', 'id_parque' => $usuario['id_parque'], 'debe_cambiar_contrasena' => true];
+            // Correo de bienvenida con la contraseña inicial: el trabajador debe cambiarla en su primer acceso.
+            // El cuerpo se borra de CORREOS_PENDIENTES en cuanto se entrega.
+            $acceso = rtrim((string)($this->config['app_url'] ?? ''), '/') . '/acceso';
+            $this->consulta('INSERT INTO CORREOS_PENDIENTES (destinatario, asunto, cuerpo) VALUES (?, ?, ?)',
+                [$correo, 'SENDA: tu cuenta está lista',
+                    'Hola, ' . trim($datos['nombre']) . ". El responsable de tu parque te ha dado acceso a SENDA.\n\n"
+                    . "Correo: $correo\nContraseña inicial: $contrasena\n\n"
+                    . "Inicia sesión en la app SENDA con estos datos. Por seguridad, la primera vez te pediremos que cambies esta contraseña por una propia.\n\n"
+                    . "$acceso\n\n"
+                    . 'Si no esperabas este correo, avisa al responsable de tu parque.']);
             $this->db->commit();
             return ['usuario' => $this->usuarioPublico($nuevo), 'requiere_cambiar_contrasena' => true,
-                'mensaje' => 'Cuenta creada con contraseña inicial. Comunícala al trabajador: deberá cambiarla en su primer acceso.'];
+                'mensaje' => 'Cuenta creada. Hemos enviado a ' . $correo . ' un correo con su contraseña inicial; deberá cambiarla en su primer acceso.'];
         } catch (Throwable $error) {
             $this->db->rollBack();
             if ($error instanceof PDOException && ($error->errorInfo[1] ?? 0) === 1062) {
@@ -452,7 +471,7 @@ final class LogicaNegocio
     public function cambiarContrasena(array $usuario, array $datos): array
     {
         exigirCampos($datos, ['contrasena_actual', 'contrasena_nueva']);
-        $nueva = validarContrasena($datos['contrasena_nueva']);
+        $nueva = validarContrasena($datos['contrasena_nueva'], (string)($usuario['email'] ?? ''));
         $actual = $datos['contrasena_actual'];
         if (!is_string($actual) || strlen($actual) > 72 || str_contains($actual, "\0")) {
             throw new ErrorDominio('DATOS_INVALIDOS', 'Introduce la contraseña actual.');
@@ -498,15 +517,18 @@ final class LogicaNegocio
                 LEFT JOIN ORGANIZACIONES o ON o.id_organizacion = u.id_organizacion
                 WHERE u.email = ? AND u.activo = 1
                 AND (u.id_organizacion IS NULL OR o.estado = ?) FOR UPDATE', [$correo, 'activo'])->fetch();
-            if ($usuario) {
-                $this->prepararEnlace($usuario, 'recuperacion');
+            if (!$usuario) {
+                throw new ErrorDominio('CUENTA_NO_EXISTE', 'No existe ninguna cuenta activa con ese correo. Revisa que esté bien escrito.',
+                    ['correo' => 'No hay ninguna cuenta con este correo.']);
             }
+            validarCorreoEntregable($correo);
+            $this->prepararEnlace($usuario, 'recuperacion');
             $this->db->commit();
         } catch (Throwable $error) {
             $this->db->rollBack();
             throw $error;
         }
-        return ['mensaje' => 'Si la cuenta permite recuperar el acceso, recibirás un enlace por correo.'];
+        return ['mensaje' => 'Te hemos enviado un enlace a ' . $correo . '. Revisa también la carpeta de correo no deseado.'];
     }
 
 
@@ -562,6 +584,7 @@ final class LogicaNegocio
             if (!$usuario || !$token) {
                 throw new ErrorDominio('ENLACE_INVALIDO', 'El enlace no es válido o ha caducado.');
             }
+            validarContrasena($contrasena, (string)$usuario['email']);
             $this->consulta('UPDATE USUARIOS SET password_hash = ?, debe_cambiar_contrasena = 0 WHERE id_usuario = ?',
                 [password_hash($contrasena, PASSWORD_BCRYPT), $usuario['id_usuario']]);
             $this->consulta('UPDATE TOKENS_ACCESO SET usado_en = UTC_TIMESTAMP(3) WHERE id_usuario = ? AND usado_en IS NULL',

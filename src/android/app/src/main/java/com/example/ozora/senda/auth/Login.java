@@ -92,7 +92,11 @@ public final class Login extends AuthScreen {
                  * Diseño lógico: token: Text --> aceptar() -->
                  * Descripción: Aceptar. Gestiona acceso, errores y primer cambio de contraseña
                  * -------------------- */
-                public void aceptar(String token) { autenticar(null, null, token); }
+                public void aceptar(String token) {
+                    // La huella abre la cuenta con la que se activó: si se ha escrito otro correo, no se usa.
+                    String escrito = email.getText().toString().trim();
+                    autenticar(escrito.isEmpty() ? null : escrito, null, token);
+                }
 
                 /** --------------------
                  * Diseño lógico: texto: Text --> error() -->
@@ -143,6 +147,13 @@ public final class Login extends AuthScreen {
      * Diseño lógico: correo: Text, clave: Text, guardado: Text --> autenticar() -->
      * Descripción: Verifica sesión y deriva al primer cambio antes de guardar el acceso al panel
      * -------------------- */
+    /** "julia.valen@upv.es" -> "ju•••@upv.es": identifica la cuenta sin mostrar el correo completo. */
+    private static String ocultarCorreo(String correo) {
+        int arroba=correo.indexOf('@');
+        if(arroba<=0) return correo;
+        return correo.substring(0,Math.min(2,arroba))+"•••"+correo.substring(arroba);
+    }
+
     private void autenticar(String correo,String clave,String guardado) {
         if(ocupado) return;
         ocupado=true; mostrarEspera(true); mensaje(getString(R.string.auth_busy));
@@ -151,6 +162,12 @@ public final class Login extends AuthScreen {
                 JSONObject d=guardado==null ? logica.iniciarSesion(new JSONObject().put("correo",correo).put("contrasena",clave))
                     : logica.consultarSesion(guardado);
                 JSONObject u=d.getJSONObject("usuario");
+                String cuentaBio=u.optString("email","");
+                if(guardado!=null && correo!=null && !cuentaBio.isEmpty() && !correo.equalsIgnoreCase(cuentaBio)) {
+                    // 409: no borra la biometría guardada, solo impide entrar en una cuenta distinta a la escrita.
+                    throw new ApiClient.Error(409,"La biometría de este móvil pertenece a otra cuenta ("+ocultarCorreo(cuentaBio)
+                            +"). Para entrar como "+correo+", usa tu contraseña.");
+                }
                 if(!"trabajador".equals(u.getString("rol"))) throw new ApiClient.Error(403,"Esta aplicación requiere una cuenta de trabajador.");
                 String nuevo=guardado==null ? d.getString("token") : guardado;
                 long fin=SessionManager.instante(d.getString("expira_en"));
@@ -250,11 +267,10 @@ public final class Login extends AuthScreen {
         guardar.setOnClickListener(v->{
             if(ocupado) return;
             String valor=nueva.getText().toString(), anterior=actual.getText().toString();
-            int bytes=valor.getBytes(StandardCharsets.UTF_8).length;
-            if(bytes<12 || bytes>72 || !valor.equals(repetir.getText().toString()) || valor.equals(anterior)) {
-                mensaje("La nueva clave debe coincidir en ambos campos, ser distinta de la inicial y ocupar entre 12 y 72 bytes UTF-8.");
-                return;
-            }
+            String problema=ReglasContrasena.problema(valor, correo);
+            if(problema!=null) { nueva.setError(problema); nueva.requestFocus(); mensaje(problema); return; }
+            if(valor.equals(anterior)) { nueva.setError("Debe ser distinta de la inicial."); mensaje("La nueva contraseña debe ser distinta de la inicial."); return; }
+            if(!valor.equals(repetir.getText().toString())) { repetir.setError("No coincide."); repetir.requestFocus(); mensaje("Las dos contraseñas nuevas no coinciden."); return; }
             if(tokenInicial==null || System.currentTimeMillis()>=venceInicial) {
                 tokenInicial=null; acceso(); mensaje("La sesión ha caducado. Vuelve a entrar con tu contraseña inicial."); return;
             }

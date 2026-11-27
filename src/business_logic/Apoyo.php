@@ -120,12 +120,53 @@ function validarCorreo(mixed $valor): string
  * Text <--
  * Descripción: Impide contraseñas demasiado cortas o truncadas por bcrypt
  * -------------------- */
-function validarContrasena(mixed $valor): string
+function validarContrasena(mixed $valor, string $correo = ''): string
 {
     if (!is_string($valor) || strlen($valor) < 12 || strlen($valor) > 72 || str_contains($valor, "\0")) {
-        throw new ErrorDominio('DATOS_INVALIDOS', 'La contraseña debe ocupar entre 12 y 72 bytes UTF-8.');
+        throw new ErrorDominio('DATOS_INVALIDOS', 'La contraseña debe tener entre 12 y 72 caracteres.',
+            ['contrasena' => 'Entre 12 y 72 caracteres.']);
+    }
+    // Contraseña segura: mayúscula, minúscula, número y símbolo; sin repetir el correo ni secuencias obvias.
+    $faltan = [];
+    if (!preg_match('/\p{Lu}/u', $valor)) $faltan[] = 'una mayúscula';
+    if (!preg_match('/\p{Ll}/u', $valor)) $faltan[] = 'una minúscula';
+    if (!preg_match('/\d/', $valor)) $faltan[] = 'un número';
+    if (!preg_match('/[^\p{L}\d]/u', $valor)) $faltan[] = 'un símbolo (por ejemplo ! ? # . -)';
+    if ($faltan) {
+        throw new ErrorDominio('CONTRASENA_DEBIL', 'La contraseña no es segura: le falta ' . implode(', ', $faltan) . '.',
+            ['contrasena' => 'Añade ' . implode(', ', $faltan) . '.']);
+    }
+    $minusculas = mb_strtolower($valor, 'UTF-8');
+    $usuarioCorreo = $correo !== '' ? mb_strtolower(strstr($correo, '@', true) ?: '', 'UTF-8') : '';
+    // Cada parte del nombre del correo (pepito.lopez -> pepito, lopez) cuenta como dato personal.
+    $contieneCorreo = false;
+    foreach (preg_split('/[._+\-\d]+/', $usuarioCorreo) as $parte) {
+        if (strlen($parte) >= 4 && str_contains($minusculas, $parte)) $contieneCorreo = true;
+    }
+    if ($contieneCorreo
+        || preg_match('/(.)\1{3,}/u', $valor)
+        || preg_match('/(1234|2345|3456|4567|5678|6789|abcd|qwer|asdf|password|contrase|senda|ozora)/u', $minusculas)) {
+        throw new ErrorDominio('CONTRASENA_DEBIL', 'La contraseña es fácil de adivinar: evita tu correo, el nombre de la app, secuencias (1234, abcd) o caracteres repetidos.',
+            ['contrasena' => 'Demasiado fácil de adivinar.']);
     }
     return $valor;
+}
+
+
+
+/** --------------------
+ * Diseño lógico: correo: Text --> validarCorreoEntregable() -->
+ * Text <--
+ * Descripción: Comprueba que el dominio del correo existe y admite correo (MX o A) antes de enviarle nada
+ * -------------------- */
+function validarCorreoEntregable(string $correo): string
+{
+    $dominio = substr(strrchr($correo, '@') ?: '', 1);
+    if ($dominio === '' || !(checkdnsrr($dominio, 'MX') || checkdnsrr($dominio, 'A'))) {
+        throw new ErrorDominio('CORREO_INEXISTENTE', 'El dominio del correo (' . $dominio . ') no existe o no recibe correos. Revisa que esté bien escrito.',
+            ['correo' => 'Dominio sin servidor de correo.']);
+    }
+    return $correo;
 }
 
 

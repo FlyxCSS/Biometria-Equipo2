@@ -43,6 +43,29 @@ public final class RouteCardView extends MaterialCardView {
      * Diseño lógico: id: Z, start: Z, end: Z, meters: R, count: Z, points: [Dato] --> bind() -->
      * Descripción: Bind. Aplicación de campo: acceso, captura, recorridos y presentación Android
      * -------------------- */
+    private CalidadAire calidad;
+    private boolean active;
+
+    /** Calidad media de la ruta: se muestra como chip en los recorridos terminados. */
+    public void setCalidad(CalidadAire calidad) { this.calidad=calidad; pintarEstado(); }
+
+    private void pintarEstado() {
+        android.widget.TextView chip=findViewById(R.id.route_status);
+        if(active) {
+            chip.setText(R.string.routes_in_progress);
+            chip.setTextColor(0xff1f3d2f);
+            chip.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xffe4ede2));
+            chip.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(0xff3e9b5a));
+            chip.setVisibility(VISIBLE);
+        } else if(calidad!=null) {
+            chip.setText(calidad.etiqueta);
+            chip.setTextColor(calidad.texto);
+            chip.setBackgroundTintList(android.content.res.ColorStateList.valueOf(calidad.fondo));
+            chip.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(calidad.punto));
+            chip.setVisibility(VISIBLE);
+        } else chip.setVisibility(GONE);
+    }
+
     public void bind(long id,long start,Long end,double meters,int count,List<RoutePoint> points) {
         this.routeId=id; this.start=start;
         ((RoutePreviewView)findViewById(R.id.route_preview)).setSeed(id);
@@ -82,7 +105,8 @@ public final class RouteCardView extends MaterialCardView {
      * -------------------- */
     private void update(Long end,double meters,int count,long now) {
         boolean active=end==null;
-        findViewById(R.id.route_status).setVisibility(active?VISIBLE:GONE);
+        this.active=active;
+        pintarEstado();
         findViewById(R.id.route_chevron).setVisibility(active?GONE:VISIBLE);
         long seconds=Math.max(0,(end==null?now:end)-start)/1000;
         String duration=String.format(Locale.getDefault(),"%02d:%02d:%02d",seconds/3600,seconds/60%60,seconds%60);

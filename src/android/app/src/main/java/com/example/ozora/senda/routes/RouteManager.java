@@ -266,7 +266,8 @@ public final class RouteManager extends SQLiteOpenHelper {
      * -------------------- */
     public Cursor listarPeriodo(Worker worker, long since, long until, int limit, int offset) {
         return getReadableDatabase().rawQuery(
-                "SELECT r.id,r.inicio,r.fin,r.metros,(SELECT COUNT(*) FROM lectura l WHERE l.ruta=r.id)"
+                "SELECT r.id,r.inicio,r.fin,r.metros,(SELECT COUNT(*) FROM lectura l WHERE l.ruta=r.id),"
+                + "(SELECT AVG(l.ppb) FROM lectura l WHERE l.ruta=r.id)"
                 + " FROM ruta r WHERE r.usuario=? AND r.parque=? AND r.inicio>=? AND r.inicio<?"
                 + " ORDER BY (r.fin IS NULL) DESC,r.inicio DESC,r.id DESC LIMIT ? OFFSET ?",
                 new String[]{String.valueOf(worker.id),String.valueOf(worker.parkId),String.valueOf(since),

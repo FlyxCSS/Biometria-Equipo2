@@ -154,6 +154,12 @@ function atenderApi(): never
             } elseif ($ruta === '/api/v1/trabajadores') {
                 $resultado = $logica->registrarTrabajador($usuario, $datos);
                 $estado = 201;
+                // Enviar al momento el correo de bienvenida con la contraseña inicial.
+                try {
+                    entregarCorreos($db, $config);
+                } catch (Throwable $fallo) {
+                    error_log('SENDA: no se pudo entregar el correo de bienvenida: ' . $fallo->getMessage());
+                }
             } else {
                 $resultado = $logica->ultimaMedicion($usuario, $parque);
             }

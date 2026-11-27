@@ -44,6 +44,7 @@ import com.example.ozora.senda.routes.RouteActivity;
 import com.example.ozora.senda.routes.RouteManager;
 import com.example.ozora.senda.routes.RoutePeriod;
 import com.example.ozora.senda.ui.RouteCardView;
+import com.example.ozora.senda.ui.CalidadAire;
 import com.example.ozora.senda.ui.KeyringScreen;
 import com.example.ozora.senda.ui.KeyringStatus;
 import com.example.ozora.senda.ui.AccountActivity;
@@ -100,6 +101,7 @@ public final class      MainActivity extends FieldScreen {
     private com.example.ozora.senda.ui.HistoryScreen history;
     private boolean heatEnabled, heatWeek, mapPermissionAsked;
     private boolean operacionLlavero;
+    private boolean cerrando;
     private static final java.util.concurrent.ExecutorService REMOTO = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     private final Runnable tick = new Runnable() {
@@ -776,6 +778,7 @@ public final class      MainActivity extends FieldScreen {
         RouteCardView card=new RouteCardView(this);
         card.bind(routeId,ruta.getLong(1),ruta.isNull(2)?null:ruta.getLong(2),ruta.getDouble(3),
                 ruta.getInt(4),rutas.vistaPrevia(session.worker,routeId));
+        if(!ruta.isNull(5)) card.setCalidad(CalidadAire.de(ruta.getDouble(5), CalidadAire.umbral(this, session)));
         boolean rutaActiva=ruta.isNull(2);
         card.setOnClickListener(v -> abrirRuta(rutaActiva ? RouteActivity.class : SummaryActivity.class,routeId));
         LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(-1,-2);
@@ -1182,6 +1185,10 @@ public final class      MainActivity extends FieldScreen {
      * Descripción: Salir. Coordina cinco secciones, permisos y acciones del trabajador
      * -------------------- */
     private void salir(boolean revocar) {
+        // Una sola salida: el reloj o la sesión remota podían volver a llamar a salir() y abrir el acceso dos veces.
+        if (cerrando) return;
+        cerrando = true;
+        reloj.removeCallbacksAndMessages(null);
         String anterior=session.token;
         finalizar();
         // La huella necesita su credencial cifrada vigente tras salir; no se prorroga su caducidad.

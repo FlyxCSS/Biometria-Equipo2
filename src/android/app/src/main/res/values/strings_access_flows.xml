@@ -26,7 +26,7 @@ Aportación: Recursos y configuración del componente android.
 <string name="recovery_link_hint">Pega aquí el enlace recibido</string>
 <string name="recovery_link_invalid">Pega el enlace de recuperación completo o su token de 64 caracteres.</string>
 <string name="recovery_password">Nueva contraseña</string><string name="recovery_repeat">Repetir contraseña</string>
-<string name="recovery_password_invalid">Usa entre 12 y 72 bytes UTF-8, sin caracteres nulos.</string>
+<string name="recovery_password_invalid">Mínimo 12 caracteres, con mayúscula, minúscula, número y símbolo.</string>
 <string name="recovery_mismatch">Las contraseñas no coinciden.</string>
 <string name="recovery_confirm">Confirmar nueva contraseña</string><string name="recovery_other_email">Solicitar otro enlace</string>
 <string name="recovery_done">Contraseña actualizada</string>

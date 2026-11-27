@@ -102,11 +102,29 @@ function plantillaCorreoHtml(string $asunto, string $texto, string $urlApp): str
 {
     $e = static fn(string $valor): string => htmlspecialchars($valor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $enlace = preg_match('~https?://\S+~', $texto, $coincidencia) ? $coincidencia[0] : '';
+    // Textos según el tipo de correo: bienvenida (contraseña inicial) o recuperación (enlace).
+    $bienvenida = str_contains($texto, "Contraseña inicial:");
+    $titulo = $bienvenida ? "Bienvenido a SENDA" : "Establece tu contraseña";
+    $textoBoton = $bienvenida ? "Iniciar sesión" : "Establecer contraseña";
+    $resumen = $bienvenida ? "Tu cuenta de SENDA está lista. Dentro tienes tu contraseña inicial." : "Tu enlace para entrar en SENDA. Caduca en 30 minutos.";
+    $aviso = $bienvenida ? "<strong>Por seguridad:</strong> esta contraseña es temporal. Al entrar por primera vez tendrás que cambiarla por una propia y segura. OZORA nunca te pedirá tu contraseña por correo."
+        : "<strong>Por seguridad:</strong> el enlace caduca en 30 minutos y solo puede usarse una vez. OZORA nunca te pedirá tu contraseña por correo.";
     $parrafos = '';
     foreach (preg_split('/\R{2,}/', trim($texto)) as $bloque) {
         $bloque = trim($bloque);
         if ($bloque === '') continue;
         if ($bloque === $enlace) { $parrafos .= "{{BOTON}}"; continue; }
+        if (str_contains($bloque, 'Contraseña inicial:')) {
+            // Credenciales destacadas en una caja, con la contraseña en letra de ancho fijo para copiarla bien.
+            $filas = '';
+            foreach (preg_split('/\R/', $bloque) as $linea) {
+                [$clave, $valor] = array_map('trim', explode(':', $linea, 2) + [1 => '']);
+                $filas .= '<tr><td style="padding:6px 0;font-size:13px;color:#5f7e7d;width:150px;">' . $e($clave) . '</td>'
+                    . '<td style="padding:6px 0;font:700 16px ' . ($clave === 'Contraseña inicial' ? 'Consolas,Menlo,monospace' : 'Arial,sans-serif') . ';color:#123f42;word-break:break-all;">' . $e($valor) . '</td></tr>';
+            }
+            $parrafos .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;border:1px solid #d7e4dd;border-radius:12px;"><tr><td style="padding:12px 18px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">' . $filas . '</table></td></tr></table>';
+            continue;
+        }
         $parrafos .= '<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4f6b69;">' . nl2br($e($bloque)) . '</p>';
     }
     $base = rtrim($urlApp, '/');
@@ -116,25 +134,25 @@ function plantillaCorreoHtml(string $asunto, string $texto, string $urlApp): str
     $boton = $enlace === '' ? '' : '
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 24px;"><tr>
             <td style="border-radius:12px;background:#123f42;">
-              <a href="' . $e($enlace) . '" style="display:inline-block;padding:15px 34px;font:700 16px Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:12px;">Establecer contraseña</a>
+              <a href="' . $e($enlace) . '" style="display:inline-block;padding:15px 34px;font:700 16px Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:12px;">' . $e($textoBoton) . '</a>
             </td></tr></table>
           <p style="margin:0 0 6px;font-size:13px;color:#7b9391;">Si el botón no funciona, copia este enlace en tu navegador:</p>
           <p style="margin:0 0 20px;font-size:13px;line-height:1.5;word-break:break-all;"><a href="' . $e($enlace) . '" style="color:#123f42;">' . $e($enlace) . '</a></p>';
     return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light"><title>' . $e($asunto) . '</title></head>
 <body style="margin:0;padding:0;background:#f6f8f2;">
-<div style="display:none;max-height:0;overflow:hidden;">Tu enlace para entrar en SENDA. Caduca en 30 minutos.</div>
+<div style="display:none;max-height:0;overflow:hidden;">' . $e($resumen) . '</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f6f8f2;"><tr><td align="center" style="padding:28px 12px;">
   <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:18px;font-family:Arial,Helvetica,sans-serif;color:#123f42;">
     ' . $cabecera . '
     <tr><td style="padding:30px 40px 6px;">' . $logo . '</td></tr>
     <tr><td style="padding:12px 40px 8px;">
       <p style="margin:0 0 8px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#5f7e7d;">Acceso a SENDA</p>
-      <h1 style="margin:0 0 18px;font-size:28px;line-height:1.2;font-weight:700;color:#123f42;">Establece tu contraseña</h1>
+      <h1 style="margin:0 0 18px;font-size:28px;line-height:1.2;font-weight:700;color:#123f42;">' . $e($titulo) . '</h1>
       ' . (str_contains($parrafos, '{{BOTON}}') ? str_replace('{{BOTON}}', $boton, $parrafos) : $parrafos . $boton) . '
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px;"><tr>
         <td style="padding:14px 16px;background:#e3f3ea;border-radius:12px;font-size:13px;line-height:1.5;color:#2d5b55;">
-          <strong>Por seguridad:</strong> el enlace caduca en 30 minutos y solo puede usarse una vez. OZORA nunca te pedirá tu contraseña por correo.
+          ' . $aviso . '
         </td></tr></table>
     </td></tr>
     <tr><td style="padding:20px 40px 30px;border-top:1px solid #e1ebe5;font-size:12px;line-height:1.6;color:#7b9391;">

@@ -116,8 +116,9 @@ public final class RecoveryActivity extends FieldScreen {
         }
         String password = next.getText().toString();
         int length = password.getBytes(StandardCharsets.UTF_8).length;
-        if (length < 12 || length > 72 || password.indexOf(0) >= 0) {
-            next.setError(getString(R.string.recovery_password_invalid)); next.requestFocus(); return;
+        String problema = ReglasContrasena.problema(password, email.getText().toString().trim());
+        if (length < 12 || length > 72 || problema != null) {
+            next.setError(problema != null ? problema : getString(R.string.recovery_password_invalid)); next.requestFocus(); return;
         }
         if (!password.equals(repeat.getText().toString())) {
             repeat.setError(getString(R.string.recovery_mismatch)); repeat.requestFocus(); return;

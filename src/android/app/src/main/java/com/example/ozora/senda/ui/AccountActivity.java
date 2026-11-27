@@ -376,9 +376,9 @@ public final class AccountActivity extends FieldScreen {
         String old = current.getText().toString(), value = next.getText().toString();
         int bytes = value.getBytes(StandardCharsets.UTF_8).length;
         if (old.isEmpty()) { current.setError("Introduce la contraseña actual."); return; }
-        if (bytes < 12 || bytes > 72 || value.indexOf(0) >= 0 || value.equals(old)) {
-            next.setError("Usa una contraseña distinta de entre 12 y 72 bytes UTF-8."); return;
-        }
+        String problema = com.example.ozora.senda.auth.ReglasContrasena.problema(value, prefs.getString("account_email", ""));
+        if (bytes < 12 || bytes > 72 || problema != null) { next.setError(problema); next.requestFocus(); aviso(problema, false); return; }
+        if (value.equals(old)) { next.setError("Debe ser distinta de la actual."); next.requestFocus(); return; }
         if (!value.equals(confirm.getText().toString())) { confirm.setError("Las contraseñas no coinciden."); return; }
         busy = true;
         Button submit = contenido.findViewWithTag("submit");
