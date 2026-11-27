@@ -199,7 +199,7 @@ try {
             $db->exec('DELETE FROM CORREOS_PENDIENTES WHERE enviado_en IS NOT NULL AND enviado_en < UTC_TIMESTAMP(3) - INTERVAL 1 DAY');
             echo "Registros técnicos caducados eliminados.\n";
             break;
-        default: echo "Uso: php src/tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|actualizar-contrasenas|actualizar-roles|actualizar-perfil|solicitudes\n"; exit(1);
+        default: echo "Uso: php src/tools/gestionar.php instalar|demo|correo|limpiar|actualizar-contacto|actualizar-contrasenas|actualizar-roles|actualizar-perfil|actualizar-soporte|crear-tecnico <correo> <nombre>|solicitudes\n"; exit(1);
     }
 } catch (Throwable $error) {
     fwrite(STDERR, 'Error de administración: ' . $error->getMessage() . "\n");
