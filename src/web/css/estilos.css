@@ -101,3 +101,41 @@ body:not(.panel-abierto) .estrecha .ver-contrasena { background: transparent; co
 .pie-acceso .enlace { display: inline; padding: 0; margin: 0; text-decoration: none; font-weight: 700; color: #123f42; font-size: .95rem; }
 .pie-acceso .enlace:hover { text-decoration: underline; }
 @media (max-width: 700px) { body:not(.panel-abierto) .estrecha { min-height: auto; padding: 72px 24px 32px; } .logo-acceso { margin-bottom: 2rem; } .pie-acceso { padding-top: 2rem; } }
+
+/* --------------------
+ * Soporte técnico tipo foro (27/11/2026): lista de consultas a la izquierda y la
+ * conversación a la derecha. Las respuestas del técnico se distinguen por color.
+ * -------------------- */
+.soporte { margin-top: 2.5rem; scroll-margin: 1.5rem; }
+.titulo-soporte { align-items: flex-end; flex-wrap: wrap; }
+.titulo-soporte h2 { margin: .3rem 0 0; font-size: 1.4rem; }
+.acciones-soporte { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.filtro { display: flex; align-items: center; gap: .5rem; margin: 0; font-size: .85rem; }
+select { padding: .6rem .8rem; border: 1px solid #acbdb1; border-radius: .4rem; font: inherit; background: white; color: var(--bosque); }
+textarea { width: 100%; min-width: 0; padding: .8rem; border: 1px solid #acbdb1; border-radius: .4rem; font: inherit; resize: vertical; }
+textarea:focus-visible, select:focus-visible { outline: 3px solid #be8c32; outline-offset: 3px; }
+.columnas-soporte { display: grid; grid-template-columns: minmax(260px, 2fr) 3fr; gap: 1.5rem; align-items: start; }
+.lista-soporte form { margin: 0 0 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e3ebe4; }
+.lista-soporte h3, .detalle-hilo h3 { font-family: Sora, sans-serif; font-size: 1.05rem; margin: 0; }
+.lista-hilos { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.lista-hilos .vacio { color: #61736a; font-size: .9rem; padding: .5rem 0; }
+.hilo { width: 100%; text-align: left; display: grid; gap: .35rem; background: white; color: var(--bosque); border: 1px solid #d8e2d9; padding: .8rem .9rem; font-weight: 500; }
+.hilo:hover { background: #f3f8f3; }
+.hilo.activo { border-color: #316d53; background: #edf4ee; box-shadow: inset 3px 0 0 #316d53; }
+.hilo-cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: .6rem; }
+.hilo-cabecera strong { font-weight: 650; overflow-wrap: anywhere; }
+.hilo-meta { font-size: .76rem; color: #61736a; overflow-wrap: anywhere; }
+.chip-estado { flex: none; font-size: .7rem; font-weight: 700; padding: .2rem .55rem; border-radius: 1rem; white-space: nowrap; }
+.estado-abierto { background: #fdecc8; color: #7a5208; }
+.estado-respondido { background: #dcefe2; color: #1f5c3e; }
+.estado-cerrado { background: #e7e9e8; color: #56625c; }
+.detalle-hilo { min-height: 320px; }
+.detalle-hilo .fila { align-items: flex-start; }
+.conversacion { list-style: none; margin: 1.2rem 0; padding: 0; display: grid; gap: .8rem; max-height: 460px; overflow-y: auto; }
+.burbuja { max-width: 88%; padding: .75rem 1rem; border-radius: .9rem .9rem .9rem .2rem; background: #f1f4f1; border: 1px solid #e0e7e1; }
+.burbuja.tecnico { justify-self: end; border-radius: .9rem .9rem .2rem .9rem; background: #e3f0e7; border-color: #b9d4c1; }
+.burbuja .autor { display: block; font-size: .74rem; font-weight: 700; color: #316d53; }
+.burbuja p { margin: .3rem 0 0; color: var(--bosque); white-space: pre-wrap; overflow-wrap: anywhere; }
+.form-respuesta { margin-top: .5rem; }
+.detalle-hilo > .secundario { margin-top: .8rem; }
+@media (max-width: 900px) { .columnas-soporte { grid-template-columns: 1fr; } .burbuja { max-width: 100%; } }

@@ -115,6 +115,39 @@ class LogicaFake {
     }
 
 
+    /** Soporte técnico: consultas del usuario (o todas, si es técnico), opcionalmente por estado. */
+    listarHilos(token, estado = '') {
+        return this.#pedir('/soporte/hilos' + (estado ? '?estado=' + encodeURIComponent(estado) : ''), 'GET', token);
+    }
+
+
+    /** Soporte técnico: abre una consulta nueva { asunto, mensaje }. */
+    crearHilo(token, datos) {
+        return this.#pedir('/soporte/hilos', 'POST', token, datos);
+    }
+
+
+    /** Soporte técnico: consulta con toda la conversación. */
+    verHilo(token, id) {
+        if (!Number.isSafeInteger(id) || id <= 0) return Promise.reject(new Error('Consulta no válida.'));
+        return this.#pedir('/soporte/hilos/' + id, 'GET', token);
+    }
+
+
+    /** Soporte técnico: añade una respuesta { texto }. */
+    responderHilo(token, id, datos) {
+        if (!Number.isSafeInteger(id) || id <= 0) return Promise.reject(new Error('Consulta no válida.'));
+        return this.#pedir('/soporte/hilos/' + id + '/mensajes', 'POST', token, datos);
+    }
+
+
+    /** Soporte técnico (solo técnico): cierra o reabre { estado: 'cerrado' | 'abierto' }. */
+    cambiarEstadoHilo(token, id, datos) {
+        if (!Number.isSafeInteger(id) || id <= 0) return Promise.reject(new Error('Consulta no válida.'));
+        return this.#pedir('/soporte/hilos/' + id + '/estado', 'POST', token, datos);
+    }
+
+
     /** --------------------
      * Diseño lógico: ruta: Text, metodo: Text, token: Text, datos: Dato --> #pedir() -->
      * Dato <--

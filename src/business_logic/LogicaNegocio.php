@@ -551,9 +551,19 @@ final class LogicaNegocio
         if (mb_strlen(trim($datos['mensaje']), 'UTF-8') < 10) {
             throw new ErrorDominio('DATOS_INVALIDOS', 'Describe tu consulta con al menos 10 caracteres.');
         }
-        $this->consulta('INSERT INTO SOLICITUDES_CONTACTO (nombre, correo, organizacion, mensaje) VALUES (?, ?, ?, ?)',
-            [trim($datos['nombre']), $correo, trim($datos['organizacion']), trim($datos['mensaje'])]);
-        return ['mensaje' => 'Hemos recibido tu solicitud de información sobre SENDA. Gracias por contarnos tu proyecto.'];
+        $this->db->beginTransaction();
+        try {
+            $this->consulta('INSERT INTO SOLICITUDES_CONTACTO (nombre, correo, organizacion, mensaje) VALUES (?, ?, ?, ?)',
+                [trim($datos['nombre']), $correo, trim($datos['organizacion']), trim($datos['mensaje'])]);
+            // La solicitud llega también al panel del técnico como consulta, para responderla desde allí.
+            $this->insertarHilo(null, trim($datos['nombre']), $correo, trim($datos['organizacion']),
+                mb_substr('Solicitud de demo · ' . trim($datos['organizacion']), 0, 150, 'UTF-8'), 'contacto', trim($datos['mensaje']));
+            $this->db->commit();
+        } catch (Throwable $error) {
+            $this->db->rollBack();
+            throw $error;
+        }
+        return ['mensaje' => 'Hemos recibido tu solicitud de información sobre SENDA. El equipo técnico te responderá por correo.'];
     }
 
 
@@ -596,5 +606,160 @@ final class LogicaNegocio
             $this->db->rollBack();
             throw $error;
         }
+    }
+
+
+
+    /* ====================================================================================
+     * Soporte técnico tipo foro (rol proveedor = técnico de OZORA).
+     * Las consultas llegan del formulario público (origen contacto) o de jefes de parque y
+     * organizaciones desde su panel (origen soporte). El técnico responde y cierra hilos.
+     * ==================================================================================== */
+
+    /** Texto obligatorio, sin nulos y con longitud acotada. */
+    private function textoSoporte(mixed $valor, string $campo, int $minimo, int $maximo): string
+    {
+        if (!is_string($valor) || str_contains($valor, "\0") || mb_strlen(trim($valor), 'UTF-8') < $minimo
+            || mb_strlen(trim($valor), 'UTF-8') > $maximo) {
+            throw new ErrorDominio('DATOS_INVALIDOS', "Escribe entre $minimo y $maximo caracteres.", [$campo => "Entre $minimo y $maximo caracteres."]);
+        }
+        return trim($valor);
+    }
+
+    /** Hilo con permisos: el técnico ve todos; el resto, solo los suyos. */
+    private function hiloAccesible(array $usuario, int $id, bool $bloquear = false): array
+    {
+        $hilo = $this->consulta('SELECT * FROM SOPORTE_HILOS WHERE id_hilo = ?' . ($bloquear ? ' FOR UPDATE' : ''), [$id])->fetch();
+        if (!$hilo || ($usuario['rol'] !== 'proveedor' && (int)$hilo['id_autor'] !== (int)$usuario['id_usuario'])) {
+            throw new ErrorDominio('HILO_NO_EXISTE', 'La consulta no existe o no tienes acceso a ella.');
+        }
+        return $hilo;
+    }
+
+    /** Formato público de un hilo (fechas ISO, enteros). */
+    private function hiloPublico(array $hilo): array
+    {
+        return ['id_hilo' => (int)$hilo['id_hilo'], 'asunto' => $hilo['asunto'], 'origen' => $hilo['origen'],
+            'estado' => $hilo['estado'], 'nombre_contacto' => $hilo['nombre_contacto'],
+            'correo_contacto' => $hilo['correo_contacto'], 'organizacion_contacto' => $hilo['organizacion_contacto'],
+            'creado_en' => fechaJson($hilo['creado_en']), 'actualizado_en' => fechaJson($hilo['actualizado_en']),
+            'mensajes' => isset($hilo['mensajes']) ? (int)$hilo['mensajes'] : null];
+    }
+
+    /** Crea un hilo con su primer mensaje (sin transacción propia). */
+    private function insertarHilo(?array $autor, string $nombre, string $correo, string $organizacion,
+                                  string $asunto, string $origen, string $texto): int
+    {
+        $this->consulta('INSERT INTO SOPORTE_HILOS (id_autor, nombre_contacto, correo_contacto, organizacion_contacto, asunto, origen)
+            VALUES (?, ?, ?, ?, ?, ?)', [$autor['id_usuario'] ?? null, $nombre, $correo, $organizacion, $asunto, $origen]);
+        $id = (int)$this->db->lastInsertId();
+        $this->consulta('INSERT INTO SOPORTE_MENSAJES (id_hilo, id_autor, es_tecnico, texto) VALUES (?, ?, 0, ?)',
+            [$id, $autor['id_usuario'] ?? null, $texto]);
+        return $id;
+    }
+
+    /**
+     * Diseño lógico: usuario: [Dato], estado: Text --> listarHilos() --> [Dato]
+     * Descripción: Técnico: todas las consultas (filtrables por estado). Jefe/organización: las suyas.
+     */
+    public function listarHilos(array $usuario, ?string $estado = null): array
+    {
+        if (!in_array($usuario['rol'], ['proveedor', 'jefe_parque', 'organizacion'], true)) {
+            throw new ErrorDominio('SIN_PERMISO', 'El soporte está disponible para responsables de parque y organizaciones.');
+        }
+        $condiciones = []; $parametros = [];
+        if ($usuario['rol'] !== 'proveedor') { $condiciones[] = 'h.id_autor = ?'; $parametros[] = $usuario['id_usuario']; }
+        if ($estado !== null && in_array($estado, ['abierto', 'respondido', 'cerrado'], true)) {
+            $condiciones[] = 'h.estado = ?'; $parametros[] = $estado;
+        }
+        $filas = $this->consulta('SELECT h.*, (SELECT COUNT(*) FROM SOPORTE_MENSAJES m WHERE m.id_hilo = h.id_hilo) AS mensajes
+            FROM SOPORTE_HILOS h' . ($condiciones ? ' WHERE ' . implode(' AND ', $condiciones) : '')
+            . " ORDER BY FIELD(h.estado, 'abierto', 'respondido', 'cerrado'), h.actualizado_en DESC LIMIT 200", $parametros)->fetchAll();
+        return ['hilos' => array_map(fn(array $h): array => $this->hiloPublico($h), $filas)];
+    }
+
+    /**
+     * Diseño lógico: usuario: [Dato], datos: [Dato] --> crearHilo() --> [Dato]
+     * Descripción: Jefe de parque u organización abre una consulta de soporte con su primer mensaje.
+     */
+    public function crearHilo(array $usuario, array $datos): array
+    {
+        if (!in_array($usuario['rol'], ['jefe_parque', 'organizacion'], true)) {
+            throw new ErrorDominio('SIN_PERMISO', 'Solo responsables de parque y organizaciones pueden abrir consultas.');
+        }
+        exigirCampos($datos, ['asunto', 'mensaje']);
+        $asunto = $this->textoSoporte($datos['asunto'], 'asunto', 4, 150);
+        $texto = $this->textoSoporte($datos['mensaje'], 'mensaje', 10, 4000);
+        $organizacion = $usuario['id_parque'] ? 'Parque ' . $usuario['id_parque'] : 'Organización';
+        $id = $this->insertarHilo($usuario, $usuario['nombre'], $usuario['email'], $organizacion, $asunto, 'soporte', $texto);
+        return ['id_hilo' => $id, 'mensaje' => 'Consulta enviada. El equipo técnico te responderá aquí y por correo.'];
+    }
+
+    /**
+     * Diseño lógico: usuario: [Dato], id: Z --> verHilo() --> [Dato]
+     * Descripción: Hilo con toda la conversación, en orden.
+     */
+    public function verHilo(array $usuario, int $id): array
+    {
+        $hilo = $this->hiloAccesible($usuario, $id);
+        $mensajes = $this->consulta('SELECT m.id_mensaje, m.es_tecnico, m.texto, m.creado_en, u.nombre AS autor
+            FROM SOPORTE_MENSAJES m LEFT JOIN USUARIOS u ON u.id_usuario = m.id_autor
+            WHERE m.id_hilo = ? ORDER BY m.id_mensaje', [$id])->fetchAll();
+        return ['hilo' => $this->hiloPublico($hilo), 'mensajes' => array_map(fn(array $m): array => [
+            'id_mensaje' => (int)$m['id_mensaje'], 'es_tecnico' => (bool)$m['es_tecnico'], 'texto' => $m['texto'],
+            'autor' => $m['es_tecnico'] ? 'Soporte OZORA' : ($m['autor'] ?? $hilo['nombre_contacto']),
+            'creado_en' => fechaJson($m['creado_en'])], $mensajes)];
+    }
+
+    /**
+     * Diseño lógico: usuario: [Dato], id: Z, datos: [Dato] --> responderHilo() --> [Dato]
+     * Descripción: Añade una respuesta. Si responde el técnico, avisa por correo a quien preguntó.
+     */
+    public function responderHilo(array $usuario, int $id, array $datos): array
+    {
+        exigirCampos($datos, ['texto']);
+        $texto = $this->textoSoporte($datos['texto'], 'texto', 2, 4000);
+        $this->db->beginTransaction();
+        try {
+            $hilo = $this->hiloAccesible($usuario, $id, true);
+            if ($hilo['estado'] === 'cerrado' && $usuario['rol'] !== 'proveedor') {
+                throw new ErrorDominio('DATOS_INVALIDOS', 'Esta consulta está cerrada. Abre una nueva si necesitas más ayuda.');
+            }
+            $tecnico = $usuario['rol'] === 'proveedor';
+            $this->consulta('INSERT INTO SOPORTE_MENSAJES (id_hilo, id_autor, es_tecnico, texto) VALUES (?, ?, ?, ?)',
+                [$id, $usuario['id_usuario'], (int)$tecnico, $texto]);
+            $this->consulta('UPDATE SOPORTE_HILOS SET estado = ?, actualizado_en = UTC_TIMESTAMP(3) WHERE id_hilo = ?',
+                [$tecnico ? 'respondido' : 'abierto', $id]);
+            if ($tecnico) {
+                // Correo a quien preguntó (con o sin cuenta) con la respuesta del técnico.
+                $enlace = $hilo['id_autor'] ? rtrim((string)($this->config['app_url'] ?? ''), '/') . '/acceso' : '';
+                $this->consulta('INSERT INTO CORREOS_PENDIENTES (destinatario, asunto, cuerpo) VALUES (?, ?, ?)',
+                    [$hilo['correo_contacto'], 'SENDA: respuesta a tu consulta',
+                        'Hola, ' . $hilo['nombre_contacto'] . '. El equipo técnico de OZORA ha respondido a tu consulta «'
+                        . $hilo['asunto'] . "».\n\n" . $texto
+                        . ($enlace !== '' ? "\n\nPuedes seguir la conversación desde el apartado Soporte de tu panel.\n\n$enlace" : '')]);
+            }
+            $this->db->commit();
+            return ['mensaje' => $tecnico ? 'Respuesta enviada. Le llegará también por correo.' : 'Mensaje enviado al equipo técnico.'];
+        } catch (Throwable $error) {
+            $this->db->rollBack();
+            throw $error;
+        }
+    }
+
+    /**
+     * Diseño lógico: usuario: [Dato], id: Z, datos: [Dato] --> cambiarEstadoHilo() --> [Dato]
+     * Descripción: El técnico cierra o reabre una consulta.
+     */
+    public function cambiarEstadoHilo(array $usuario, int $id, array $datos): array
+    {
+        $this->exigirRol($usuario, 'proveedor');
+        exigirCampos($datos, ['estado']);
+        if (!in_array($datos['estado'], ['abierto', 'cerrado'], true)) {
+            throw new ErrorDominio('DATOS_INVALIDOS', 'Estado no válido.');
+        }
+        $this->hiloAccesible($usuario, $id);
+        $this->consulta('UPDATE SOPORTE_HILOS SET estado = ?, actualizado_en = UTC_TIMESTAMP(3) WHERE id_hilo = ?', [$datos['estado'], $id]);
+        return ['mensaje' => $datos['estado'] === 'cerrado' ? 'Consulta cerrada.' : 'Consulta reabierta.'];
     }
 }

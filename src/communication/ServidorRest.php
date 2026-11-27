@@ -86,6 +86,14 @@ function atenderApi(): never
             $parque = (int)$coincidencias[1];
             $rutas[$ruta] = ['GET'];
         }
+        // Soporte técnico: lista/alta de consultas y, por consulta, ver, responder y cambiar estado.
+        $hilo = null; $accionHilo = '';
+        $rutas['/api/v1/soporte/hilos'] = ['GET', 'POST'];
+        if (preg_match('~^/api/v1/soporte/hilos/([1-9][0-9]{0,8})(?:/(mensajes|estado))?$~D', $ruta, $coincidencias)) {
+            $hilo = (int)$coincidencias[1];
+            $accionHilo = $coincidencias[2] ?? '';
+            $rutas[$ruta] = $accionHilo === '' ? ['GET'] : ['POST'];
+        }
         if (!isset($rutas[$ruta])) {
             throw new ErrorApi(404, 'RUTA_NO_ENCONTRADA', 'La ruta no existe.');
         }
@@ -151,6 +159,25 @@ function atenderApi(): never
             } elseif ($ruta === '/api/v1/mediciones') {
                 $resultado = $logica->guardarMedicion($usuario, $datos);
                 $estado = $resultado['duplicada'] ? 200 : 201;
+            } elseif ($ruta === '/api/v1/soporte/hilos') {
+                if ($metodo === 'POST') {
+                    $logica->limitar($ruta, $_SERVER['REMOTE_ADDR'] ?? 'desconocida', (string)$usuario['id_usuario']);
+                    $resultado = $logica->crearHilo($usuario, $datos);
+                    $estado = 201;
+                } else {
+                    $resultado = $logica->listarHilos($usuario, isset($_GET['estado']) && is_string($_GET['estado']) ? $_GET['estado'] : null);
+                }
+            } elseif ($hilo !== null) {
+                if ($accionHilo === 'mensajes') {
+                    $resultado = $logica->responderHilo($usuario, $hilo, $datos);
+                    $estado = 201;
+                    try { entregarCorreos($db, $config); }
+                    catch (Throwable $fallo) { error_log('SENDA: no se pudo entregar la respuesta de soporte: ' . $fallo->getMessage()); }
+                } elseif ($accionHilo === 'estado') {
+                    $resultado = $logica->cambiarEstadoHilo($usuario, $hilo, $datos);
+                } else {
+                    $resultado = $logica->verHilo($usuario, $hilo);
+                }
             } elseif ($ruta === '/api/v1/trabajadores') {
                 $resultado = $logica->registrarTrabajador($usuario, $datos);
                 $estado = 201;

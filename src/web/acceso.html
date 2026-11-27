@@ -20,12 +20,12 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SENDA · Parque</title>
-  <link rel="stylesheet" href="/css/estilos.css?v=20261119-login-2">
-  <script src="/js/LogicaFake.js?v=20261118" defer></script>
-  <script src="/js/app.js?v=20261103-3" defer></script>
+  <link rel="stylesheet" href="/css/estilos.css?v=20261127">
+  <script src="/js/LogicaFake.js?v=20261127" defer></script>
+  <script src="/js/app.js?v=20261127" defer></script>
 </head>
 <body>
-  <header class="cabecera"><a class="marca" href="/acceso"><img src="/assets/senda.svg" alt="" width="32" height="30.1714"><span>SENDA<small>por Ozora</small></span></a><span class="etiqueta">Web auxiliar · Sprint 2</span><nav id="navegacion-privada" aria-label="Navegación del parque" hidden><a href="#ultima-lectura">Última medición</a><a href="#alta-trabajador">Registrar trabajador</a></nav><a class="volver-publica" href="/">Volver a OZORA</a></header>
+  <header class="cabecera"><a class="marca" href="/acceso"><img src="/assets/senda.svg" alt="" width="32" height="30.1714"><span>SENDA<small>por Ozora</small></span></a><span class="etiqueta">Web auxiliar · Sprint 2</span><nav id="navegacion-privada" aria-label="Navegación del panel" hidden><a class="solo-jefe" href="#ultima-lectura">Última medición</a><a class="solo-jefe" href="#alta-trabajador">Registrar trabajador</a><a href="#soporte">Soporte técnico</a></nav><a class="volver-publica" href="/">Volver a OZORA</a></header>
   <main>
     <div id="mensaje" role="status" aria-live="polite" tabindex="-1"></div>
     <section id="acceso" class="tarjeta estrecha">
@@ -71,7 +71,7 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
       <button id="salir-cambio" class="enlace" type="button">Cerrar sesión</button>
     </section>
     <section id="panel" hidden>
-      <div class="titulo-panel"><div><p class="ceja">Panel del parque</p><h1 id="saludo">Bienvenido</h1><p id="parque"></p></div><button id="salir" class="secundario" type="button">Cerrar sesión</button></div>
+      <div class="titulo-panel"><div><p id="ceja-panel" class="ceja">Panel del parque</p><h1 id="saludo">Bienvenido</h1><p id="parque"></p></div><button id="salir" class="secundario" type="button">Cerrar sesión</button></div>
       <div id="contenido-jefe" class="columnas" hidden>
         <section id="ultima-lectura" class="tarjeta"><div class="fila"><h2>Última medición</h2><button id="actualizar" class="secundario" type="button">Actualizar</button></div>
           <p class="nota">Lectura más reciente por fecha de captura entre todos los llaveros del parque.</p>
@@ -84,6 +84,18 @@ Aportación: Interfaz accesible de acceso, alta, última lectura y recuperación
         </section>
       </div>
       <section id="contenido-trabajador" class="tarjeta" hidden><h2>Tu cuenta está lista.</h2><p>Utiliza la aplicación Android para vincular tu llavero y enviar las mediciones. Este panel de registro está reservado al jefe de parque.</p></section>
+      <section id="soporte" class="soporte" hidden>
+        <div class="fila titulo-soporte"><div><p class="ceja">Soporte técnico</p><h2 id="titulo-soporte">Consultas y respuestas</h2></div>
+          <div class="acciones-soporte"><label class="filtro" id="filtro-soporte" hidden>Estado <select id="estado-soporte"><option value="">Todas</option><option value="abierto">Pendientes</option><option value="respondido">Respondidas</option><option value="cerrado">Cerradas</option></select></label><button id="recargar-soporte" class="secundario" type="button">Actualizar</button></div></div>
+        <p id="explicacion-soporte" class="nota"></p>
+        <div class="columnas-soporte">
+          <div class="tarjeta lista-soporte">
+            <form id="form-consulta" hidden><h3>Nueva consulta</h3><label for="asunto-consulta">Asunto</label><input id="asunto-consulta" name="asunto" minlength="4" maxlength="150" required placeholder="Ej.: El llavero no envía mediciones"><label for="mensaje-consulta">Describe el problema</label><textarea id="mensaje-consulta" name="mensaje" rows="4" minlength="10" maxlength="4000" required placeholder="Qué ha pasado, cuándo y en qué dispositivo…"></textarea><button type="submit">Enviar consulta</button></form>
+            <ul id="lista-hilos" class="lista-hilos" aria-live="polite"></ul>
+          </div>
+          <article id="detalle-hilo" class="tarjeta detalle-hilo" aria-live="polite"><p class="nota">Selecciona una consulta para ver la conversación.</p></article>
+        </div>
+      </section>
     </section>
   </main>
   <footer>OZORA / SENDA · Entorno auxiliar de integración</footer>

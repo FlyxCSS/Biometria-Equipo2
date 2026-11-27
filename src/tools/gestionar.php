@@ -33,6 +33,7 @@ function instalarEsquema(PDO $db): void
     actualizarContacto($db);
     actualizarContrasenas($db);
     actualizarRoles($db);
+    actualizarSoporte($db);
     echo "Esquema instalado.\n";
 }
 
@@ -42,6 +43,37 @@ function instalarEsquema(PDO $db): void
  * Diseño lógico: db: Deposito --> actualizarContacto() -->
  * Descripción: Añade la tabla de contacto a una instalación anterior sin borrar ni alterar datos
  * -------------------- */
+function actualizarSoporte(PDO $db): void
+{
+    // Tablas del soporte técnico tipo foro. Idempotente: no toca datos existentes.
+    $db->exec(file_get_contents(dirname(__DIR__) . '/database/migrations/007_soporte.sql'));
+    echo "Tablas de soporte preparadas.\n";
+}
+
+
+
+/** --------------------
+ * Diseño lógico: db: Deposito, correo: Text, nombre: Text --> crearTecnico() -->
+ * Descripción: Crea una cuenta de técnico (rol proveedor) con contraseña temporal segura; debe cambiarla al entrar
+ * -------------------- */
+function crearTecnico(PDO $db, string $correo, string $nombre): void
+{
+    $correo = validarCorreo($correo);
+    $nombre = trim($nombre) !== '' ? trim($nombre) : 'Soporte técnico OZORA';
+    // Contraseña temporal que cumple las reglas (mayúscula, minúscula, número y símbolo).
+    do {
+        $temporal = 'Ar-' . strtoupper(bin2hex(random_bytes(3))) . '#' . bin2hex(random_bytes(3)) . 'k';
+        try { validarContrasena($temporal, $correo); $valida = true; } catch (ErrorDominio $e) { $valida = false; }
+    } while (!$valida);
+    $q = $db->prepare('INSERT INTO USUARIOS (nombre, email, password_hash, debe_cambiar_contrasena, id_rol)
+        VALUES (?, ?, ?, 1, (SELECT id_rol FROM ROLES WHERE codigo = ?))');
+    $q->execute([$nombre, $correo, password_hash($temporal, PASSWORD_BCRYPT), 'proveedor']);
+    echo "Cuenta de técnico creada: $correo\nContraseña temporal: $temporal\n"
+        . "Entra en /acceso con ella; te pedirá cambiarla por una propia.\n";
+}
+
+
+
 function actualizarContacto(PDO $db): void
 {
     if (!$db->query("SHOW TABLES LIKE 'SOLICITUDES_CONTACTO'")->fetch()) {
@@ -153,6 +185,8 @@ try {
         case 'correo': echo entregarCorreos($db, $config) . " correos entregados.\n"; break;
         case 'actualizar-contacto': actualizarContacto($db); break;
         case 'actualizar-contrasenas': actualizarContrasenas($db); break;
+        case 'actualizar-soporte': actualizarSoporte($db); break;
+        case 'crear-tecnico': crearTecnico($db, $argv[2] ?? '', $argv[3] ?? ''); break;
         case 'solicitudes':
             // Solo consola del administrador. Nunca publicar solicitudes mediante una ruta GET.
             echo json_encode($db->query('SELECT * FROM SOLICITUDES_CONTACTO ORDER BY recibida_en DESC LIMIT 50')->fetchAll(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
